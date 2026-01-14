@@ -6,11 +6,21 @@
 const UI_MANAGER = {
     async init() {
         console.log('🌐 Quantix UI Manager Initialized');
-        await this.refreshGlobalStats();
+        this.setActiveLink();
         this.initMobileMenu();
+        await this.refreshGlobalStats();
+    },
 
-        // Refresh stats disabled for System Lock v1
-        // setInterval(() => this.refreshGlobalStats(), 30000);
+    setActiveLink() {
+        const path = window.location.pathname.split("/").pop() || 'index.html';
+        const navLinks = document.querySelectorAll('.nav-link');
+        navLinks.forEach(link => {
+            if (link.getAttribute('href') === path) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
     },
 
     initMobileMenu() {

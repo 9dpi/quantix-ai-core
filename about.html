@@ -142,23 +142,25 @@
     </style>
 </head>
 
-<body>
+<body class="scrollable-page">
     <header class="app-header">
         <div class="logo-area">
             <div class="logo-icon"></div>
             <span class="logo-text">QUANTIX AI CORE</span>
         </div>
-        <nav class="main-nav">
+        <div class="hamburger" id="menu-toggle">☰</div>
+        <nav class="main-nav" id="main-nav">
             <a href="about.html" class="nav-link active">About</a>
             <a href="index.html" class="nav-link">Dashboard</a>
             <a href="docs.html" class="nav-link">Documentation</a>
         </nav>
-        <div class="status-tag hide-mobile">
+        <div class="status-tag hide-mobile"
+            style="font-size: 0.7rem; color: var(--text-dim); display: flex; align-items: center; gap: 8px;">
             <div class="dot dot-online"></div> SYSTEM_OF_RECORD
         </div>
     </header>
 
-    <main class="app-layout" style="max-width: 1000px; margin: 0 auto; padding: 0 20px;">
+    <main class="content-container">
         <div class="hero-section">
             <div class="hero-subtitle">Quantix AI Core</div>
             <h1 class="hero-title">Market State Analysis.<br>Not Prediction.</h1>
@@ -261,7 +263,7 @@
             </div>
 
             <!-- CURRENT STATUS -->
-            <div class="landing-card" style="grid-column: 1 / -1;">
+            <div class="landing-card" style="grid-column: 1 / -1; margin-bottom: 60px;">
                 <div class="card-header">Current Status</div>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
                     <div>
@@ -282,11 +284,14 @@
     </main>
 
     <footer class="app-footer">
-        <div class="disclaimer">
-            Quantix AI provides institutional-grade market structure analysis.
-            It does not provide investment advice or price predictions.
+        <div class="disclaimer" style="max-width: 1000px;">
+            <strong>LEGAL SHIELD:</strong> Quantix AI provides institutional-grade market structure analysis and
+            research-based decision support.
+            It does NOT provide investment advice, price predictions, or automated trading signals.
+            Any trading decision remains the sole responsibility of the user.
         </div>
     </footer>
+    <script src="static/js/ui_shared.js"></script>
 </body>
 
 </html>

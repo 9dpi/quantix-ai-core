@@ -24,12 +24,14 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://localhost:5173",
+        "http://localhost:8000",
         "https://9dpi.github.io",
-        "*" # In Internal Alpha, we can be flexible, but better to specify later
+        "https://quantix-ai-core-production.up.railway.app"
     ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # Include Routers

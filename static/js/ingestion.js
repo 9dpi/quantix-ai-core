@@ -1,6 +1,5 @@
-import API_CONFIG from './api.js';
-
-const API_BASE = API_CONFIG.getBaseUrl();
+// API_CONFIG is loaded via static/js/api.js script tag as a global
+const API_BASE = window.API_CONFIG ? window.API_CONFIG.getBaseUrl() : 'https://quantixaicore-production.up.railway.app/api/v1';
 
 document.addEventListener('DOMContentLoaded', () => {
     initIngestion();

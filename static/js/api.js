@@ -14,4 +14,5 @@ const API_CONFIG = {
     }
 };
 
-export default API_CONFIG;
+// Make API_CONFIG globally accessible
+window.API_CONFIG = API_CONFIG;

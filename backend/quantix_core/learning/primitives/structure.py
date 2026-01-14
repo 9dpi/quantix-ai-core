@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 from typing import List, Tuple
 
-from schemas.feature_state import PrimitiveSignal, StructureFeatureState
+from quantix_core.schemas.feature_state import PrimitiveSignal, StructureFeatureState
 
 
 class StructurePrimitive:

@@ -15,4 +15,4 @@ COPY backend/ .
 # Railway dùng biến môi trường PORT. 
 # CMD dạng shell để $PORT được thay thế chính xác.
 # Ta bind vào 0.0.0.0 để có thể nhận traffic từ internet.
-CMD uvicorn api.main:app --host 0.0.0.0 --port $PORT
+CMD uvicorn quantix_core.api.main:app --host 0.0.0.0 --port $PORT

@@ -10,9 +10,9 @@ import pandas as pd
 from datetime import datetime
 import uuid
 
-from engine.structure_engine_v1 import StructureEngineV1
-from ingestion.yahoo_fetcher import YahooFinanceFetcher
-from ingestion.data_validator import DataValidator, DataNotSufficientError
+from quantix_core.engine.structure_engine_v1 import StructureEngineV1
+from quantix_core.ingestion.yahoo_fetcher import YahooFinanceFetcher
+from quantix_core.ingestion.data_validator import DataValidator, DataNotSufficientError
 from loguru import logger
 
 router = APIRouter()

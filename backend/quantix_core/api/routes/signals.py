@@ -6,12 +6,12 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Optional
 from loguru import logger
 
-from config.settings import settings
-from schemas.signal import SignalOutput
-from database.connection import db
+from quantix_core.config.settings import settings
+from quantix_core.schemas.signal import SignalOutput
+from quantix_core.database.connection import db
 
-from learning.pattern_engine import PatternEngine
-from learning.explainability import ExplainabilityEngine
+from quantix_core.learning.pattern_engine import PatternEngine
+from quantix_core.learning.explainability import ExplainabilityEngine
 
 router = APIRouter()
 pattern_engine = PatternEngine()
@@ -27,7 +27,7 @@ async def generate_signal(asset: str, timeframe: str = "M15"):
         raise HTTPException(status_code=403, detail="Public signal generation restricted to Internal Alpha Engine.")
 
     # 2. Context Analysis (Simulation for Phase 3.1)
-    # In real pipeline, this comes from Ingestion Engine
+    # In real pipeline, this comes from quantix_core.Ingestion Engine
     context = {
         "session": "LONDON_NY_OVERLAP", 
         "pattern": "PIN_BAR", 

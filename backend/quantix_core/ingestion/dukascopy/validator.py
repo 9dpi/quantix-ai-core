@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from dataclasses import dataclass
 from loguru import logger
 
-from ingestion.dukascopy.resampler import Candle
+from quantix_core.ingestion.dukascopy.resampler import Candle
 
 
 @dataclass

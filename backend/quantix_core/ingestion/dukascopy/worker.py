@@ -10,11 +10,11 @@ from datetime import datetime, timedelta
 import uuid
 from loguru import logger
 
-from ingestion.dukascopy.client import DukascopyClient
-from ingestion.dukascopy.tick_parser import TickParser
-from ingestion.dukascopy.resampler import CandleResampler, Candle
-from ingestion.dukascopy.validator import CandleValidator
-from database.connection import db
+from quantix_core.ingestion.dukascopy.client import DukascopyClient
+from quantix_core.ingestion.dukascopy.tick_parser import TickParser
+from quantix_core.ingestion.dukascopy.resampler import CandleResampler, Candle
+from quantix_core.ingestion.dukascopy.validator import CandleValidator
+from quantix_core.database.connection import db
 
 
 class DukascopyWorker:

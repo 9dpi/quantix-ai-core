@@ -12,8 +12,8 @@ from loguru import logger
 # Add backend to sys.path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from miner.generator import SnapshotGenerator
-from learning_lab.advisor import LabAdvisor
+from quantix_core.miner.generator import SnapshotGenerator
+from quantix_core.learning_lab.advisor import LabAdvisor
 
 async def run_demo():
     logger.info("🚀 Starting Quantix AI Flow Demo")

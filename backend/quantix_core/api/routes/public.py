@@ -4,9 +4,9 @@ Endpoint: /api/v1/public/market-state
 """
 
 from fastapi import APIRouter, HTTPException, Query, Header, Depends
-from config.settings import settings
-from engine.structure_engine_v1 import StructureEngineV1
-from ingestion.yahoo_fetcher import YahooFinanceFetcher
+from quantix_core.config.settings import settings
+from quantix_core.engine.structure_engine_v1 import StructureEngineV1
+from quantix_core.ingestion.yahoo_fetcher import YahooFinanceFetcher
 from loguru import logger
 import pandas as pd
 import uuid

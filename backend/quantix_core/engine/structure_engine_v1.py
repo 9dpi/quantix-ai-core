@@ -9,11 +9,11 @@ import pandas as pd
 from typing import Dict
 import uuid
 
-from engine.primitives.swing_detector import SwingDetector
-from engine.primitives.structure_events import StructureEventDetector
-from engine.primitives.fake_breakout_filter import FakeBreakoutFilter
-from engine.primitives.evidence_scorer import EvidenceScorer, EvidenceAggregator
-from engine.primitives.state_resolver import StateResolver, StructureState
+from quantix_core.engine.primitives.swing_detector import SwingDetector
+from quantix_core.engine.primitives.structure_events import StructureEventDetector
+from quantix_core.engine.primitives.fake_breakout_filter import FakeBreakoutFilter
+from quantix_core.engine.primitives.evidence_scorer import EvidenceScorer, EvidenceAggregator
+from quantix_core.engine.primitives.state_resolver import StateResolver, StructureState
 from loguru import logger
 
 

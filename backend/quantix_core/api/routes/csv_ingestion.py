@@ -7,8 +7,8 @@ from fastapi.responses import JSONResponse
 from typing import Optional, List
 from loguru import logger
 
-from ingestion.pipeline import CSVIngestionPipeline
-from database.connection import db
+from quantix_core.ingestion.pipeline import CSVIngestionPipeline
+from quantix_core.database.connection import db
 
 router = APIRouter()
 pipeline = CSVIngestionPipeline()
@@ -62,7 +62,7 @@ async def get_ingestion_stats(asset: Optional[str] = None, timeframe: Optional[s
 @router.get("/audit-log")
 async def get_audit_log(limit: int = 10):
     try:
-        query = "SELECT * FROM ingestion_audit_log ORDER BY ingested_at DESC LIMIT $1"
+        query = "SELECT * from quantix_core.ingestion_audit_log ORDER BY ingested_at DESC LIMIT $1"
         logs = await db.fetch(query, limit)
         return {"status": "success", "logs": logs}
     except Exception as e:
@@ -73,7 +73,7 @@ async def get_global_stats():
     """Returns aggregated stats for the Learning Engine across all history"""
     try:
         # Sum of all tradable rows and average of weights
-        query = "SELECT SUM(tradable_count) as total_learning, SUM(total_rows) as total_ingested, AVG(avg_learning_weight) as avg_weight FROM ingestion_audit_log"
+        query = "SELECT SUM(tradable_count) as total_learning, SUM(total_rows) as total_ingested, AVG(avg_learning_weight) as avg_weight from quantix_core.ingestion_audit_log"
         results = await db.fetch(query)
         
         # Format for UI

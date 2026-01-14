@@ -9,8 +9,8 @@ from typing import List, Dict, Tuple
 from dataclasses import dataclass
 from enum import Enum
 
-from learning.primitives.structure_events import StructureEvent
-from learning.primitives.swing_detector import SwingPoint
+from quantix_core.learning.primitives.structure_events import StructureEvent
+from quantix_core.learning.primitives.swing_detector import SwingPoint
 
 
 class EvidenceType(str, Enum):

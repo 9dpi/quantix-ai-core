@@ -6,7 +6,7 @@ Produces atomic, immutable snapshots of market structure state.
 from datetime import datetime
 import uuid
 from loguru import logger
-from engine.structure_engine_v1 import StructureEngineV1
+from quantix_core.engine.structure_engine_v1 import StructureEngineV1
 import pandas as pd
 
 class SnapshotGenerator:

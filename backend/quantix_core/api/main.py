@@ -9,9 +9,9 @@ import uvicorn
 import asyncio
 import os
 
-from api.routes import health, signals, ingestion, csv_ingestion, admin, features, structure, lab, public
-from config.settings import settings
-from database.connection import db
+from quantix_core.api.routes import health, signals, ingestion, csv_ingestion, admin, features, structure, lab, public
+from quantix_core.config.settings import settings
+from quantix_core.database.connection import db
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -76,4 +76,4 @@ async def root():
     }
 
 if __name__ == "__main__":
-    uvicorn.run("api.main:app", host=settings.API_HOST, port=settings.API_PORT, reload=settings.DEBUG)
+    uvicorn.run("quantix_core.api.main:app", host=settings.API_HOST, port=settings.API_PORT, reload=settings.DEBUG)

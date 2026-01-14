@@ -22,10 +22,10 @@ import sys
 # Add parent directory to path
 sys.path.insert(0, '.')
 
-from ingestion.dukascopy.client import DukascopyClient
-from ingestion.dukascopy.tick_parser import TickParser
-from ingestion.dukascopy.resampler import CandleResampler
-from ingestion.dukascopy.validator import CandleValidator
+from quantix_core.ingestion.dukascopy.client import DukascopyClient
+from quantix_core.ingestion.dukascopy.tick_parser import TickParser
+from quantix_core.ingestion.dukascopy.resampler import CandleResampler
+from quantix_core.ingestion.dukascopy.validator import CandleValidator
 
 
 async def run_snapshot_test():

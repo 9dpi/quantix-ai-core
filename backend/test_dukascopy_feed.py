@@ -9,7 +9,7 @@ import asyncio
 from datetime import datetime, timedelta
 from loguru import logger
 
-from ingestion.dukascopy.worker import DukascopyWorker
+from quantix_core.ingestion.dukascopy.worker import DukascopyWorker
 
 
 async def test_1_backfill_one_day():

@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from dataclasses import dataclass
 from loguru import logger
 
-from ingestion.dukascopy.tick_parser import Tick
+from quantix_core.ingestion.dukascopy.tick_parser import Tick
 
 
 @dataclass

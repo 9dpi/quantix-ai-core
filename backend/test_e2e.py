@@ -10,8 +10,8 @@ from datetime import datetime
 import requests
 from loguru import logger
 
-from ingestion.dukascopy.worker import DukascopyWorker
-from database.connection import db
+from quantix_core.ingestion.dukascopy.worker import DukascopyWorker
+from quantix_core.database.connection import db
 
 
 class E2ETestSuite:
@@ -129,8 +129,8 @@ class E2ETestSuite:
         logger.info("TEST 2: VALIDATOR GATEKEEPER")
         logger.info("=" * 80)
         
-        from ingestion.dukascopy.validator import CandleValidator
-        from ingestion.dukascopy.resampler import Candle
+        from quantix_core.ingestion.dukascopy.validator import CandleValidator
+        from quantix_core.ingestion.dukascopy.resampler import Candle
         
         validator = CandleValidator("H4")
         test_passed = True

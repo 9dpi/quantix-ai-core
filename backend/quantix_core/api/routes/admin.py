@@ -4,7 +4,7 @@ GET /api/v1/admin/inspect-db
 """
 
 from fastapi import APIRouter
-from database.connection import get_db
+from quantix_core.database.connection import get_db
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 

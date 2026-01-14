@@ -2,7 +2,7 @@
 Supabase database connection and client management
 """
 from supabase import create_client, Client
-from config.settings import settings
+from quantix_core.config.settings import settings
 from loguru import logger
 from typing import Optional, List, Dict, Any, Union
 import asyncio
@@ -80,7 +80,7 @@ class SupabaseConnection:
             }]
         
         # shim for audit log
-        if "SELECT * FROM ingestion_audit_log" in query:
+        if "SELECT * from quantix_core.ingestion_audit_log" in query:
             res = self.client.table('ingestion_audit_log').select('*').order('ingested_at', desc=True).limit(args[0]).execute()
             return res.data
             

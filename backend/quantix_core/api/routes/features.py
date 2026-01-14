@@ -8,10 +8,10 @@ import pandas as pd
 from datetime import datetime, timezone
 import uuid
 
-from schemas.feature_state import FeatureStateObject, TrendFeatureState, MomentumFeatureState, VolatilityFeatureState
-from learning.primitives.structure import StructurePrimitive
-from ingestion.yahoo_fetcher import YahooFinanceFetcher
-from ingestion.data_validator import DataValidator, DataNotSufficientError
+from quantix_core.schemas.feature_state import FeatureStateObject, TrendFeatureState, MomentumFeatureState, VolatilityFeatureState
+from quantix_core.learning.primitives.structure import StructurePrimitive
+from quantix_core.ingestion.yahoo_fetcher import YahooFinanceFetcher
+from quantix_core.ingestion.data_validator import DataValidator, DataNotSufficientError
 from loguru import logger
 
 router = APIRouter()

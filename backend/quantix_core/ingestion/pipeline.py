@@ -1,5 +1,5 @@
-from ingestion.parser import OHLCVParser
-from scoring.validator import CandleValidator
+from quantix_core.ingestion.parser import OHLCVParser
+from quantix_core.scoring.validator import CandleValidator
 from loguru import logger
 
 class CSVIngestionPipeline:
@@ -27,7 +27,7 @@ class CSVIngestionPipeline:
             tradable_count = validation_result.get("tradable", total_rows)
             
             # --- REAL PERSISTENCE ---
-            from database.connection import db
+            from quantix_core.database.connection import db
             client = db.client
             
             # Prepare batch insert for validated_ohlcv

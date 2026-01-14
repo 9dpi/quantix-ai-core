@@ -4,185 +4,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quantix AI Core | Ingestion Portal</title>
-
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap"
-        rel="stylesheet">
-
-    <!-- Shared Styles -->
+    <meta name="description" content="Quantix AI Core - Data Ingestion Portal">
+    <title>Quantix AI Core | Ingestion Gateway</title>
     <link rel="stylesheet" href="static/css/style.css">
-
-    <style>
-        .upload-area {
-            border: 2px dashed var(--glass-border);
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            background: rgba(255, 255, 255, 0.02);
-            margin: 30px 0;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .upload-area:hover {
-            border-color: var(--accent);
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-            display: grid;
-            grid-template-columns: 100px 1fr;
-            align-items: center;
-            gap: 15px;
-        }
-
-        label {
-            font-weight: 500;
-        }
-
-        input,
-        select {
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid var(--glass-border);
-            background: rgba(0, 0, 0, 0.3);
-            color: white;
-            outline: none;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent), #00a2ff);
-            color: black;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        .stats-grid {
-            margin-top: 30px;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-        }
-
-        .result-box {
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(0, 255, 0, 0.05);
-            border-radius: 10px;
-            display: none;
-        }
-
-        .error-box {
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(255, 0, 0, 0.1);
-            border-radius: 10px;
-            display: none;
-        }
-    </style>
 </head>
 
 <body>
     <div class="app-container">
-        <!-- Sidebar Navigation -->
+        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="logo">
-                <span class="logo-text">QUANTIX</span><span class="logo-core">AI</span>
+                <div class="logo-icon">Q</div>
+                <span>QUANTIX<span class="logo-core">AI</span></span>
             </div>
+
             <nav class="nav-links">
                 <a href="index.html" class="nav-item">
-                    <span class="icon">📊</span> Dashboard
+                    <span class="icon">📊</span>
+                    <span>Dashboard</span>
                 </a>
                 <a href="input.html" class="nav-item active">
-                    <span class="icon">📥</span> Ingestion
+                    <span class="icon">📥</span>
+                    <span>Data Ingestion</span>
                 </a>
                 <a href="#" class="nav-item">
-                    <span class="icon">🤖</span> AI Models
+                    <span class="icon">🎯</span>
+                    <span>Strategy Lab</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="icon">🧪</span>
+                    <span>Backtest Hub</span>
                 </a>
             </nav>
         </aside>
 
         <!-- Main Content -->
         <main class="content">
-            <header class="top-bar">
-                <h1>CSV Candle Ingestion Pipeline</h1>
-                <div class="user-profile">
-                    <span id="api-status" class="status-dot"></span>
-                    <span class="mode-text">Internal Data Gateway</span>
+            <header class="top-header animate-fade-in">
+                <div>
+                    <h1>Data Ingestion Gateway</h1>
+                    <p style="color: var(--text-secondary);">3-Tier pipeline for high-fidelity market data processing.
+                    </p>
                 </div>
             </header>
 
-            <div class="card">
-                <h2>Bulk CSV Upload</h2>
-                <p>Process OHLCV data through the 3-tier validation and enrichment pipeline.</p>
-
-                <form id="upload-form">
-                    <div class="form-group">
-                        <label>Asset</label>
-                        <input type="text" id="asset" value="EURUSD" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Timeframe</label>
-                        <select id="timeframe">
-                            <option value="M1">M1</option>
-                            <option value="M5">M5</option>
-                            <option value="M15" selected>M15</option>
-                            <option value="H1">H1</option>
-                            <option value="H4">H4</option>
-                            <option value="D1">D1</option>
-                        </select>
-                    </div>
-
-                    <div class="upload-area" id="drop-zone">
-                        <span class="icon" style="font-size: 3rem;">📄</span>
-                        <p>Drag & Drop CSV file here or click to select</p>
-                        <input type="file" id="csv-file" style="display: none" accept=".csv">
-                    </div>
-
-                    <button type="submit" class="btn-primary" id="upload-btn">Start Ingestion Process</button>
-                </form>
-
-                <div id="result-box" class="result-box">
-                    <h3>✅ Ingestion Successful</h3>
-                    <div class="stats-grid">
-                        <div class="stat-mini">
-                            <small>Total Rows</small>
-                            <div id="total-rows">-</div>
+            <div class="upload-container animate-fade-in" style="animation-delay: 0.1s;">
+                <div class="card">
+                    <form id="upload-form">
+                        <div class="form-row">
+                            <div class="input-group">
+                                <label>Asset / Symbol</label>
+                                <input type="text" id="asset" value="EURUSD" placeholder="e.g. BTCUSD, GOLD">
+                            </div>
+                            <div class="input-group">
+                                <label>Timeframe</label>
+                                <select id="timeframe">
+                                    <option value="M1">M1 (Scalper)</option>
+                                    <option value="M5">M5 (Intraday)</option>
+                                    <option value="M15" selected>M15 (Standard)</option>
+                                    <option value="H1">H1 (Swing)</option>
+                                    <option value="H4">H4 (Strategic)</option>
+                                    <option value="D1">D1 (Macro)</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="stat-mini">
-                            <small>Tradable</small>
-                            <div id="tradable-rows">-</div>
+
+                        <div id="drop-zone" class="drop-zone">
+                            <div style="font-size: 3.5rem; filter: drop-shadow(0 0 10px rgba(0,242,255,0.3));">📄</div>
+                            <h3 style="margin-bottom: 0;">Drag & Drop CSV Dataset</h3>
+                            <p style="color: var(--text-secondary);">Supports standard OHLCV columns (timestamp, open,
+                                high, low, close, volume)</p>
+                            <input type="file" id="csv-file" style="display: none" accept=".csv">
                         </div>
-                        <div class="stat-mini">
-                            <small>Learning Wt.</small>
-                            <div id="avg-weight">-</div>
+
+                        <div style="margin-top: 30px;">
+                            <button type="submit" class="btn-primary" id="upload-btn">Initialize Ingestion
+                                Sequence</button>
+                        </div>
+                    </form>
+
+                    <!-- Feedback Containers -->
+                    <div id="result-box" class="card"
+                        style="display: none; margin-top: 30px; background: rgba(0, 255, 163, 0.05); border-color: rgba(0, 255, 163, 0.2);">
+                        <h3 style="color: #00ffa3;">⚡ Sequence Optimized & Stored</h3>
+                        <div class="dashboard-grid" style="grid-template-columns: repeat(3, 1fr); margin-top: 20px;">
+                            <div class="stat-mini">
+                                <small style="color: var(--text-secondary);">RAW PROCESSED</small>
+                                <div id="total-rows" style="font-size: 1.5rem; font-weight: 700;">-</div>
+                            </div>
+                            <div class="stat-mini">
+                                <small style="color: var(--text-secondary);">TRADABLE</small>
+                                <div id="tradable-rows" style="font-size: 1.5rem; font-weight: 700;">-</div>
+                            </div>
+                            <div class="stat-mini">
+                                <small style="color: var(--text-secondary);">ALPHA WT.</small>
+                                <div id="avg-weight" style="font-size: 1.5rem; font-weight: 700;">-</div>
+                            </div>
                         </div>
                     </div>
-                    <p style="margin-top: 15px; font-size: 0.9rem; color: #888;">
-                        Stored in Raw, Validated, and Learning tiers. Feature engine rebuild triggered.
-                    </p>
-                </div>
-
-                <div id="error-box" class="error-box">
-                    <h3>❌ Ingestion Failed</h3>
-                    <p id="error-message"></p>
                 </div>
             </div>
 
-            <section class="ingestion-history" style="margin-top: 40px;">
-                <h2>Recent Audit Logs</h2>
+            <!-- Ingestion Log -->
+            <section class="card animate-fade-in" style="margin-top: 40px; animation-delay: 0.2s;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                    <h2>Recent Network Activity</h2>
+                    <div class="pill">PIPELINE AUDIT</div>
+                </div>
                 <div id="audit-log-container">
-                    <p style="color: #666;">Fetch historical logs...</p>
+                    <p style="color: var(--text-secondary);">Connecting to ingestion node...</p>
                 </div>
             </section>
         </main>

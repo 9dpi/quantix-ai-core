@@ -59,10 +59,24 @@ async function handleUpload() {
         if (response.ok) {
             showSuccess(result);
         } else {
-            showError(result.detail || "Ingestion failed");
+            const errorMsg = result.detail || result.message || "Ingestion failed";
+            showError(`[${response.status}] ${errorMsg}`);
+            console.error('❌ API Error:', {
+                endpoint: `${API_BASE}/ingestion/csv`,
+                status: response.status,
+                statusText: response.statusText,
+                response: result
+            });
         }
     } catch (e) {
-        showError("Backend connection failed");
+        const errorDetails = `Backend connection failed: ${e.message}`;
+        showError(errorDetails);
+        console.error('❌ Network Error:', {
+            endpoint: `${API_BASE}/ingestion/csv`,
+            error: e,
+            message: e.message,
+            stack: e.stack
+        });
     } finally {
         btn.innerText = "Start Ingestion Process";
         btn.disabled = false;
@@ -104,8 +118,15 @@ async function fetchAuditLogs() {
                     <div style="color: #888; margin-top: 4px;">Rows: ${log.total_rows} | Tradable: ${log.tradable_count} | Status: ${log.status}</div>
                 </div>
             `).join('');
+        } else {
+            container.innerHTML = '<p style="color: #555;">No recent audit records.</p>';
         }
     } catch (e) {
         container.innerHTML = '<p style="color: #555;">No recent audit records.</p>';
+        console.error('❌ Audit Log Fetch Error:', {
+            endpoint: `${API_BASE}/ingestion/audit-log`,
+            error: e,
+            message: e.message
+        });
     }
 }

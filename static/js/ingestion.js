@@ -27,6 +27,15 @@ function initIngestion() {
             fileInput.click();
         };
 
+        const browseBtn = document.getElementById('browse-btn');
+        if (browseBtn) {
+            browseBtn.onclick = (e) => {
+                console.log('🖱️ Browse button clicked');
+                e.preventDefault();
+                fileInput.click();
+            };
+        }
+
         fileInput.onchange = () => {
             if (fileInput.files.length) {
                 console.log('📝 File selected:', fileInput.files[0].name);

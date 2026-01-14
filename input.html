@@ -53,10 +53,16 @@
                     id="drop-zone-wrapper">
                     <div id="drop-zone" style="cursor: pointer; padding: 40px; pointer-events: none;">
                         <div style="font-size: 2.5rem; margin-bottom: 16px; opacity: 0.3;">📥</div>
-                        <p style="font-weight: 500;">Drop market CSV or click to browse</p>
+                        <p style="font-weight: 500;">Drop market CSV here</p>
                         <p id="file-name" style="font-size: 0.75rem; color: var(--accent); margin-top: 8px;"></p>
                     </div>
                 </div>
+
+                <!-- Explicit Browse Button -->
+                <button id="browse-btn"
+                    style="width: 100%; margin-top: 15px; padding: 14px; background: var(--bg-sub); color: var(--accent); border: 1px solid var(--accent); border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 0.85rem;">
+                    📁 BROWSE FILES
+                </button>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 24px;">
                     <div class="input-group" style="display: flex; flex-direction: column; gap: 8px;">

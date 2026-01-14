@@ -4,132 +4,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quantix AI Core | Autonomous Dashboard</title>
+    <title>Quantix AI Core | Probabilistic Intelligence</title>
     <link rel="stylesheet" href="static/css/style.css">
 </head>
 
 <body>
-    <div class="app-container">
-        <!-- Shared Sidebar -->
-        <aside class="sidebar">
-            <div class="logo">
-                <div class="logo-icon" style="background: var(--grad-primary);">Q</div>
-                <div style="display: flex; flex-direction: column;">
-                    <span style="font-weight: 800; font-size: 1.1rem; letter-spacing: 1px;">QUANTIX AI</span>
-                    <span
-                        style="color: var(--accent); font-size: 0.7rem; font-weight: 600; letter-spacing: 2px;">CORE</span>
-                </div>
+    <header class="app-header">
+        <div class="logo-area">
+            <div class="logo-icon"></div>
+            <span class="logo-text">QUANTIX AI CORE</span>
+        </div>
+        <nav class="main-nav">
+            <a href="index.html" class="nav-link active">Dashboard</a>
+            <a href="input.html" class="nav-link">Data Ingestion</a>
+            <a href="#" class="nav-link">Strategy Lab</a>
+            <a href="#" class="nav-link">Documentation</a>
+        </nav>
+        <div class="status-tag"
+            style="font-size: 0.7rem; color: var(--text-dim); display: flex; align-items: center; gap: 8px;">
+            <div class="dot dot-online"></div> ENGINE_ACTIVE
+        </div>
+    </header>
+
+    <main class="app-layout">
+        <!-- LEFT: DATA FEED -->
+        <aside class="column">
+            <h2 class="section-title">Market Data Feed</h2>
+            <div class="data-card">
+                <div class="label">Ingested (Total)</div>
+                <div id="total-ingested-sidebar" class="value">0</div>
+            </div>
+            <div class="data-card">
+                <div class="label">Neural Set (Validated)</div>
+                <div id="learning-status-sidebar" class="value" style="color: var(--accent);">0</div>
+            </div>
+            <div class="data-card">
+                <div class="label">Avg Alpha Weight</div>
+                <div id="alpha-weight-sidebar" class="value" style="color: var(--highlight);">0.00</div>
             </div>
 
-            <nav class="nav-links">
-                <a href="index.html" class="nav-item active">
-                    <span class="icon">📊</span> Dashboard
-                </a>
-                <a href="input.html" class="nav-item">
-                    <span class="icon">📥</span> Ingestion
-                </a>
-                <a href="#" class="nav-item">
-                    <span class="icon">🎯</span> Strategy
-                </a>
-                <a href="#" class="nav-item">
-                    <span class="icon">🧪</span> Backtest
-                </a>
-            </nav>
-
-            <!-- Bento Sidebar Component: Learning Engine -->
-            <div class="sidebar-stats-card">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
-                    <div class="dot animate-pulse"></div>
-                    <span style="font-size: 0.7rem; font-weight: 700; color: var(--accent);">LEARNING ENGINE</span>
+            <h2 class="section-title" style="margin-top: 32px;">Feed Health</h2>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                    <span style="color: var(--text-dim);">Supabase Cloud</span>
+                    <span style="color: var(--highlight);">Stable</span>
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="font-size: 0.7rem; color: var(--text-secondary);">Ingested</span>
-                        <span id="total-ingested-sidebar" style="font-size: 0.8rem; font-weight: 700;">0</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="font-size: 0.7rem; color: var(--text-secondary);">Learning</span>
-                        <span id="learning-status-sidebar"
-                            style="font-size: 0.8rem; font-weight: 700; color: var(--accent);">0</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="font-size: 0.7rem; color: var(--text-secondary);">Alpha Wt.</span>
-                        <span id="alpha-weight-sidebar"
-                            style="font-size: 0.8rem; font-weight: 700; color: #00ff88;">0.00</span>
-                    </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                    <span style="color: var(--text-dim);">API Latency</span>
+                    <span style="color: var(--highlight);">14ms</span>
                 </div>
-            </div>
-
-            <div class="pill animate-pulse"
-                style="margin-top: 20px; background: rgba(0,242,255,0.1); border-color: var(--accent); color: var(--accent); width: 100%; justify-content: center;">
-                <span>v3.1_SNIPER</span>
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                    <span style="color: var(--text-dim);">Last Update</span>
+                    <span id="last-update-time" style="color: var(--text-main);">JUST NOW</span>
+                </div>
             </div>
         </aside>
 
-        <!-- Main Bento Content -->
-        <main class="content">
-            <header class="top-header animate-bento">
-                <div>
-                    <h1
-                        style="background: var(--grad-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                        Autonomous Intel.</h1>
-                    <p style="color: var(--text-secondary);">Real-time pattern discovery and alpha generation engine.
-                    </p>
-                </div>
-                <div class="status-pills">
-                    <div class="pill">
-                        <div class="dot"></div> API: LOCAL
+        <!-- MIDDLE: QUANTIX AI CORE CALCULATIONS -->
+        <section class="column" style="background: var(--bg-main);">
+            <div class="intelligence-node">
+                <h2 class="section-title">Neural Engine Analysis</h2>
+                <div class="node-header">
+                    <div>
+                        <div class="label">Model Confidence Score</div>
+                        <div class="confidence-big">94.2%</div>
                     </div>
-                    <div class="pill" style="border-color: #BC13FE; color: #BC13FE;">BETA_ACCESS</div>
+                    <div style="text-align: right;">
+                        <div class="label">Asset Focus</div>
+                        <div style="font-size: 1.2rem; font-weight: 700;">EURUSD/X</div>
+                    </div>
                 </div>
-            </header>
 
-    </div>
+                <div class="data-card" style="padding: 24px; border-style: dashed;">
+                    <div class="label">Engine Calculations</div>
+                    <div style="display: flex; gap: 40px; margin-top: 15px;">
+                        <div>
+                            <div class="label">Volatility (Relative)</div>
+                            <div style="font-size: 1.2rem; font-weight: 600;">0.00421</div>
+                        </div>
+                        <div>
+                            <div class="label">Mean Reversion Prob.</div>
+                            <div style="font-size: 1.2rem; font-weight: 600; color: var(--accent);">82.1%</div>
+                        </div>
+                        <div>
+                            <div class="label">Trend Persistence</div>
+                            <div style="font-size: 1.2rem; font-weight: 600; color: var(--warning);">17.9%</div>
+                        </div>
+                    </div>
+                </div>
 
-    <div class="card stat-card animate-fade-in" style="animation-delay: 0.3s;">
-        <span class="stat-label">Active Alpha Signals</span>
-        <div id="active-signals" class="stat-value">---</div>
-        <p style="font-size: 0.8rem; color: var(--text-secondary);">Internal research sniper alerts</p>
-    </div>
-    </div>
-
-    <!-- Signal & Intelligence Grid -->
-    <div class="dashboard-layout-split" style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
-        <!-- Left: Signal Feed -->
-        <section class="card signals-section animate-fade-in" style="animation-delay: 0.4s; min-height: 400px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-                <h2>Internal Sniper Alerts</h2>
-                <div class="pill">REAL-TIME BROADCAST</div>
-            </div>
-
-            <div id="signals-container">
-                <div style="text-align: center; padding: 100px 0; color: var(--text-secondary);">
-                    <p>Scanning markets for high-probability structures...</p>
+                <div class="why-box">
+                    <div class="why-title">🧠 WHY THIS TRADE?</div>
+                    <div class="why-content">
+                        Current market structure shows a high-probability exhaustion pattern on the M15 timeframe.
+                        The Neural Engine detected a recursive pattern match with 16,967 historical data points,
+                        indicating a 94.2% confidence interval for price stabilization near the 1.08500 psychological
+                        level.
+                        Alpha Weight is optimized for low-volatility context.
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- Right: Explainability Intelligence Panel -->
-        <aside id="explain-panel" class="card explain-card animate-fade-in"
-            style="animation-delay: 0.5s; display: none; height: fit-content; border: 1px solid var(--accent-glow);">
-            <!-- Content will be injected by JS -->
+        <!-- RIGHT: INTERNAL SNIPER ALERTS -->
+        <aside class="column">
+            <h2 class="section-title">Internal Sniper Alerts</h2>
+            <div id="signal-container">
+                <div
+                    style="padding: 20px; text-align: center; color: var(--text-dim); border: 1px dashed var(--border); border-radius: 8px;">
+                    Awaiting next high-probability pattern...
+                </div>
+            </div>
         </aside>
-    </div>
-
-    <footer class="footer animate-fade-in" style="animation-delay: 0.5s; margin-top: 40px;">
-        <div
-            style="background: rgba(255, 145, 0, 0.05); border: 1px solid rgba(255, 145, 0, 0.2); padding: 20px; border-radius: 16px; margin-bottom: 25px;">
-            <strong style="color: #ff9100; font-family: 'Space Grotesk', sans-serif;">QUANTIX_LEGAL_NOTICE:</strong>
-            <p style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">Quantix AI Core is a
-                probabilistic forecasting engine. Signals are internal research data based on statistical
-                models. These are NOT trade recommendations or financial advice. Trading involves high risk.</p>
-        </div>
-        <p>INTERNAL ALPHA ENGINE v1.5. © 2026 Quantix AI Research Lab.</p>
-    </footer>
     </main>
-    </div>
 
-    <script type="module" src="static/js/dashboard.js"></script>
+    <footer class="app-footer">
+        <div class="disclaimer">
+            Quantix AI Core is a probabilistic forecasting engine. Signals are internal research data based on
+            statistical models. These are NOT trade recommendations or financial advice. Trading involves high risk.
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="static/js/api.js"></script>
+    <script src="static/js/ui_shared.js"></script>
+    <script src="static/js/dashboard.js"></script>
 </body>
 
 </html>

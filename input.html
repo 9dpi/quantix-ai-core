@@ -9,184 +9,98 @@
 </head>
 
 <body>
-    <div class="app-container">
-        <!-- Shared Sidebar -->
-        <aside class="sidebar">
-            <div class="logo">
-                <div class="logo-icon" style="background: var(--grad-primary);">Q</div>
-                <div style="display: flex; flex-direction: column;">
-                    <span style="font-weight: 800; font-size: 1.1rem; letter-spacing: 1px;">QUANTIX AI</span>
-                    <span
-                        style="color: var(--accent); font-size: 0.7rem; font-weight: 600; letter-spacing: 2px;">CORE</span>
-                </div>
+    <header class="app-header">
+        <div class="logo-area">
+            <div class="logo-icon"></div>
+            <span class="logo-text">QUANTIX AI CORE</span>
+        </div>
+        <nav class="main-nav">
+            <a href="index.html" class="nav-link">Dashboard</a>
+            <a href="input.html" class="nav-link active">Data Ingestion</a>
+            <a href="#" class="nav-link">Strategy Lab</a>
+            <a href="#" class="nav-link">Documentation</a>
+        </nav>
+        <div style="font-size: 0.7rem; color: var(--text-dim); display: flex; align-items: center; gap: 8px;">
+            <div class="dot dot-online"></div> GATEWAY_READY
+        </div>
+    </header>
+
+    <main class="app-layout">
+        <!-- LEFT: CURRENT INGESTION STATS -->
+        <aside class="column">
+            <h2 class="section-title">Current Ingestion Stats</h2>
+            <div class="data-card">
+                <div class="label">Ingested (Total)</div>
+                <div id="total-candles-sidebar" class="value">0</div>
             </div>
-
-            <nav class="nav-links">
-                <a href="index.html" class="nav-item">
-                    <span class="icon">📊</span> Dashboard
-                </a>
-                <a href="input.html" class="nav-item active">
-                    <span class="icon">📥</span> Ingestion
-                </a>
-                <a href="#" class="nav-item">
-                    <span class="icon">🎯</span> Strategy
-                </a>
-                <a href="#" class="nav-item">
-                    <span class="icon">🧪</span> Backtest
-                </a>
-            </nav>
-
-            <!-- Learning Stats Component -->
-            <div class="sidebar-stats-card">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                    <div class="dot animate-pulse"
-                        style="width: 5px; height: 5px; background: var(--accent); border-radius: 50%;"></div>
-                    <span
-                        style="font-size: 0.6rem; font-weight: 700; color: var(--accent); text-transform: uppercase;">Learning
-                        Engine</span>
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="font-size: 0.65rem; color: var(--text-secondary);">Ingested</span>
-                        <span id="total-candles-sidebar" style="font-size: 0.75rem; font-weight: 700;">0</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="font-size: 0.65rem; color: var(--text-secondary);">Learning</span>
-                        <span id="learning-candles-sidebar"
-                            style="font-size: 0.75rem; font-weight: 700; color: var(--accent);">0</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="font-size: 0.65rem; color: var(--text-secondary);">Alpha Wt.</span>
-                        <span id="avg-weight-sidebar"
-                            style="font-size: 0.75rem; font-weight: 700; color: #00ff88;">0.00</span>
-                    </div>
-                </div>
+            <div class="data-card">
+                <div class="label">Learning Store</div>
+                <div id="learning-candles-sidebar" class="value" style="color: var(--accent);">0</div>
             </div>
-
-            <div class="status-tag"
-                style="margin-top: 20px; border-radius: 6px; justify-content: center; background: rgba(0,242,255,0.05);">
-                <span style="font-size: 0.6rem; color: var(--accent);">v3.1_ACTIVE</span>
+            <div class="data-card">
+                <div class="label">Global Alpha Weight</div>
+                <div id="avg-weight-sidebar" class="value" style="color: var(--highlight);">0.00</div>
             </div>
         </aside>
 
-        <!-- Main Ingestion Content -->
-        <main class="content">
-            <header class="top-header animate-bento">
-                <div>
-                    <h1
-                        style="background: var(--grad-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 5px;">
-                        Data Gateway</h1>
-                    <p style="color: var(--text-secondary); font-size: 0.8rem;">High-fidelity ingestion pipeline
-                        management.</p>
-                </div>
-            </header>
+        <!-- MIDDLE: UPLOAD CONTROL -->
+        <section class="column" style="background: var(--bg-main);">
+            <div class="intelligence-node">
+                <h2 class="section-title">Ingestion Pipeline Control</h2>
 
-            <div class="bento-grid">
-                <!-- Configuration Card -->
-                <div class="card col-span-2 animate-bento">
-                    <h3
-                        style="margin-bottom: 20px; font-size: 0.8rem; text-transform: uppercase; color: var(--text-secondary);">
-                        Metadata Config</h3>
-                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                        <div class="input-group">
-                            <label style="font-size: 0.65rem;">ASSET_HUB</label>
-                            <input type="text" id="asset-symbol" value="EURUSD"
-                                style="padding: 10px; font-size: 0.85rem; border-radius: 6px;">
-                        </div>
-                        <div class="input-group">
-                            <label style="font-size: 0.65rem;">TIMEFRAME_QUANT</label>
-                            <select id="timeframe" style="padding: 10px; font-size: 0.85rem; border-radius: 6px;">
-                                <option value="m15">M15 (Standard)</option>
-                                <option value="h1">H1 (Hourly)</option>
-                                <option value="d1">D1 (Daily)</option>
-                            </select>
-                        </div>
+                <div class="data-card" style="padding: 32px; border-style: dashed; text-align: center;">
+                    <div id="drop-zone" style="cursor: pointer; padding: 40px;">
+                        <div style="font-size: 2.5rem; margin-bottom: 16px; opacity: 0.3;">📥</div>
+                        <p style="font-weight: 500;">Drop market CSV or click to browse</p>
+                        <p id="file-name" style="font-size: 0.75rem; color: var(--accent); margin-top: 8px;"></p>
                     </div>
                 </div>
 
-                <!-- Status Card -->
-                <div class="card col-span-2 animate-bento" style="animation-delay: 0.1s;">
-                    <h3
-                        style="margin-bottom: 15px; font-size: 0.8rem; text-transform: uppercase; color: var(--text-secondary);">
-                        Pipeline Status</h3>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div>
-                            <div style="font-size: 0.6rem; color: var(--text-secondary);">STORAGE_TIER</div>
-                            <div style="font-size: 1rem; color: var(--accent); font-weight: 700;">SUPABASE_CLOUD</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 0.6rem; color: var(--text-secondary);">VALIDATION_LOGIC</div>
-                            <div style="font-size: 1rem; color: #00ff88; font-weight: 700;">ACTIVE_FILTER</div>
-                        </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 24px;">
+                    <div class="input-group" style="display: flex; flex-direction: column; gap: 8px;">
+                        <label class="label">Primary Asset</label>
+                        <input type="text" id="asset-symbol" value="EURUSD"
+                            style="background: var(--bg-sub); border: 1px solid var(--border); padding: 12px; border-radius: 4px; color: white;">
+                    </div>
+                    <div class="input-group" style="display: flex; flex-direction: column; gap: 8px;">
+                        <label class="label">Timeframe</label>
+                        <select id="timeframe"
+                            style="background: var(--bg-sub); border: 1px solid var(--border); padding: 12px; border-radius: 4px; color: white;">
+                            <option value="m15">M15</option>
+                            <option value="h1">H1</option>
+                            <option value="d1">D1</option>
+                        </select>
                     </div>
                 </div>
 
-                <!-- Upload Area -->
-                <div class="card col-span-3 animate-bento" style="animation-delay: 0.2s;">
-                    <div id="drop-zone" class="upload-zone" style="height: 180px; border-radius: 8px;">
-                        <div style="font-size: 2rem; opacity: 0.5;">📥</div>
-                        <p style="font-size: 0.8rem; color: var(--text-secondary);">Drop CSV or <span
-                                style="color: var(--accent);">Browse</span></p>
-                        <p id="file-name" style="font-size: 0.7rem; color: var(--accent); font-weight: 700;"></p>
-                    </div>
-                    <input type="file" id="file-input" accept=".csv" style="display: none;">
-                    <button id="upload-btn" class="btn-bento"
-                        style="width: 100%; margin-top: 15px; font-size: 0.8rem; border-radius: 8px;">INITIALIZE
-                        INGESTION SEQUENCE</button>
+                <input type="file" id="file-input" accept=".csv" style="display: none;">
+                <button id="upload-btn"
+                    style="width: 100%; margin-top: 32px; padding: 16px; background: var(--accent); color: black; border: none; border-radius: 4px; font-weight: 700; cursor: pointer;">
+                    EXECUTE INGESTION SEQUENCE
+                </button>
 
-                    <div id="error-box" class="card"
-                        style="display: none; margin-top: 15px; background: rgba(255,0,0,0.05); border-color: rgba(255,0,0,0.2); padding: 15px;">
-                        <span id="error-msg" style="color: #ff4444; font-size: 0.7rem;"></span>
-                    </div>
-                </div>
-
-                <!-- Result Stats -->
-                <div class="card animate-bento"
-                    style="animation-delay: 0.3s; background: linear-gradient(135deg, rgba(0, 242, 255, 0.05) 0%, transparent 100%);">
-                    <h3 id="result-title"
-                        style="font-size: 0.75rem; margin-bottom: 20px; color: var(--text-secondary);">LAST_RESULT</h3>
-                    <div id="result-box" style="display: none;">
-                        <div style="margin-bottom: 12px;">
-                            <div style="font-size: 0.6rem; color: var(--text-secondary);">RAW_PROCESSED</div>
-                            <div id="total-rows" style="font-size: 1.2rem; font-weight: 700;">0</div>
-                        </div>
-                        <div style="margin-bottom: 12px;">
-                            <div style="font-size: 0.6rem; color: var(--text-secondary);">TRADABLE</div>
-                            <div id="tradable-rows" style="font-size: 1.2rem; font-weight: 700; color: var(--accent);">0
-                            </div>
-                        </div>
-                        <div>
-                            <div style="font-size: 0.6rem; color: var(--text-secondary);">ALPHA_WEIGHT</div>
-                            <div id="avg-weight" style="font-size: 1.2rem; font-weight: 700; color: #00ff88;">0.00</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Audit Log Section -->
-                <div class="card col-span-4 animate-bento" style="animation-delay: 0.4s;">
-                    <h3 style="font-size: 0.8rem; margin-bottom: 15px; color: var(--text-secondary);">NETWORK_AUDIT_LOG
-                    </h3>
-                    <div style="overflow-x: auto;">
-                        <table style="width: 100%; border-collapse: collapse; font-size: 0.7rem;">
-                            <thead>
-                                <tr
-                                    style="text-align: left; opacity: 0.5; border-bottom: 1px solid var(--border-color);">
-                                    <th style="padding: 10px;">TIMESTAMP</th>
-                                    <th style="padding: 10px;">ASSET</th>
-                                    <th style="padding: 10px;">ROWS</th>
-                                    <th style="padding: 10px;">WEIGHT</th>
-                                    <th style="padding: 10px;">STATUS</th>
-                                </tr>
-                            </thead>
-                            <tbody id="audit-log">
-                                <!-- Logs will appear here -->
-                            </tbody>
-                        </table>
-                    </div>
+                <div id="error-box"
+                    style="display: none; margin-top: 24px; padding: 16px; background: rgba(244, 63, 94, 0.1); border-left: 3px solid var(--warning); color: var(--warning); font-size: 0.85rem;">
+                    <span id="error-msg"></span>
                 </div>
             </div>
-        </main>
-    </div>
+        </section>
+
+        <!-- RIGHT: RECENT ACTIVITIES -->
+        <aside class="column">
+            <h2 class="section-title">Network Audit History</h2>
+            <div id="audit-log" style="font-size: 0.75rem;">
+                <!-- Logs will appear here -->
+            </div>
+        </aside>
+    </main>
+
+    <footer class="app-footer">
+        <div class="disclaimer">
+            Quantix AI Core is a probabilistic forecasting engine. Signals are internal research data based on
+            statistical models. These are NOT trade recommendations or financial advice. Trading involves high risk.
+        </div>
+    </footer>
 
     <!-- Scripts -->
     <script src="static/js/api.js"></script>

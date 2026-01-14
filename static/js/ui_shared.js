@@ -29,27 +29,27 @@ const UI_MANAGER = {
     },
 
     updateSidebarUI(data) {
-        // Try multiple ID variants to support different page structures
+        // IDs optimized for 3-column layout
         const elements = {
-            total: document.getElementById('total-candles-sidebar') || document.getElementById('total-ingested-sidebar'),
-            learning: document.getElementById('learning-candles-sidebar') || document.getElementById('learning-status-sidebar'),
-            weight: document.getElementById('avg-weight-sidebar') || document.getElementById('alpha-weight-sidebar')
+            total: document.getElementById('total-ingested-sidebar') || document.getElementById('total-candles-sidebar'),
+            learning: document.getElementById('learning-status-sidebar') || document.getElementById('learning-candles-sidebar'),
+            weight: document.getElementById('alpha-weight-sidebar') || document.getElementById('avg-weight-sidebar'),
+            time: document.getElementById('last-update-time')
         };
 
         if (elements.total) elements.total.innerText = (data.total_ingested || 0).toLocaleString();
-        if (elements.learning) elements.learning.innerText = (data.total_learning || 0).toLocaleString();
+        if (elements.learning) {
+            elements.learning.innerText = (data.total_learning || 0).toLocaleString();
+            elements.learning.style.color = '#38bdf8'; // Sync with Sky Blue
+        }
         if (elements.weight) elements.weight.innerText = (data.avg_weight || 0).toFixed(2);
 
-        // Subtle highlight animation on change
-        if (elements.learning && data.total_learning > 0) {
-            elements.learning.style.color = '#00f2ff';
-            elements.learning.style.textShadow = '0 0 10px rgba(0, 242, 255, 0.5)';
-            setTimeout(() => {
-                elements.learning.style.color = '';
-                elements.learning.style.textShadow = '';
-            }, 2000);
+        if (elements.time) {
+            const now = new Date();
+            elements.time.innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         }
     }
+
 
 };
 

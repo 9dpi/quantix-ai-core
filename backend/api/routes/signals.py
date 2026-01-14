@@ -20,40 +20,33 @@ explain_engine = ExplainabilityEngine()
 @router.post("/generate", response_model=SignalOutput)
 async def generate_signal(asset: str, timeframe: str = "M15"):
     """
-    Core Sniper Signal Generation with Bayesian Outcome Feedback & Explainability
+    Core Sniper Signal Generation with Dynamic Explainability & Confidence
     """
     # 1. API Guard Check
     if settings.QUANTIX_MODE != "INTERNAL":
-        logger.warning(f"Blocked signal generation attempt for {asset} - Mode: {settings.QUANTIX_MODE}")
         raise HTTPException(status_code=403, detail="Public signal generation restricted to Internal Alpha Engine.")
 
-    # 2. Pattern Analysis (Logic will be expanded in ML Phase)
-    # Simulator for context
+    # 2. Context Analysis (Simulation for Phase 3.1)
+    # In real pipeline, this comes from Ingestion Engine
     context = {
         "session": "LONDON_NY_OVERLAP", 
         "pattern": "PIN_BAR", 
         "regime": "TRENDING_UP", 
-        "volatility": "NORMAL"
+        "volatility": "EXPANDING",
+        "is_rollover": False
     }
-    p_hash = pattern_engine.generate_hash(context)
     
-    # 3. Generate Bayesian Confidence (Mocked stats for Phase 3.1 Demo)
-    # In real flow, these stats come from DB
+    # 3. Fetch Pattern Memory (Mocked for demo until we have real data)
     mock_stats = {
-        "win_rate": 0.68,
-        "total_signals": 183,
-        "expectancy": 0.42
+        "win_rate": 0.72,
+        "total_signals": 1240,
+        "expectancy": 0.45
     }
-    confidence = await pattern_engine.generate_confidence(p_hash)
-    # Override confidence for demo purpose since DB is empty
-    confidence = 0.96 
     
-    # 4. Generate Explainability Trace
-    trace = explain_engine.generate_trace(
-        confidence=confidence,
-        pattern_stats=mock_stats,
-        context=context
-    )
+    # 4. Generate Explainability Trace & Dynamic Confidence
+    # The Engine now CALCULATES confidence, it doesn't just read it
+    trace_result = explain_engine.generate_trace(context, mock_stats)
+    final_confidence = trace_result["final_confidence"]
     
     # 5. Signal Construction
     signal_data = {
@@ -65,17 +58,25 @@ async def generate_signal(asset: str, timeframe: str = "M15"):
         "tp": 1.08750,
         "sl": 1.08400,
         "reward_risk_ratio": 2.5,
-        "ai_confidence": confidence,
-        "pattern_hash": p_hash,
-        "context": context,
-        "explainability": trace.dict(),
+        
+        # Intelligence Fields
+        "ai_confidence": final_confidence,
         "data_window": "last_500_candles",
-        "learning_version": "v1.5_loop",
+        "learning_version": "v3.1_explainable",
+        
+        # Explainability Object (Matches improved schema)
+        "explainability": {
+            "summary": trace_result["summary"],
+            "driving_factors": trace_result["driving_factors"],   # Legacy support
+            "risk_factors": trace_result["risk_factors"],         # Legacy support
+            "statistical_basis": mock_stats                       # Audit trail
+        },
+        
         "disclaimer": "Internal research signal. Not financial advice."
     }
 
-    # Task C: Structured Logging for AI Explainability & Memory
-    logger.bind(signal_log=True).info(f"QUANTIX_SIGNAL_REGISTRY: {signal_data}")
+    # Task C: Structured Logging for AI Audit
+    logger.bind(signal_log=True).info(f"QUANTIX_INTELLIGENCE: {signal_data}")
     
     return SignalOutput(**signal_data)
 

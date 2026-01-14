@@ -18,17 +18,13 @@ app = FastAPI(
 )
 
 # --- CORS Configuration ---
+# Universal access for Internal Alpha - allow all origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://9dpi.github.io",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000"
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"]
 )
 
 # Include Routers

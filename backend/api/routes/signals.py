@@ -25,13 +25,21 @@ async def generate_signal(asset: str, timeframe: str = "M15"):
     # 2. Logic (Mocked for now, will be replaced by AI Engine in Phase 2)
     logger.info(f"🎯 Generating Internal Sniper Signal for {asset} {timeframe}")
     
+    signal_data = {
+        "asset": asset,
+        "direction": "BUY",
+        "timeframe": timeframe,
+        "confidence": 0.96,
+        "data_window": "last_500_candles",
+        "learning_version": "v0.1.0",
+        "disclaimer": "Internal research signal. Not financial advice."
+    }
+
+    # Task C: Structured Logging for AI Explainability
+    logger.bind(signal_log=True).info(f"SIGNAL_LOG: {signal_data}")
+    
     # Internal research signal with mandatory disclaimer
-    return SignalOutput(
-        asset=asset,
-        direction="BUY",
-        timeframe=timeframe,
-        disclaimer="Internal research signal. Not financial advice."
-    )
+    return SignalOutput(**signal_data)
 
 @router.get("/active", response_model=List[SignalOutput])
 async def get_active_signals():

@@ -1,1 +1,61 @@
-from fastapi import FastAPI; from api.routes import health, signals, ingestion, csv_ingestion; app = FastAPI(); app.include_router(health.router); app.include_router(signals.router); app.include_router(ingestion.router); app.include_router(csv_ingestion.router)
+"""
+Quantix AI Core - Main FastAPI Application
+"""
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from loguru import logger
+import uvicorn
+
+from api.routes import health, signals, ingestion, csv_ingestion
+from config.settings import settings
+from database.connection import db
+
+app = FastAPI(
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+    description="Institutional Grade Market Intelligence and Sniper Signals API"
+)
+
+# --- CORS Configuration ---
+# Allow GitHub Pages and other internal domains to talk to this API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "https://9dpi.github.io",
+        "*" # In Internal Alpha, we can be flexible, but better to specify later
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include Routers
+app.include_router(health.router, prefix=settings.API_PREFIX, tags=["Health"])
+app.include_router(signals.router, prefix=settings.API_PREFIX, tags=["Signals"])
+app.include_router(ingestion.router, prefix=settings.API_PREFIX, tags=["Ingestion"])
+app.include_router(csv_ingestion.router, prefix=settings.API_PREFIX, tags=["CSV Ingestion"])
+
+@app.on_event("startup")
+async def startup_event():
+    logger.info(f"🚀 Starting {settings.APP_NAME} v{settings.APP_VERSION}...")
+    # Optional: Basic DB connectivity check
+    is_healthy = await db.health_check()
+    if is_healthy:
+        logger.info("✅ Database connection verified")
+    else:
+        logger.warning("⚠️ Database connection check failed - ensure SUPABASE keys are correct")
+
+@app.get("/")
+async def root():
+    return {
+        "app": settings.APP_NAME,
+        "version": settings.APP_VERSION,
+        "status": "online",
+        "mode": settings.QUANTIX_MODE
+    }
+
+if __name__ == "__main__":
+    uvicorn.run("api.main:app", host=settings.API_HOST, port=settings.API_PORT, reload=settings.DEBUG)

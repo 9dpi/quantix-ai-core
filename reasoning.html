@@ -253,10 +253,32 @@
 </head>
 
 <body>
-    <div class="container">
+    <header class="app-header"
+        style="height: 60px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; position: sticky; top: 0; background: #0a0e27; z-index: 1000; width: 100%;">
+        <div class="logo-area" style="display: flex; align-items: center; gap: 12px;">
+            <div class="logo-icon" style="width: 24px; height: 24px; background: #38bdf8; border-radius: 4px;"></div>
+            <span class="logo-text" style="font-weight: 800; font-size: 1.1rem; color: #38bdf8;">QUANTIX AI CORE</span>
+        </div>
+        <nav class="main-nav" style="display: flex; gap: 32px;">
+            <a href="index.html" class="nav-link"
+                style="color: #a1a1aa; text-decoration: none; font-size: 0.85rem;">Dashboard</a>
+            <a href="input.html" class="nav-link"
+                style="color: #a1a1aa; text-decoration: none; font-size: 0.85rem;">Data Ingestion</a>
+            <a href="reasoning.html" class="nav-link active"
+                style="color: #38bdf8; text-decoration: none; font-size: 0.85rem; font-weight: 600;">Reasoning Panel</a>
+            <a href="docs.html" class="nav-link"
+                style="color: #a1a1aa; text-decoration: none; font-size: 0.85rem;">Documentation</a>
+        </nav>
+        <div class="status-tag"
+            style="font-size: 0.7rem; color: #a1a1aa; display: flex; align-items: center; gap: 8px;">
+            <div style="width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></div> REASONING_ENGINE
+        </div>
+    </header>
+
+    <div class="container" style="margin-top: 40px;">
         <div class="header">
-            <h1>Quantix AI Core</h1>
-            <p>Market State Reasoning Engine</p>
+            <h1>Market State Reasoning</h1>
+            <p>Institutional Grade Structure Analysis</p>
         </div>
 
         <!-- Control Panel -->
@@ -284,9 +306,7 @@
         <!-- Results Container -->
         <div id="results"></div>
     </div>
-
-    <script>
-        const API_BASE = 'https://quantixaicore-production.up.railway.app/api/v1';
+    <script>const API_BASE = 'https://quantixaicore-production.up.railway.app/api/v1';
 
         async function analyzeMarket() {
             const symbol = document.getElementById('symbol').value;
@@ -297,8 +317,21 @@
             resultsDiv.innerHTML = '<div class="loading">🔄 Analyzing market structure...</div>';
 
             try {
+
                 // Call Structure Engine v1 endpoint
-                const response = await fetch(`${API_BASE}/internal/feature-state/structure?symbol=${symbol}&tf=${timeframe}`);
+                const response = await fetch(`$ {
+                        API_BASE
+                    }
+
+                    /internal/feature-state/structure?symbol=$ {
+                        symbol
+                    }
+
+                    &tf=$ {
+                        timeframe
+                    }
+
+                    `);
 
                 if (!response.ok) {
                     const error = await response.json();
@@ -308,66 +341,87 @@
                 const data = await response.json();
                 renderStructureState(data);
 
-            } catch (error) {
+            }
+
+            catch (error) {
                 let errorMessage = error.message;
                 let errorData = null;
 
                 try {
                     errorData = JSON.parse(error.message);
-                } catch (e) {
+                }
+
+                catch (e) {
                     // Not JSON, use as-is
                 }
 
                 // Check for insufficient data error
                 if (errorData && errorData.error === 'DATA_NOT_SUFFICIENT') {
-                    resultsDiv.innerHTML = `
-                        <div class="error">
-                            <h3>⚠️ Not Enough Data to Determine Market Structure</h3>
-                            <div style="margin-top: 16px;">
-                                <strong>Required:</strong> ${errorData.required_candles} candles<br>
-                                <strong>Received:</strong> ${errorData.received_candles} candles
-                            </div>
-                            <div style="margin-top: 20px; padding: 16px; background: rgba(0,0,0,0.2); border-radius: 8px;">
-                                <div style="font-size: 0.9rem; color: #f59e0b; margin-bottom: 8px;">📡 Data Status</div>
-                                <div style="font-size: 0.85rem;">
-                                    <strong>Provider:</strong> ${errorData.data_status?.provider || 'Unknown'}<br>
-                                    <strong>Raw candles:</strong> ${errorData.data_status?.raw_candles || 0}<br>
-                                    <strong>Aggregated candles:</strong> ${errorData.data_status?.aggregated_candles || 0}<br>
-                                    <strong>Status:</strong> <span style="color: #ef4444;">❌ ${errorData.data_status?.status || 'insufficient'}</span>
-                                </div>
-                            </div>
-                            <div style="margin-top: 16px; font-size: 0.9rem; color: #8b95a5;">
-                                ${errorData.reason}
-                            </div>
-                        </div>
-                    `;
-                } else if (errorData && errorData.error === 'DATA_NOT_AVAILABLE') {
+                    resultsDiv.innerHTML = ` <div class="error"><h3>⚠️ Not Enough Data to Determine Market Structure</h3><div style="margin-top: 16px;"><strong>Required:</strong>$ {
+                        errorData.required_candles
+                    }
+
+                    candles<br><strong>Received:</strong>$ {
+                        errorData.received_candles
+                    }
+
+                    candles </div><div style="margin-top: 20px; padding: 16px; background: rgba(0,0,0,0.2); border-radius: 8px;"><div style="font-size: 0.9rem; color: #f59e0b; margin-bottom: 8px;">📡 Data Status</div><div style="font-size: 0.85rem;"><strong>Provider:</strong>$ {
+                        errorData.data_status?.provider || 'Unknown'
+                    }
+
+                    <br><strong>Raw candles:</strong>$ {
+                        errorData.data_status?.raw_candles || 0
+                    }
+
+                    <br><strong>Aggregated candles:</strong>$ {
+                        errorData.data_status?.aggregated_candles || 0
+                    }
+
+                    <br><strong>Status:</strong><span style="color: #ef4444;">❌ $ {
+                        errorData.data_status?.status || 'insufficient'
+                    }
+
+                    </span></div></div><div style="margin-top: 16px; font-size: 0.9rem; color: #8b95a5;">$ {
+                        errorData.reason
+                    }
+
+                    </div></div>`;
+                }
+
+                else if (errorData && errorData.error === 'DATA_NOT_AVAILABLE') {
+
                     // Yahoo Finance empty dataset
-                    resultsDiv.innerHTML = `
-                        <div class="error">
-                            <h3>❌ Data Not Available</h3>
-                            <div style="margin-top: 16px;">
-                                <strong>Symbol:</strong> ${errorData.symbol}<br>
-                                <strong>Timeframe:</strong> ${errorData.timeframe}<br>
-                                <strong>Provider:</strong> ${errorData.details?.resolved_symbol || 'Yahoo Finance'}
-                            </div>
-                            <div style="margin-top: 16px; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px;">
-                                <strong>Issue:</strong> ${errorData.details?.message || 'Provider returned empty dataset'}<br>
-                                <strong>Trace ID:</strong> <code>${errorData.trace_id}</code>
-                            </div>
-                            <div style="margin-top: 16px; font-size: 0.9rem; color: #8b95a5;">
-                                💡 Try a different symbol (GBPUSD, USDJPY) or timeframe (D1)
-                            </div>
-                        </div>
-                    `;
-                } else {
+                    resultsDiv.innerHTML = ` <div class="error"><h3>❌ Data Not Available</h3><div style="margin-top: 16px;"><strong>Symbol:</strong>$ {
+                        errorData.symbol
+                    }
+
+                    <br><strong>Timeframe:</strong>$ {
+                        errorData.timeframe
+                    }
+
+                    <br><strong>Provider:</strong>$ {
+                        errorData.details?.resolved_symbol || 'Yahoo Finance'
+                    }
+
+                    </div><div style="margin-top: 16px; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px;"><strong>Issue:</strong>$ {
+                        errorData.details?.message || 'Provider returned empty dataset'
+                    }
+
+                    <br><strong>Trace ID:</strong><code>$ {
+                        errorData.trace_id
+                    }
+
+                    </code></div><div style="margin-top: 16px; font-size: 0.9rem; color: #8b95a5;">💡 Try a different symbol (GBPUSD, USDJPY) or timeframe (D1) </div></div>`;
+                }
+
+                else {
+
                     // Generic error
-                    resultsDiv.innerHTML = `
-                        <div class="error">
-                            <h3>❌ Analysis Failed</h3>
-                            <pre>${errorMessage}</pre>
-                        </div>
-                    `;
+                    resultsDiv.innerHTML = ` <div class="error"><h3>❌ Analysis Failed</h3><pre>$ {
+                        errorMessage
+                    }
+
+                    </pre></div>`;
                 }
             }
         }
@@ -378,7 +432,12 @@
             // Extract data
             const state = data.state || 'unknown';
             const confidence = (data.confidence || 0) * 100;
-            const dominance = data.dominance || { bullish: 0, bearish: 0 };
+
+            const dominance = data.dominance || {
+                bullish: 0, bearish: 0
+            }
+
+                ;
             const evidence = data.evidence || [];
             const traceId = data.trace_id || 'unknown';
 
@@ -388,105 +447,72 @@
             else if (state === 'bearish') badgeClass = 'fakeout';
             else if (state === 'range') badgeClass = 'intact';
 
-            let html = `
-                <!-- A. MARKET STATE SUMMARY -->
-                <div class="state-summary">
-                    <div class="state-header">
-                        <div>
-                            <div class="state-title">${data.symbol || 'Unknown'} · ${data.timeframe || 'Unknown'}</div>
-                            <div style="color: #8b95a5; margin-top: 4px;">
-                                Market Structure: <strong>${formatState(state)}</strong>
-                            </div>
-                        </div>
-                        <div class="state-badge ${badgeClass}">
-                            ${formatState(state)}
-                        </div>
-                    </div>
-                    
-                    <div class="confidence-bar">
-                        <div class="confidence-label">
-                            <span>Structure Confidence</span>
-                            <span><strong>${confidence.toFixed(0)}%</strong></span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${confidence}%"></div>
-                        </div>
-                    </div>
-                </div>
+            let html = ` < !-- A. MARKET STATE SUMMARY --><div class="state-summary"><div class="state-header"><div><div class="state-title">$ {
+                data.symbol || 'Unknown'
+            }
 
-                <!-- B. WHY SECTION - EVIDENCE -->
-                <div class="evidence-section">
-                    <div class="section-title">🧠 Why This State?</div>
-                    <ul class="evidence-list">
-            `;
+            · $ {
+                data.timeframe || 'Unknown'
+            }
+
+            </div><div style="color: #8b95a5; margin-top: 4px;">Market Structure: <strong>$ {
+                formatState(state)
+            }
+
+            </strong></div></div><div class="state-badge ${badgeClass}">$ {
+                formatState(state)
+            }
+
+            </div></div><div class="confidence-bar"><div class="confidence-label"><span>Structure Confidence</span><span><strong>$ {
+                confidence.toFixed(0)
+            }
+
+            %</strong></span></div><div class="progress-bar"><div class="progress-fill" style="width: ${confidence}%"></div></div></div></div>< !-- B. WHY SECTION - EVIDENCE --><div class="evidence-section"><div class="section-title">🧠 Why This State?</div><ul class="evidence-list">`;
 
             // Render evidence
             if (evidence.length > 0) {
                 evidence.forEach(ev => {
                     const evidenceClass = getEvidenceClass(ev);
                     const icon = getEvidenceIcon(ev);
-                    html += `
-                        <li class="evidence-item ${evidenceClass}">
-                            <span class="evidence-icon">${icon}</span>
-                            ${ev}
-                        </li>
-                    `;
+
+                    html += ` <li class="evidence-item ${evidenceClass}" > <span class="evidence-icon" >$ {
+                            icon
+                        }
+
+                        </span> $ {
+                            ev
+                        }
+
+                        </li> `;
                 });
-            } else {
+            }
+
+            else {
                 html += '<li class="evidence-item">No evidence available</li>';
             }
 
-            html += `
-                    </ul>
-                </div>
+            html += ` </ul></div>< !-- C. DOMINANCE BREAKDOWN --><div class="evidence-section"><div class="section-title">📊 Directional Dominance</div><div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;"><div><div style="color: #8b95a5; margin-bottom: 8px;">Bullish Score</div><div style="font-size: 1.5rem; font-weight: 700; color: #10b981;">$ {
+                dominance.bullish.toFixed(2)
+            }
 
-                <!-- C. DOMINANCE BREAKDOWN -->
-                <div class="evidence-section">
-                    <div class="section-title">📊 Directional Dominance</div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                        <div>
-                            <div style="color: #8b95a5; margin-bottom: 8px;">Bullish Score</div>
-                            <div style="font-size: 1.5rem; font-weight: 700; color: #10b981;">${dominance.bullish.toFixed(2)}</div>
-                        </div>
-                        <div>
-                            <div style="color: #8b95a5; margin-bottom: 8px;">Bearish Score</div>
-                            <div style="font-size: 1.5rem; font-weight: 700; color: #ef4444;">${dominance.bearish.toFixed(2)}</div>
-                        </div>
-                        <div>
-                            <div style="color: #8b95a5; margin-bottom: 8px;">Confidence</div>
-                            <div style="font-size: 1.5rem; font-weight: 700;">${confidence.toFixed(0)}%</div>
-                        </div>
-                    </div>
-                    <div style="margin-top: 16px; padding: 12px; background: rgba(255, 255, 255, 0.03); border-radius: 8px; font-size: 0.9rem; color: #8b95a5;">
-                        💡 <strong>Confidence = |bullish - bearish| / (bullish + bearish)</strong><br>
-                        Not probability - it's how consistently the evidence points in one direction.
-                    </div>
-                </div>
+            </div></div><div><div style="color: #8b95a5; margin-bottom: 8px;">Bearish Score</div><div style="font-size: 1.5rem; font-weight: 700; color: #ef4444;">$ {
+                dominance.bearish.toFixed(2)
+            }
 
-                <!-- D. TRACE & DEBUG -->
-                <div class="debug-panel">
-                    <div class="debug-grid">
-                        <div class="debug-item">
-                            <div class="debug-label">Trace ID</div>
-                            <div class="debug-value" style="cursor: pointer;" onclick="copyToClipboard('${traceId}')" title="Click to copy">
-                                ${traceId} 📋
-                            </div>
-                        </div>
-                        <div class="debug-item">
-                            <div class="debug-label">Engine</div>
-                            <div class="debug-value">Structure v1</div>
-                        </div>
-                        <div class="debug-item">
-                            <div class="debug-label">Source</div>
-                            <div class="debug-value">${data.source || 'yahoo_finance'}</div>
-                        </div>
-                        <div class="debug-item">
-                            <div class="debug-label">Reasoning Type</div>
-                            <div class="debug-value">Deterministic</div>
-                        </div>
-                    </div>
-                </div>
-            `;
+            </div></div><div><div style="color: #8b95a5; margin-bottom: 8px;">Confidence</div><div style="font-size: 1.5rem; font-weight: 700;">$ {
+                confidence.toFixed(0)
+            }
+
+            %</div></div></div><div style="margin-top: 16px; padding: 12px; background: rgba(255, 255, 255, 0.03); border-radius: 8px; font-size: 0.9rem; color: #8b95a5;">💡 <strong>Confidence=|bullish - bearish| / (bullish + bearish)</strong><br>Not probability - it's how consistently the evidence points in one direction.
+ </div></div>< !-- D. TRACE & DEBUG --><div class="debug-panel"><div class="debug-grid"><div class="debug-item"><div class="debug-label">Trace ID</div><div class="debug-value" style="cursor: pointer;" onclick="copyToClipboard('${traceId}')" title="Click to copy">$ {
+                traceId
+            }
+
+            📋 </div></div><div class="debug-item"><div class="debug-label">Engine</div><div class="debug-value">Structure v1</div></div><div class="debug-item"><div class="debug-label">Source</div><div class="debug-value">$ {
+                data.source || 'yahoo_finance'
+            }
+
+            </div></div><div class="debug-item"><div class="debug-label">Reasoning Type</div><div class="debug-value">Deterministic</div></div></div></div>`;
 
             resultsDiv.innerHTML = html;
         }
@@ -497,15 +523,19 @@
 
         function getEvidenceClass(evidence) {
             const text = evidence.toLowerCase();
+
             if (text.includes('fake') || text.includes('rejected')) {
                 return 'warning';
             }
+
             if (text.includes('bos') || text.includes('choch') || text.includes('confirmed')) {
                 return 'positive';
             }
+
             if (text.includes('conflicting') || text.includes('unclear')) {
                 return 'warning';
             }
+
             return '';
         }
 

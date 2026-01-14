@@ -1,4 +1,3 @@
-// Quantix AI Core - Global API Configuration (PRODUCTION)
 const API_CONFIG = {
     // FORCE PRODUCTION ENVIRONMENT
     getBaseUrl: () => {
@@ -7,7 +6,8 @@ const API_CONFIG = {
         return `${productionUrl}/api/v1`;
     },
     // Adding BASE_URL directly for compatibility with ui_shared.js
-    BASE_URL: 'https://quantixaicore-production.up.railway.app/api/v1'
+    BASE_URL: 'https://quantixaicore-production.up.railway.app/api/v1',
+    VERSION: Date.now() // Logic to break cache
 };
 
 // Make it globally accessible across all scripts

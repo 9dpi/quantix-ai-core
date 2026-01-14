@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantix AI Core | Documentation</title>
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="logo-area">
+            <div class="logo-icon"></div>
+            <span class="logo-text">QUANTIX AI CORE</span>
+        </div>
+        <div class="hamburger" id="menu-toggle">☰</div>
+        <nav class="main-nav" id="main-nav">
+            <a href="index.html" class="nav-link">Dashboard</a>
+            <a href="input.html" class="nav-link">Data Ingestion</a>
+            <a href="#" class="nav-link">Strategy Lab</a>
+            <a href="docs.html" class="nav-link active">Documentation</a>
+        </nav>
+        <div class="status-tag hide-mobile"
+            style="font-size: 0.7rem; color: var(--text-dim); display: flex; align-items: center; gap: 8px;">
+            <div class="dot dot-online"></div> DOCS_READY
+        </div>
+    </header>
+
+    <main class="app-layout">
+        <!-- LEFT: NAVIGATION -->
+        <aside class="column left-col">
+            <h2 class="section-title">Manual Chapters</h2>
+            <div class="data-card"
+                style="cursor: pointer; background: rgba(56, 189, 248, 0.05); border-color: var(--accent);">
+                <div class="label">01</div>
+                <div class="value" style="font-size: 0.8rem;">System Overview</div>
+            </div>
+            <div class="data-card">
+                <div class="label">02</div>
+                <div class="value" style="font-size: 0.8rem;">Architecture Logic</div>
+            </div>
+            <div class="data-card">
+                <div class="label">03</div>
+                <div class="value" style="font-size: 0.8rem;">Ingestion Pipeline</div>
+            </div>
+        </aside>
+
+        <!-- MIDDLE: DOCUMENTATION CONTENT -->
+        <section class="column middle-col" style="background: var(--bg-main);">
+            <div class="intelligence-node" style="max-width: 900px; padding-bottom: 50px;">
+                <h2 class="section-title">Operational Guide v3.1</h2>
+
+                <div class="why-box"
+                    style="margin-top: 0; background: rgba(255,255,255,0.02); border-left: 2px solid var(--accent);">
+                    <div class="why-title">🇺🇸 ENGLISH VERSION</div>
+                    <div class="why-content" style="font-size: 0.85rem;">
+                        <strong>1. System Infrastructure</strong><br>
+                        Quantix AI Core is a distributed probabilistic engine. It consists of a FastAPI backend
+                        (Railway), a Supabase PostgreSQL database, and a minimalist frontend. <br><br>
+
+                        <strong>2. Data Pipeline</strong><br>
+                        - Drop CSV files in the <em>Ingestion</em> page.<br>
+                        - Use <code>download_eurusd_data.py</code> to fetch Dukascopy or Yahoo Finance data.<br>
+                        - The <em>Quality Gate</em> filters non-tradable candles (low volume/volatility).<br><br>
+
+                        <strong>3. Core Intelligence</strong><br>
+                        The engine matches patterns across historical market memory to generate high-probability sniper
+                        alerts. "Alpha Weight" represents the adjusted confidence based on past outcome feedback.
+                    </div>
+                </div>
+
+                <div class="why-box"
+                    style="margin-top: 24px; background: rgba(56, 189, 248, 0.03); border-left: 2px solid var(--highlight);">
+                    <div class="why-title" style="color: var(--highlight);">🇻🇳 TIẾNG VIỆT</div>
+                    <div class="why-content" style="font-size: 0.85rem;">
+                        <strong>1. Cơ sở hạ tầng hệ thống</strong><br>
+                        Quantix AI Core là một công cụ dự báo xác suất phân tán. Bao gồm backend FastAPI (Railway), cơ
+                        sở dữ liệu Supabase PostgreSQL và giao diện tối giản.<br><br>
+
+                        <strong>2. Quy trình dữ liệu</strong><br>
+                        - Tải tệp CSV trong trang <em>Ingestion</em>.<br>
+                        - Sử dụng script <code>download_eurusd_data.py</code> để lấy dữ liệu từ Dukascopy hoặc Yahoo
+                        Finance.<br>
+                        - <em>Quality Gate</em> sẽ lọc bỏ các nến không có giá trị giao dịch (vol thấp/biến động
+                        yếu).<br><br>
+
+                        <strong>3. Trí tuệ cốt lõi</strong><br>
+                        Hệ thống đối soát các mô hình nến trong quá khứ để đưa ra các cảnh báo "sniper" có xác suất
+                        thắng cao. "Alpha Weight" thể hiện độ tin cậy được điều chỉnh dựa trên kết quả phản hồi trong
+                        quá khứ.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT: QUICK ACCESS -->
+        <aside class="column right-col">
+            <h2 class="section-title">Support & Dev</h2>
+            <div class="data-card">
+                <div class="label">Version</div>
+                <div class="value" style="color: var(--accent);">V3.1_LATEST</div>
+            </div>
+            <div class="data-card">
+                <div class="label">Backend Status</div>
+                <div class="value" style="color: var(--highlight);">RAILWAY_ONLINE</div>
+            </div>
+            <div class="data-card">
+                <div class="label">API Logs</div>
+                <div class="value" style="font-size: 0.6rem; opacity: 0.5;">Awaiting connection...</div>
+            </div>
+        </aside>
+    </main>
+
+    <footer class="app-footer">
+        <div class="disclaimer">
+            Quantix AI Core is a probabilistic forecasting engine. Signals are internal research data based on
+            statistical models. These are NOT trade recommendations or financial advice. Trading involves high risk.
+        </div>
+    </footer>
+
+    <script src="static/js/ui_shared.js"></script>
+</body>
+
+</html>

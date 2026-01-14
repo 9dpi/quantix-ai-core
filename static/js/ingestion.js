@@ -12,20 +12,59 @@ function initIngestion() {
     const uploadBtn = document.getElementById('upload-btn');
     const fileNameDisplay = document.getElementById('file-name');
 
-    if (dropZone && fileInput) {
-        dropZone.addEventListener('click', () => fileInput.click());
+    // DEBUG LOG
+    console.log('📌 Ingestion Init:', { dropZone, fileInput, uploadBtn });
 
-        fileInput.addEventListener('change', () => {
+    if (dropZone && fileInput) {
+        // Force pointer cursor
+        dropZone.style.cursor = 'pointer';
+
+        // Use a more robust click handler
+        dropZone.onclick = (e) => {
+            console.log('🖱️ Drop zone clicked');
+            fileInput.click();
+        };
+
+        fileInput.onchange = () => {
             if (fileInput.files.length) {
-                fileNameDisplay.innerText = `READY: ${fileInput.files[0].name}`;
+                console.log('📝 File selected:', fileInput.files[0].name);
+                if (fileNameDisplay) {
+                    fileNameDisplay.innerText = `READY: ${fileInput.files[0].name}`;
+                    fileNameDisplay.style.color = 'var(--accent)';
+                }
             }
-        });
+        };
+
+        // Drag & Drop effects
+        dropZone.ondragover = (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = 'var(--accent)';
+            dropZone.style.background = 'rgba(56, 189, 248, 0.05)';
+        };
+
+        dropZone.ondragleave = () => {
+            dropZone.style.borderColor = '';
+            dropZone.style.background = '';
+        };
+
+        dropZone.ondrop = (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '';
+            dropZone.style.background = '';
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                if (fileNameDisplay) {
+                    fileNameDisplay.innerText = `READY: ${fileInput.files[0].name}`;
+                }
+            }
+        };
     }
 
     if (uploadBtn) {
-        uploadBtn.addEventListener('click', async (e) => {
+        uploadBtn.onclick = async () => {
+            console.log('🚀 Execute button clicked');
             handleUpload();
-        });
+        };
     }
 
     fetchAuditLogs();
@@ -33,10 +72,13 @@ function initIngestion() {
 
 async function handleUpload() {
     const btn = document.getElementById('upload-btn');
-    const asset = document.getElementById('asset-symbol').value;
-    const timeframe = document.getElementById('timeframe').value;
+    const assetInput = document.getElementById('asset-symbol');
+    const timeframeInput = document.getElementById('timeframe');
     const fileInput = document.getElementById('file-input');
-    const file = fileInput.files[0];
+
+    const asset = assetInput ? assetInput.value : 'EURUSD';
+    const timeframe = timeframeInput ? timeframeInput.value : 'm15';
+    const file = fileInput ? fileInput.files[0] : null;
 
     if (!file) {
         showError("SELECT_SOURCE_CSV_REQUIRED");
@@ -53,6 +95,7 @@ async function handleUpload() {
     formData.append('source', 'operator_dashboard');
 
     try {
+        console.log('📤 Uploading to:', `${API_BASE}/ingestion/csv`);
         const response = await fetch(`${API_BASE}/ingestion/csv`, {
             method: 'POST',
             body: formData
@@ -61,7 +104,7 @@ async function handleUpload() {
         const result = await response.json();
 
         if (response.ok) {
-            // Success - refresh the UI
+            console.log('✅ Upload Success:', result);
             if (typeof UI_MANAGER !== 'undefined') {
                 UI_MANAGER.refreshGlobalStats();
             }
@@ -78,6 +121,7 @@ async function handleUpload() {
             btn.innerText = "EXECUTE INGESTION SEQUENCE";
         }
     } catch (e) {
+        console.error('❌ Upload Failed:', e);
         showError(`NETWORK_FAILURE: ${e.message}`);
         btn.disabled = false;
         btn.innerText = "EXECUTE INGESTION SEQUENCE";
@@ -93,6 +137,8 @@ function showError(msg) {
         setTimeout(() => {
             errorBox.style.display = 'none';
         }, 5000);
+    } else {
+        alert(msg);
     }
 }
 

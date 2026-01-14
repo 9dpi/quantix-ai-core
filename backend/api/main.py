@@ -45,45 +45,22 @@ async def startup_event():
     asyncio.create_task(background_startup_tasks())
 
 async def background_startup_tasks():
-    await asyncio.sleep(1) # Đợi server ổn định
-    logger.info("🔍 Running background connectivity checks...")
-    
-    # Kiểm tra DB ngầm
+    """Background tasks that should NOT block app startup"""
     try:
+        await asyncio.sleep(1)  # Đợi server ổn định
+        logger.info("🔍 Running background connectivity checks...")
+        
+        # Kiểm tra DB ngầm
         is_healthy = await db.health_check()
         if is_healthy:
             logger.info("✅ Database connection verified in background")
-            await seed_data()
         else:
             logger.warning("⚠️ Database check failed - check your Railway Variables")
+            
     except Exception as e:
-        logger.error(f"❌ Background startup error: {e}")
+        logger.error(f"⚠️ Background task failed (non-critical): {e}")
+        # App continues running even if background tasks fail
 
-async def seed_data():
-    import os
-    from ingestion.pipeline import CSVIngestionPipeline
-    from api.routes.csv_ingestion import _log_ingestion_audit
-    
-    data_dir = "data"
-    if not os.path.exists(data_dir): return
-        
-    pipeline = CSVIngestionPipeline()
-    files = [f for f in os.listdir(data_dir) if f.endswith('.csv')]
-    if not files: return
-        
-    for filename in files:
-        try:
-            path = os.path.join(data_dir, filename)
-            asset = filename.split('_')[0].upper()
-            with open(path, 'r', encoding='utf-8') as f:
-                content = f.read()
-                
-            result = await pipeline.ingest_csv_content(content, asset=asset, timeframe="D1", source="auto_seed")
-            if result['status'] == 'success':
-                await _log_ingestion_audit(result, asset=asset, timeframe="D1")
-                logger.info(f"✅ Auto-seeded: {filename}")
-        except Exception as e:
-            logger.error(f"⚠️ Seed error {filename}: {e}")
 
 @app.get("/")
 async def root():

@@ -46,17 +46,38 @@ class SupabaseConnection:
             return False
 
     async def execute(self, query: str, *args):
-        pass
+        # shim for simple INSERT in csv_ingestion router
+        if "INSERT INTO ingestion_audit_log" in query:
+             data = {
+                 "asset": args[0], "timeframe": args[1], "source": args[2],
+                 "total_rows": args[3], "tradable_count": args[4],
+                 "non_tradable_count": args[5], "avg_learning_weight": float(args[6]),
+                 "status": args[7]
+             }
+             return self.client.table('ingestion_audit_log').insert(data).execute()
+        return None
 
     async def fetch(self, query: str, *args):
+        # shim for global stats in csv_ingestion router
+        if "SELECT SUM(tradable_count)" in query:
+            res = self.client.table('ingestion_audit_log').select('tradable_count,total_rows,avg_learning_weight').execute()
+            if not res.data:
+                return []
+            
+            import pandas as pd
+            df = pd.DataFrame(res.data)
+            return [{
+                "total_learning": int(df['tradable_count'].sum()),
+                "total_ingested": int(df['total_rows'].sum()),
+                "avg_weight": float(df['avg_learning_weight'].mean())
+            }]
+        
+        # shim for audit log
+        if "SELECT * FROM ingestion_audit_log" in query:
+            res = self.client.table('ingestion_audit_log').select('*').order('ingested_at', desc=True).limit(args[0]).execute()
+            return res.data
+            
         return []
-
-    async def executemany(self, query: str, data_list: List[tuple]):
-        pass
-
-    @asynccontextmanager
-    async def transaction(self):
-        yield self
 
 db = SupabaseConnection()
 

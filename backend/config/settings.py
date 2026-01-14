@@ -65,6 +65,7 @@ class Settings(BaseSettings):
     ENABLE_LIVE_SIGNAL: bool = False
     ENABLE_BACKTEST: bool = True
     ENABLE_LEARNING: bool = True
+    ENABLE_LAB_SIGNALS: bool = True
     
     class Config:
         env_file = ".env"

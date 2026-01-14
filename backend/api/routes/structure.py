@@ -10,7 +10,7 @@ import pandas as pd
 from datetime import datetime
 import uuid
 
-from learning.structure_engine_v1 import StructureEngineV1
+from engine.structure_engine_v1 import StructureEngineV1
 from ingestion.yahoo_fetcher import YahooFinanceFetcher
 from ingestion.data_validator import DataValidator, DataNotSufficientError
 from loguru import logger
@@ -132,6 +132,7 @@ async def get_structure_state(
         
         # Convert to API format
         response = structure_engine.to_api_response(state)
+        response["show_lab_signals"] = settings.ENABLE_LAB_SIGNALS
         
         logger.info(
             f"[{trace_id}] ✅ Structure analysis complete: "

@@ -17,101 +17,126 @@
         <div class="hamburger" id="menu-toggle">☰</div>
         <nav class="main-nav" id="main-nav">
             <a href="index.html" class="nav-link">Dashboard</a>
-            <a href="input.html" class="nav-link">Data Ingestion</a>
-            <a href="reasoning.html" class="nav-link">Reasoning Panel</a>
             <a href="docs.html" class="nav-link active">Documentation</a>
         </nav>
         <div class="status-tag hide-mobile"
             style="font-size: 0.7rem; color: var(--text-dim); display: flex; align-items: center; gap: 8px;">
-            <div class="dot dot-online"></div> DOCS_LOCKED
+            <div class="dot dot-online"></div> ARCHIVE_LOCKED
         </div>
     </header>
 
     <main class="app-layout">
         <!-- LEFT: NAVIGATION -->
         <aside class="column left-col">
-            <h2 class="section-title">Manual Chapters</h2>
+            <h2 class="section-title">System Blueprints</h2>
             <div class="data-card"
                 style="cursor: pointer; background: rgba(56, 189, 248, 0.05); border-color: var(--accent);">
-                <div class="label">01</div>
-                <div class="value" style="font-size: 0.8rem;">System Overview</div>
+                <div class="label">v1</div>
+                <div class="value" style="font-size: 0.8rem;">Auto Data Miner</div>
             </div>
             <div class="data-card">
-                <div class="label">02</div>
-                <div class="value" style="font-size: 0.8rem;">Clean Feed v1 Law</div>
+                <div class="label">II</div>
+                <div class="value" style="font-size: 0.8rem;">Automation Layers</div>
             </div>
             <div class="data-card">
-                <div class="label">03</div>
-                <div class="value" style="font-size: 0.8rem;">Structure Reasoning</div>
+                <div class="label">III</div>
+                <div class="value" style="font-size: 0.8rem;">Safety Locks</div>
             </div>
         </aside>
 
         <!-- MIDDLE: DOCUMENTATION CONTENT -->
         <section class="column middle-col" style="background: var(--bg-main);">
             <div class="intelligence-node" style="max-width: 900px; padding-bottom: 50px;">
-                <h2 class="section-title">Institutional Operational Guide</h2>
+                <h1 style="font-size: 1.8rem; font-weight: 800; color: var(--accent); margin-bottom: 32px;">Auto Data
+                    Miner v1 Specification</h1>
 
+                <!-- SECTION I -->
                 <div class="why-box"
-                    style="margin-top: 0; background: rgba(255,255,255,0.02); border-left: 2px solid var(--accent);">
-                    <div class="why-title">🇺🇸 ENGLISH VERSION</div>
-                    <div class="why-content" style="font-size: 0.85rem;">
-                        <strong>1. System Mandate</strong><br>
-                        Quantix AI has transitioned from a predictive model to an <strong>Auditable Reasoning
-                            Engine</strong>.
-                        The primary goal is determining market state (Structure, Trend, Regime) with mathematical
-                        certainty.<br><br>
+                    style="background: rgba(255,255,255,0.02); border-left: 2px solid var(--accent); margin-bottom: 32px;">
+                    <div class="why-title">I. THIẾT KẾ AUTO DATA MINER v1 (READ-ONLY)</div>
+                    <div class="why-content" style="font-size: 0.85rem; line-height: 1.6;">
+                        <strong>🎯 Mục tiêu:</strong> Đào dữ liệu & thống kê trạng thái. <br>
+                        ❌ KHÔNG tối ưu mô hình | ❌ KHÔNG chỉnh logic | ❌ KHÔNG tạo Buy/Sell. <br><br>
 
-                        <strong>2. Data Law (Clean Feed v1)</strong><br>
-                        Dukascopy tick-level data is ingested using BID-only pricing. All candles are UTC-aligned.
-                        Data integrity is ensured by a FAIL-HARD validator that rejects any partial or corrupted
-                        candles.<br><br>
-
-                        <strong>3. Structure Resolution</strong><br>
-                        The Structure Engine resolves "Swing Points", "BOS" (Break of Structure), and "CHoCH" (Change of
-                        Character)
-                        deterministically. Every state resolution can be copied as a <em>Trace ID</em> and audited back
-                        to
-                        raw tick data.
+                        <strong>🧱 Triết lý thiết kế (BẮT BUỘC):</strong><br>
+                        Auto Data Miner KHÔNG PHẢI AI. Nó là <strong>Data Infrastructure + Observer</strong>.<br><br>
+                        <table style="width: 100%; font-size: 0.75rem; border-collapse: collapse; margin-top: 10px;">
+                            <tr style="border-bottom: 1px solid var(--border);">
+                                <th style="text-align: left; padding: 8px;">Thành phần</th>
+                                <th style="text-align: left; padding: 8px;">Quy tắc</th>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px;">Input</td>
+                                <td style="padding: 8px;">Clean Feed v1 (LOCKED)</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px;">Output</td>
+                                <td style="padding: 8px;">Statistics / Snapshots</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px;">DB</td>
+                                <td style="padding: 8px;">Append-only</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px;">Core Engine</td>
+                                <td style="padding: 8px;">Read-only</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px;">Learning</td>
+                                <td style="padding: 8px; color: var(--warning);">❌ Forbidden</td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
 
+                <!-- SECTION II -->
                 <div class="why-box"
-                    style="margin-top: 24px; background: rgba(56, 189, 248, 0.03); border-left: 2px solid var(--highlight);">
-                    <div class="why-title" style="color: var(--highlight);">🇻🇳 TIẾNG VIỆT</div>
+                    style="background: rgba(56, 189, 248, 0.03); border-left: 2px solid var(--highlight);">
+                    <div class="why-title" style="color: var(--highlight);">II. TỰ ĐỘNG HÓA HỆ THỐNG A–Z</div>
+                    <div class="why-content" style="font-size: 0.85rem; line-height: 1.6;">
+                        <strong>🟢 LAYER 1 — Data Ingestion:</strong> Cron/GitHub Actions. Retry-safe &
+                        Deterministic.<br>
+                        <strong>🟢 LAYER 2 — Validation Gatekeeper 🔒:</strong> FAIL HARD nếu thiếu nến hoặc sai lệch
+                        timestamp. Không có “best effort”.<br>
+                        <strong>🟢 LAYER 3 — Snapshot & Mining:</strong> Gọi Read-only Structure Engine để lưu Snapshot
+                        & Stats.<br>
+                        <strong>🟢 LAYER 4 — Monitoring & Alert:</strong> Cảnh báo Drift, Data gaps và Confidence
+                        anomalies.<br>
+                        <strong>🟢 LAYER 5 — Frontend:</strong> Hiển thị State history & Evidence frequency. ❌ KHÔNG
+                        hiển thị Buy/Sell.
+                    </div>
+                </div>
+
+                <!-- SECTION III -->
+                <div class="why-box"
+                    style="margin-top: 32px; border-left: 2px solid var(--warning); background: rgba(245, 158, 11, 0.03);">
+                    <div class="why-title" style="color: var(--warning);">🔐 SYSTEM SAFETY LOCKS</div>
                     <div class="why-content" style="font-size: 0.85rem;">
-                        <strong>1. Nguyên lý Hệ thống</strong><br>
-                        Quantix AI đã chuyển đổi từ mô hình dự đoán sang <strong>Công cụ Giải luận Có thể
-                            Audit</strong>.
-                        Mục tiêu chính là xác định trạng thái thị trường (Cấu trúc, Xu hướng, Phân khúc) với sự chắc
-                        chắn về toán học.<br><br>
-
-                        <strong>2. Luật Dữ liệu (Clean Feed v1)</strong><br>
-                        Dữ liệu tick-level từ Dukascopy được nạp bằng giá BID. Tất cả nến được căn chỉnh theo giờ UTC.
-                        Tính toàn vẹn dữ liệu được đảm bảo bởi validator FAIL-HARD, tự động loại bỏ các nến thiếu hoặc
-                        lỗi.<br><br>
-
-                        <strong>3. Phân tách Cấu trúc</strong><br>
-                        Structure Engine phân tách "Swing Points", "BOS", và "CHoCH" một cách tất định (deterministic).
-                        Mọi trạng thái đều có thể truy vết qua <em>Trace ID</em> và đối chiếu lại dữ liệu tick thô.
+                        <strong>Hành động bị cấm:</strong><br>
+                        - Auto model update ❌ | Threshold learning ❌<br>
+                        - Outcome feedback ❌ | PnL optimization ❌<br><br>
+                        <strong>Khi nào được phép "Learning"?</strong><br>
+                        Chỉ khi có đủ Snapshot history, đạt Statistical stability và có sự phê duyệt của con người
+                        (Human Review). Quá trình này được thực hiện tại <em>Quantix Learning Lab</em> riêng biệt.
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- RIGHT: QUICK ACCESS -->
+        <!-- RIGHT: STATUS -->
         <aside class="column right-col">
-            <h2 class="section-title">Support & Dev</h2>
+            <h2 class="section-title">Miner Status</h2>
             <div class="data-card">
-                <div class="label">Architecture Version</div>
-                <div class="value" style="color: var(--accent);">V1.0_FROZEN</div>
+                <div class="label">Pipeline</div>
+                <div class="value" style="color: var(--accent);">v1_DETERMINISTIC</div>
             </div>
             <div class="data-card">
-                <div class="label">Reasoning Engine</div>
-                <div class="value" style="color: var(--highlight);">ACTIVE</div>
+                <div class="label">Integrity</div>
+                <div class="value" style="color: var(--highlight);">100% AUDITABLE</div>
             </div>
             <div class="data-card">
-                <div class="label">Reproducibility</div>
-                <div class="value" style="font-size: 0.8rem; color: var(--highlight);">VERIFIED</div>
+                <div class="label">Alerts</div>
+                <div class="value" style="font-size: 0.7rem;">Drift Monitor: Active</div>
             </div>
         </aside>
     </main>

@@ -308,12 +308,47 @@
                 renderMarketState(data);
 
             } catch (error) {
-                resultsDiv.innerHTML = `
-                    <div class="error">
-                        <h3>❌ Analysis Failed</h3>
-                        <pre>${error.message}</pre>
-                    </div>
-                `;
+                let errorMessage = error.message;
+                let errorData = null;
+
+                try {
+                    errorData = JSON.parse(error.message);
+                } catch (e) {
+                    // Not JSON, use as-is
+                }
+
+                // Check for insufficient data error
+                if (errorData && errorData.error === 'DATA_NOT_SUFFICIENT') {
+                    resultsDiv.innerHTML = `
+                        <div class="error">
+                            <h3>⚠️ Not Enough Data to Determine Market Structure</h3>
+                            <div style="margin-top: 16px;">
+                                <strong>Required:</strong> ${errorData.required_candles} candles<br>
+                                <strong>Received:</strong> ${errorData.received_candles} candles
+                            </div>
+                            <div style="margin-top: 20px; padding: 16px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                <div style="font-size: 0.9rem; color: #f59e0b; margin-bottom: 8px;">📡 Data Status</div>
+                                <div style="font-size: 0.85rem;">
+                                    <strong>Provider:</strong> ${errorData.data_status?.provider || 'Unknown'}<br>
+                                    <strong>Raw candles:</strong> ${errorData.data_status?.raw_candles || 0}<br>
+                                    <strong>Aggregated candles:</strong> ${errorData.data_status?.aggregated_candles || 0}<br>
+                                    <strong>Status:</strong> <span style="color: #ef4444;">❌ ${errorData.data_status?.status || 'insufficient'}</span>
+                                </div>
+                            </div>
+                            <div style="margin-top: 16px; font-size: 0.9rem; color: #8b95a5;">
+                                ${errorData.reason}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Generic error
+                    resultsDiv.innerHTML = `
+                        <div class="error">
+                            <h3>❌ Analysis Failed</h3>
+                            <pre>${errorMessage}</pre>
+                        </div>
+                    `;
+                }
             }
         }
 

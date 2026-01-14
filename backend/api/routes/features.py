@@ -11,11 +11,13 @@ import uuid
 from schemas.feature_state import FeatureStateObject, TrendFeatureState, MomentumFeatureState, VolatilityFeatureState
 from learning.primitives.structure import StructurePrimitive
 from ingestion.yahoo_fetcher import YahooFinanceFetcher
+from ingestion.data_validator import DataValidator, DataNotSufficientError
 from loguru import logger
 
 router = APIRouter()
 fetcher = YahooFinanceFetcher()
 structure_calc = StructurePrimitive()
+validator = DataValidator
 
 
 @router.get("/internal/feature-state", response_model=FeatureStateObject)
@@ -69,7 +71,8 @@ async def get_feature_state(
                         "error": fetch_error.error_code,
                         "symbol": symbol,
                         "timeframe": tf,
-                        "details": fetch_error.details
+                        "details": fetch_error.details,
+                        "trace_id": trace_id
                     }
                 )
             else:
@@ -82,6 +85,26 @@ async def get_feature_state(
         df = pd.DataFrame(data_result['data'])
         df['timestamp'] = pd.to_datetime(df['timestamp'])
         df = df.set_index('timestamp')
+        
+        # VALIDATE DATA SUFFICIENCY (Production-grade guard)
+        try:
+            validator.validate_candle_count(len(df), tf, symbol)
+            logger.info(f"[{trace_id}] ✅ Data validation passed: {len(df)} candles")
+        except DataNotSufficientError as e:
+            logger.warning(f"[{trace_id}] ⚠️ Insufficient data: {e}")
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    **e.to_dict(),
+                    "trace_id": trace_id,
+                    "data_status": {
+                        "provider": "Yahoo Finance",
+                        "raw_candles": len(data_result['data']),
+                        "aggregated_candles": len(df),
+                        "status": "insufficient"
+                    }
+                }
+            )
         
         # Ensure we have required columns
         required_cols = ['open', 'high', 'low', 'close']

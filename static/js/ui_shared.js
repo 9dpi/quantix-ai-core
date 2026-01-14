@@ -14,14 +14,15 @@ const UI_MANAGER = {
 
     async refreshGlobalStats() {
         try {
-            // Using API_CONFIG from api.js if available, otherwise fallback
             const baseUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'https://quantixaicore-production.up.railway.app/api/v1';
 
             const response = await fetch(`${baseUrl}/ingestion/global-stats`);
             const result = await response.json();
 
-            if (result.status === 'success') {
+            if (result.status === 'success' && result.data) {
                 this.updateSidebarUI(result.data);
+                // Dispatch event for other scripts to know data has arrived
+                document.dispatchEvent(new CustomEvent('data-refreshed', { detail: result.data }));
             }
         } catch (error) {
             console.error('❌ Failed to fetch global stats:', error);
@@ -29,7 +30,7 @@ const UI_MANAGER = {
     },
 
     updateSidebarUI(data) {
-        // IDs optimized for 3-column layout
+        // Correct IDs for the new layout
         const elements = {
             total: document.getElementById('total-ingested-sidebar') || document.getElementById('total-candles-sidebar'),
             learning: document.getElementById('learning-status-sidebar') || document.getElementById('learning-candles-sidebar'),
@@ -40,7 +41,6 @@ const UI_MANAGER = {
         if (elements.total) elements.total.innerText = (data.total_ingested || 0).toLocaleString();
         if (elements.learning) {
             elements.learning.innerText = (data.total_learning || 0).toLocaleString();
-            elements.learning.style.color = '#38bdf8'; // Sync with Sky Blue
         }
         if (elements.weight) elements.weight.innerText = (data.avg_weight || 0).toFixed(2);
 

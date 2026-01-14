@@ -56,10 +56,37 @@ body {
     border-radius: 4px;
 }
 
+/* Logo Animation - Blue to Purple */
+@keyframes logoGradient {
+    0% {
+        color: #38bdf8;
+    }
+
+    50% {
+        color: #a855f7;
+    }
+
+    100% {
+        color: #38bdf8;
+    }
+}
+
 .logo-text {
-    font-weight: 700;
-    font-size: 1rem;
+    font-weight: 800;
+    font-size: 1.1rem;
     letter-spacing: -0.5px;
+    animation: logoGradient 5s ease-not-specified infinite;
+    background: linear-gradient(135deg, #38bdf8 0%, #a855f7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.logo-icon {
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #38bdf8 0%, #a855f7 100%);
+    border-radius: 4px;
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
 }
 
 .main-nav {
@@ -98,6 +125,73 @@ body {
 
 .column:last-child {
     border-right: none;
+}
+
+/* Responsive Support */
+@media (max-width: 1100px) {
+    .app-layout {
+        grid-template-columns: 250px 1fr;
+        /* Hide right column or move it */
+    }
+
+    .column:last-child {
+        display: none;
+    }
+}
+
+@media (max-width: 850px) {
+    .app-layout {
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+    }
+
+    .app-header {
+        height: auto;
+        flex-direction: column;
+        padding: 15px;
+        gap: 15px;
+    }
+
+    .main-nav {
+        gap: 15px;
+    }
+
+    .column {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        min-height: auto;
+        overflow: visible;
+    }
+
+    .column:last-child {
+        display: flex;
+    }
+
+    .intelligence-node {
+        padding: 0;
+    }
+}
+
+/* Fix Signal Items for 3rd Column */
+.alert-card {
+    background: var(--bg-sub);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+
+.alert-pair {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.alert-time {
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    margin-top: 4px;
 }
 
 /* Content Styling */

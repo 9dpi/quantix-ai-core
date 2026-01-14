@@ -23,14 +23,19 @@ class SupabaseConnection:
 
     def _initialize_client(self):
         try:
+            if not settings.SUPABASE_URL or not settings.SUPABASE_KEY:
+                logger.warning("⚠️ SUPABASE_URL or SUPABASE_KEY is missing!")
+                return
+                
             self._client = create_client(
                 supabase_url=settings.SUPABASE_URL,
                 supabase_key=settings.SUPABASE_KEY
             )
-            logger.info(" Supabase client initialized")
+            logger.info("✅ Supabase client initialized")
         except Exception as e:
-            logger.error(f" Failed to initialize: {e}")
-            raise
+            logger.error(f"❌ Failed to initialize Supabase client: {e}")
+            # Do not raise - allow app to start so we can debug via API
+            self._client = None
 
     @property
     def client(self) -> Client:

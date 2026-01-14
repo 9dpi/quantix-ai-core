@@ -87,10 +87,14 @@ function showSuccess(data) {
     document.getElementById('result-box').style.display = 'block';
     document.getElementById('error-box').style.display = 'none';
 
-    const stats = data.statistics;
-    document.getElementById('total-rows').innerText = stats.total_rows;
-    document.getElementById('tradable-rows').innerText = stats.tradable;
-    document.getElementById('avg-weight').innerText = stats.avg_learning_weight.toFixed(2);
+    console.log('✅ Upload Success:', data);
+
+    const stats = data.statistics || {};
+    document.getElementById('total-rows').innerText = stats.total_rows || '-';
+    document.getElementById('tradable-rows').innerText = stats.tradable || '-';
+
+    const avgWeight = stats.avg_learning_weight;
+    document.getElementById('avg-weight').innerText = avgWeight !== undefined ? avgWeight.toFixed(2) : '-';
 
     fetchAuditLogs();
 }

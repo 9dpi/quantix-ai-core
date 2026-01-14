@@ -9,8 +9,8 @@ const UI_MANAGER = {
         await this.refreshGlobalStats();
         this.initMobileMenu();
 
-        // Refresh stats every 30 seconds
-        setInterval(() => this.refreshGlobalStats(), 30000);
+        // Refresh stats disabled for System Lock v1
+        // setInterval(() => this.refreshGlobalStats(), 30000);
     },
 
     initMobileMenu() {

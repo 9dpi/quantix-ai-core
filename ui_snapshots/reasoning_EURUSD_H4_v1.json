@@ -1,0 +1,25 @@
+{
+    "asset": "EURUSD",
+    "timeframe": "H4",
+    "session": "Global FX (UTC)",
+    "market_state": {
+        "structure": "BULLISH",
+        "confidence": 0.784,
+        "dominance": {
+            "bullish": 1.42,
+            "bearish": 0.31
+        }
+    },
+    "evidence": [
+        "Bullish BOS confirmed (82% body acceptance)",
+        "No fakeout detected after swing break",
+        "Higher low structural integrity maintained"
+    ],
+    "metadata": {
+        "source": "Dukascopy (Clean Feed v1)",
+        "timestamp": "2026-01-14T12:00:00Z",
+        "trace_id": "struct-9e21c",
+        "version": "v1.0.0"
+    },
+    "disclaimer": "NO TRADE RECOMMENDATION. FOR RESEARCH ONLY."
+}

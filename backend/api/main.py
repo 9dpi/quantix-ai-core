@@ -37,36 +37,38 @@ app.include_router(admin.router, prefix=settings.API_PREFIX, tags=["Admin"])
 @app.on_event("startup")
 async def startup_event():
     logger.info(f"🚀 Starting {settings.APP_NAME} v{settings.APP_VERSION}...")
-    # Optional: Basic DB connectivity check
+    
+    # 1. Health check nhanh
     is_healthy = await db.health_check()
     if is_healthy:
         logger.info("✅ Database connection verified")
-        # --- AUTO-SEED DATA ---
-        try:
-            await seed_data()
-        except Exception as e:
-            logger.error(f"❌ Auto-seeding failed: {e}")
+        # 2. CHẠY NGẦM VIỆC NẠP DATA (Không chặn khởi động)
+        import asyncio
+        asyncio.create_task(seed_data())
     else:
-        logger.warning("⚠️ Database connection check failed - ensure SUPABASE keys are correct")
+        logger.warning("⚠️ Database connection check failed")
 
 async def seed_data():
     import os
+    from loguru import logger
+    # Tránh import vòng (Circular Import)
     from ingestion.pipeline import CSVIngestionPipeline
     from api.routes.csv_ingestion import _log_ingestion_audit
     
-    # In Docker, the path will be 'data' because we copied backend/ to /app/
+    # Đợi 2 giây cho server ổn định hoàn toàn rồi mới nạp
+    await asyncio.sleep(2)
+    
     data_dir = "data"
     if not os.path.exists(data_dir):
-        logger.info(f"📁 Seed directory '{data_dir}' not found, skipping auto-seed.")
+        logger.info("📁 Seed directory not found.")
         return
         
     pipeline = CSVIngestionPipeline()
     files = [f for f in os.listdir(data_dir) if f.endswith('.csv')]
     
-    if not files:
-        return
+    if not files: return
         
-    logger.info(f"🌱 Auto-seeding found {len(files)} files: {files}")
+    logger.info(f"🌱 Auto-seeding starting for {len(files)} files...")
     for filename in files:
         try:
             path = os.path.join(data_dir, filename)
@@ -86,7 +88,7 @@ async def seed_data():
                 await _log_ingestion_audit(result, asset=asset, timeframe="D1")
                 logger.info(f"✅ Auto-seeded: {filename}")
         except Exception as e:
-            logger.error(f"⚠️ Failed to seed {filename}: {e}")
+            logger.error(f"⚠️ Seed error {filename}: {e}")
 
 @app.get("/")
 async def root():

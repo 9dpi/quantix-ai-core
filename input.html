@@ -14,7 +14,8 @@
             <div class="logo-icon"></div>
             <span class="logo-text">QUANTIX AI CORE</span>
         </div>
-        <nav class="main-nav">
+        <div class="hamburger" id="menu-toggle">☰</div>
+        <nav class="main-nav" id="main-nav">
             <a href="index.html" class="nav-link">Dashboard</a>
             <a href="input.html" class="nav-link active">Data Ingestion</a>
             <a href="#" class="nav-link">Strategy Lab</a>
@@ -27,7 +28,7 @@
 
     <main class="app-layout">
         <!-- LEFT: CURRENT INGESTION STATS -->
-        <aside class="column">
+        <aside class="column left-col">
             <h2 class="section-title">Current Ingestion Stats</h2>
             <div class="data-card">
                 <div class="label">Ingested (Total)</div>
@@ -44,7 +45,7 @@
         </aside>
 
         <!-- MIDDLE: UPLOAD CONTROL -->
-        <section class="column" style="background: var(--bg-main);">
+        <section class="column middle-col" style="background: var(--bg-main);">
             <div class="intelligence-node">
                 <h2 class="section-title">Ingestion Pipeline Control</h2>
 
@@ -87,7 +88,7 @@
         </section>
 
         <!-- RIGHT: RECENT ACTIVITIES -->
-        <aside class="column">
+        <aside class="column right-col">
             <h2 class="section-title">Network Audit History</h2>
             <div id="audit-log" style="font-size: 0.75rem;">
                 <!-- Logs will appear here -->

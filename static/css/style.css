@@ -197,7 +197,10 @@ body {
 
     .column {
         border-right: none;
+        height: auto;
         min-height: auto;
+        overflow: visible;
+        /* Show all content without inner scroll */
         padding: 20px;
     }
 }

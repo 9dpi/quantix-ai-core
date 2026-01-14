@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quantix Developer API | Market State Intelligence</title>
+    <title>Quantix API | Market Intelligence Documentation</title>
     <link rel="stylesheet" href="static/css/style.css">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
@@ -22,6 +22,7 @@
             border-radius: 12px;
             padding: 24px;
             margin: 24px 0;
+            position: relative;
         }
 
         .method {
@@ -33,6 +34,10 @@
             font-weight: 800;
             font-size: 0.8rem;
             margin-right: 12px;
+        }
+
+        .method.post {
+            background: var(--accent);
         }
 
         .url {
@@ -57,6 +62,7 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
             margin: 16px 0;
             line-height: 1.5;
+            font-size: 0.85rem;
         }
 
         .doc-section {
@@ -84,21 +90,24 @@
             letter-spacing: 0.1em;
         }
 
-        .badge {
-            font-size: 0.7rem;
-            padding: 2px 6px;
-            border-radius: 4px;
-            background: var(--bg-main);
-            border: 1px solid var(--border);
-            color: var(--text-dim);
-        }
-
         .compliance-box {
             border-left: 4px solid var(--warning);
             background: rgba(244, 63, 94, 0.05);
             padding: 20px;
             margin: 40px 0;
             border-radius: 0 8px 8px 0;
+        }
+
+        .lab-tag {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: var(--warning);
+            color: #fff;
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 800;
         }
     </style>
 </head>
@@ -126,128 +135,172 @@
         <div class="doc-section">
             <h1 style="font-size: 2.5rem; margin-bottom: 12px;">Market Intelligence API</h1>
             <p style="color: var(--text-dim); font-size: 1.1rem; line-height: 1.6;">
-                Quantix developer API allows you to integrate institutional-grade market structure reasoning into your
-                own execution engines and platforms.
-                We provide the <strong>context</strong>, you provide the <strong>action</strong>.
+                Quantix AI API cung cấp **Market State Intelligence** — phân tích trạng thái thị trường dựa trên dữ liệu
+                sạch, deterministic và có thể audit.
+                Quantix không cung cấp lệnh giao dịch. Quantix cung cấp context để con người hoặc hệ thống khác ra quyết
+                định.
             </p>
         </div>
 
         <div class="compliance-box">
-            <h3 style="color: var(--warning); margin-bottom: 8px;">⚠️ Responsible Usage Policy</h3>
+            <h3 style="color: var(--warning); margin-bottom: 8px;">⚠️ Disclaimer (Mandatory)</h3>
             <p style="font-size: 0.9rem; color: var(--text-main); line-height: 1.5;">
-                Quantix API does <strong>not</strong> provide Buy/Sell signals, Stop Loss, or Take Profit levels.
-                Users are strictly prohibited from marketing Quantix as a signal service.
-                This API provides deterministic market state analysis for decision support only.
+                Quantix AI provides market analysis and contextual insights only.
+                It does not constitute investment advice, trading signals, or execution instructions.
+                All decisions are made by the user.
             </p>
         </div>
 
         <div class="doc-section">
-            <h2 class="section-title">Base URL</h2>
-            <pre>https://quantixaicore-production.up.railway.app/api/v1</pre>
+            <h2 class="section-title">1. Base URL & Auth</h2>
+            <pre>Base URL: https://api.quantix.ai (v1)</pre>
+            <p style="font-size: 0.9rem; margin-bottom: 12px;">Authentication: <strong>Bearer YOUR_API_KEY</strong>
+                (Header-based)</p>
+            <code>Authorization: Bearer YOUR_API_KEY</code>
         </div>
 
+        <!-- ENDPOINT: MARKET STATE -->
         <div class="doc-section">
-            <h2 class="section-title">Endpoints</h2>
-
+            <h2 class="section-title">2. Endpoint: Market State</h2>
             <div class="endpoint-box">
                 <div>
                     <span class="method">GET</span>
-                    <span class="url">/public/market-state</span>
+                    <span class="url">/v1/market-state</span>
                 </div>
-                <p style="margin-top: 16px; font-size: 0.9rem; color: var(--text-dim);">
-                    Retrieves the current structural state, confidence, and reasoning evidence for a specific asset.
-                </p>
-
-                <h4 style="margin-top: 24px; font-size: 0.8rem; text-transform: uppercase; color: var(--accent);">
-                    Parameters</h4>
                 <table class="param-table">
                     <thead>
                         <tr>
                             <th>Parameter</th>
                             <th>Type</th>
                             <th>Required</th>
-                            <th>Description</th>
+                            <th>Example</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td><code>asset</code></td>
-                            <td>String</td>
-                            <td>Yes</td>
-                            <td>Symbol (e.g. EURUSD, GBPUSD)</td>
+                            <td>string</td>
+                            <td>✅</td>
+                            <td>EURUSD</td>
                         </tr>
                         <tr>
                             <td><code>timeframe</code></td>
-                            <td>String</td>
-                            <td>No</td>
-                            <td>H1, H4, or D1 (Default: H4)</td>
+                            <td>string</td>
+                            <td>✅</td>
+                            <td>H1, H4, D1</td>
                         </tr>
                     </tbody>
                 </table>
 
                 <h4 style="margin-top: 24px; font-size: 0.8rem; text-transform: uppercase; color: var(--accent);">
-                    Authentication</h4>
-                <p style="font-size: 0.9rem; margin-bottom: 12px;">Include the following header in your request:</p>
-                <code>X-API-Key: YOUR_API_KEY</code>
-            </div>
-        </div>
-
-        <div class="doc-section">
-            <h2 class="section-title">Sample Response</h2>
-            <pre>{
+                    Example Response</h4>
+                <pre>{
   "asset": "EURUSD",
   "timeframe": "H4",
   "state": "bullish",
-  "confidence": 0.7842,
-  "dominance": {
-    "bullish": 1.42,
-    "bearish": 0.31
-  },
+  "confidence": 0.78,
+  "dominance": { "bullish": 1.42, "bearish": 0.31 },
   "evidence": [
-    "Bullish BOS confirmed (82% acceptance)",
-    "No fakeout detected after swing break",
-    "Higher low structural integrity maintained"
+    "Bullish break of structure confirmed",
+    "Higher low respected",
+    "No fake breakout detected"
   ],
   "updated_at": "2026-01-15T04:00:00Z",
-  "trace_id": "struct-9e21c",
-  "disclaimer": "Quantix AI provides research insights only. Not financial advice."
+  "trace_id": "qtx-struct-9e21c"
 }</pre>
+            </div>
         </div>
 
         <div class="doc-section">
-            <h2 class="section-title">Integration Guidance</h2>
-            <p style="color: var(--text-dim); line-height: 1.6; margin-bottom: 24px;">
-                As a developer, you should map the <code>state</code> and <code>confidence</code> to your own trading
-                bias.
-                Common deterministic mappings:
+            <h2 class="section-title">3. Interpretation Guide (Non-Binding)</h2>
+            <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 16px;">This section is educational, not
+                instructional.</p>
+            <table class="param-table">
+                <thead>
+                    <tr>
+                        <th>Condition</th>
+                        <th>Interpretation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>confidence > 0.75</code></td>
+                        <td>Strong directional bias</td>
+                    </tr>
+                    <tr>
+                        <td><code>confidence 0.45–0.75</code></td>
+                        <td>Mixed / transitional</td>
+                    </tr>
+                    <tr>
+                        <td><code>confidence < 0.45</code></td>
+                        <td>Range or uncertainty</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- SECTION: LAB SANDBOX -->
+        <div class="doc-section" style="border-top: 1px solid var(--border); padding-top: 40px;">
+            <h2 class="section-title">🧭 3. Signal Engine Lab (Sandbox)</h2>
+            <p style="color: var(--text-dim); line-height: 1.6;">
+                Sandbox cho phép người dùng thử nghiệm mapping giữa `state + confidence` và các tín hiệu tự doanh
+                (user-defined signals).
+                <strong>Không dùng cho giao dịch thực tế.</strong>
             </p>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-                <div class="landing-card" style="padding: 20px;">
-                    <div style="font-family: 'JetBrains Mono'; color: var(--highlight); margin-bottom: 10px;">LONG_BIAS
-                    </div>
-                    <div style="font-size: 0.8rem; color: var(--text-dim);"><code>state == "bullish"</code> AND
-                        <code>confidence > 0.75</code></div>
+
+            <div class="endpoint-box">
+                <div class="lab-tag">SANDBOX</div>
+                <div>
+                    <span class="method post">POST</span>
+                    <span class="url">/lab/signal-engine/evaluate</span>
                 </div>
-                <div class="landing-card" style="padding: 20px;">
-                    <div style="font-family: 'JetBrains Mono'; color: var(--warning); margin-bottom: 10px;">SHORT_BIAS
-                    </div>
-                    <div style="font-size: 0.8rem; color: var(--text-dim);"><code>state == "bearish"</code> AND
-                        <code>confidence > 0.75</code></div>
-                </div>
-                <div class="landing-card" style="padding: 20px;">
-                    <div style="font-family: 'JetBrains Mono'; color: var(--text-dim); margin-bottom: 10px;">NO_BIAS
-                    </div>
-                    <div style="font-size: 0.8rem; color: var(--text-dim);"><code>state == "range"</code> OR
-                        <code>confidence < 0.5</code></div>
-                </div>
+
+                <h4 style="margin-top: 24px; font-size: 0.8rem; text-transform: uppercase; color: var(--accent);">
+                    Payload Schema</h4>
+                <pre>{
+  "rules": {
+    "buy_if": "state == bullish AND confidence >= 0.75",
+    "sell_if": "state == bearish AND confidence >= 0.75"
+  },
+  "asset": "EURUSD",
+  "timeframe": "H4",
+  "historical_range": "30d"
+}</pre>
+
+                <h4 style="margin-top: 24px; font-size: 0.8rem; text-transform: uppercase; color: var(--accent);">
+                    Response</h4>
+                <pre>{
+  "results": [
+    {
+      "timestamp": "2025-12-10T08:00:00Z",
+      "state": "bullish",
+      "confidence": 0.81,
+      "user_signal": "BUY"
+    }
+  ],
+  "notice": "Sandbox only. Not for live trading."
+}</pre>
             </div>
+        </div>
+
+        <div class="doc-section">
+            <h2 class="section-title">4. Security & Trust</h2>
+            <ul class="feature-list">
+                <li class="feature-item"><span>• <strong>Deterministic output</strong>: Cùng một dữ liệu đầu vào luôn
+                        cho cùng một kết luận.</span></li>
+                <li class="feature-item"><span>• <strong>trace_id</strong>: Mỗi phân tích có ID riêng để audit và
+                        debug.</span></li>
+                <li class="feature-item"><span>• <strong>Zero execution</strong>: Quantix không có lớp thực thi giao
+                        dịch, đảm bảo tính khách quan tuyệt đối.</span></li>
+            </ul>
         </div>
     </main>
 
     <footer class="app-footer">
         <div class="disclaimer">
-            <strong>LEGAL SHIELD:</strong> Use of Quantix API is subject to the Terms of Service. API access may be
-            revoked for misuse or fraudulent activity.
+            <strong>LEGAL FIREWALL:</strong> User-generated signals in Lab are experimental and not validated by
+            Quantix.
+            All API access is subject to Quantix B2B Terms of Service.
         </div>
     </footer>
     <script src="static/js/ui_shared.js"></script>

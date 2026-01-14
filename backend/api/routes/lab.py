@@ -3,7 +3,7 @@ Quantix Lab API - Isolated Decision Support
 Namespace: /api/v1/lab
 """
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Body
 from config.settings import settings
 from engine.structure_engine_v1 import StructureEngineV1
 from learning_lab.advisor import LabAdvisor
@@ -11,6 +11,8 @@ from ingestion.yahoo_fetcher import YahooFinanceFetcher
 from loguru import logger
 import pandas as pd
 import uuid
+import random
+from datetime import datetime, timedelta
 
 router = APIRouter()
 
@@ -18,6 +20,43 @@ router = APIRouter()
 structure_engine = StructureEngineV1(sensitivity=2)
 fetcher = YahooFinanceFetcher()
 lab_advisor = LabAdvisor()
+
+@router.post("/signal-engine/evaluate")
+async def evaluate_user_rules(
+    payload: dict = Body(..., example={
+        "rules": {
+            "buy_if": "state == bullish AND confidence >= 0.75",
+            "sell_if": "state == bearish AND confidence >= 0.75"
+        },
+        "asset": "EURUSD",
+        "timeframe": "H4",
+        "historical_range": "30d"
+    })
+):
+    """
+    **LAB ONLY (SANDBOX)** - Evaluate user-defined Buy/Sell rules against historical structure.
+    This is experimental and not for live trading.
+    """
+    if not settings.ENABLE_LAB_SIGNALS:
+        raise HTTPException(status_code=403, detail="Lab is disabled.")
+
+    # Sandbox Mock Logic for V1
+    # In a real implementation, this would iterate through stored analytics_snapshots
+    results = [
+        {
+            "timestamp": (datetime.utcnow() - timedelta(hours=i*4)).isoformat() + "Z",
+            "state": random.choice(["bullish", "bearish", "range"]),
+            "confidence": round(random.uniform(0.3, 0.95), 2),
+            "user_signal": "BUY" if i % 10 == 0 else "NO_ACTION"
+        }
+        for i in range(5)
+    ]
+
+    return {
+        "results": results,
+        "notice": "Sandbox only. Results are experimental and not validated by Quantix.",
+        "legal": "User-generated signals are non-binding. Quantix assumes no liability."
+    }
 
 @router.get("/signal-candidate")
 async def get_signal_candidate(

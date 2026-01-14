@@ -18,12 +18,16 @@ router = APIRouter(prefix="/public", tags=["Public API"])
 structure_engine = StructureEngineV1(sensitivity=2)
 fetcher = YahooFinanceFetcher()
 
-async def verify_api_key(x_api_key: str = Header(..., alias="X-API-Key")):
-    """Verify the the public API key"""
-    if x_api_key != settings.QUANTIX_PUBLIC_API_KEY:
-        logger.warning(f"Invalid API Key attempt: {x_api_key}")
+async def verify_api_key(authorization: str = Header(..., alias="Authorization")):
+    """Verify the public API key using Bearer token"""
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Invalid authorization header format. Use 'Bearer YOUR_KEY'")
+    
+    auth_token = authorization.split(" ")[1]
+    if auth_token != settings.QUANTIX_PUBLIC_API_KEY:
+        logger.warning(f"Invalid API Key attempt: {auth_token}")
         raise HTTPException(status_code=403, detail="Invalid API Key")
-    return x_api_key
+    return auth_token
 
 @router.get("/market-state")
 async def get_market_state(

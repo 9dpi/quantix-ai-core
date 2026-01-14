@@ -1,5 +1,6 @@
 # SIGNAL_ENGINE_LAB_SPEC.md
 
+⚠️ **EXPERIMENTAL – NOT QUANTIX CORE**
 **(Sandbox – không thuộc Quantix Core)**
 
 ## 1. Purpose

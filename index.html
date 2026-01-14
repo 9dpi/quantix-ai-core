@@ -75,10 +75,10 @@
         <section class="column middle-col" style="background: var(--bg-main);">
             <div class="intelligence-node">
 
-                <!-- BLOCK 4: AUDITABLE SNAPSHOT -->
-                <h2 class="section-title">📊 Market State Snapshot</h2>
+                <!-- LAYER 1: CORE (PRIMARY) - AUDITABLE SNAPSHOT -->
+                <h2 class="section-title">📊 Market State Reasoning (Core)</h2>
                 <div class="snapshot-card"
-                    style="margin-top: 0; background: var(--bg-sub); border: 1px solid var(--border);">
+                    style="margin-top: 0; background: var(--bg-sub); border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
                     <div
                         style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
                         <div>
@@ -88,25 +88,26 @@
                                 (UTC)</div>
                         </div>
                         <div style="text-align: right;">
-                            <div class="label">State</div>
-                            <div style="font-size: 1.2rem; font-weight: 700; color: var(--highlight);">BULLISH</div>
+                            <div class="label">Structure State</div>
+                            <div id="core-state" style="font-size: 1.2rem; font-weight: 700; color: var(--highlight);">
+                                BULLISH</div>
                         </div>
                     </div>
 
                     <div class="snapshot-grid">
                         <div class="snapshot-item">
-                            <div class="snapshot-label">Confidence</div>
-                            <div class="snapshot-value">78.4%</div>
+                            <div class="snapshot-label">State Confidence</div>
+                            <div id="core-confidence" class="snapshot-value">78.4%</div>
                         </div>
                         <div class="snapshot-item">
-                            <div class="snapshot-label">Dominance</div>
-                            <div class="snapshot-value">1.42 vs 0.31</div>
+                            <div class="snapshot-label">Directional Dominance</div>
+                            <div id="core-dominance" class="snapshot-value">0.72</div>
                         </div>
                     </div>
 
                     <div style="margin-top: 24px;">
-                        <div class="snapshot-label">Auditable Evidence</div>
-                        <ul class="constitution-list" style="margin-top: 8px;">
+                        <div class="snapshot-label">Reasoning Evidence</div>
+                        <ul id="core-evidence" class="constitution-list" style="margin-top: 8px;">
                             <li>Bullish BOS confirmed (82% acceptance)</li>
                             <li>No fakeout detected after swing break</li>
                             <li>Higher low structural integrity maintained</li>
@@ -116,9 +117,39 @@
                     <div
                         style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
                         <div style="font-size: 0.6rem; color: var(--text-dim); font-family: 'JetBrains Mono';">
-                            ID: struct-9e21c | 2026-01-14 12:00 UTC
+                            ID: <span id="core-trace">struct-9e21c</span> | <span id="core-time">2026-01-14 12:00
+                                UTC</span>
                         </div>
-                        <div style="font-size: 0.6rem; font-weight: 700; color: var(--warning);">NO TRADE RECOMMENDATION
+                        <div style="font-size: 0.6rem; font-weight: 700; color: var(--warning);">DETERMINISTIC ANALYSIS
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LAYER 2: DECISION SUPPORT (LAB) - EXPERIMENTAL -->
+                <div id="lab-section" style="margin-top: 24px;">
+                    <h2 class="section-title">🧪 Decision Support (Lab Sandbox)</h2>
+                    <div class="snapshot-card"
+                        style="margin-top: 0; background: rgba(56, 189, 248, 0.03); border: 1px solid rgba(56, 189, 248, 0.15); position: relative;">
+                        <div
+                            style="position: absolute; top: 12px; right: 12px; font-size: 0.55rem; background: var(--accent); color: var(--bg-deep); padding: 2px 6px; border-radius: 3px; font-weight: 800; letter-spacing: 0.1em;">
+                            EXPERIMENTAL</div>
+
+                        <div id="lab-decision"
+                            style="font-size: 1.2rem; font-weight: 800; color: var(--highlight); margin-bottom: 8px;">
+                            BUY_CANDIDATE</div>
+                        <div id="lab-reason" style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 16px;">
+                            Sustained bullish structure favors continuation.</div>
+
+                        <div style="display: flex; gap: 16px; font-size: 0.7rem; color: var(--text-dim);">
+                            <div>Validity: <span id="lab-validity" style="color: var(--text-main);">2 candles</span>
+                            </div>
+                            <div>Audit: <span id="lab-ruleset" style="color: var(--text-main);">signal_mapping_v1</span>
+                            </div>
+                        </div>
+
+                        <div
+                            style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05); font-size: 0.65rem; color: var(--text-dim); font-style: italic;">
+                            ⚠️ Not a trading signal. Provided for research and decision-support only.
                         </div>
                     </div>
                 </div>
@@ -198,8 +229,11 @@
 
     <footer class="app-footer">
         <div class="disclaimer" style="max-width: 1000px;">
-            Quantix AI is a deterministic reasoning engine. It does not provide trade advice, entry, TP, or SL.
-            All states are derived from Clean Feed v1. No financial liability.
+            <strong>LEGAL SHIELD:</strong> Quantix AI provides market structure analysis and research-based decision
+            support.
+            It does NOT provide investment advice, price predictions, or automated trading signals.
+            Any trading decision remains the sole responsibility of the user.
+            No financial liability is assumed for decisions based on this research platform.
         </div>
     </footer>
 

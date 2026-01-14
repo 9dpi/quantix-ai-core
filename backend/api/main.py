@@ -9,7 +9,7 @@ import uvicorn
 import asyncio
 import os
 
-from api.routes import health, signals, ingestion, csv_ingestion, admin, features, structure
+from api.routes import health, signals, ingestion, csv_ingestion, admin, features, structure, lab
 from config.settings import settings
 from database.connection import db
 
@@ -37,6 +37,7 @@ app.include_router(signals.router, prefix=settings.API_PREFIX, tags=["Signals"])
 app.include_router(ingestion.router, prefix=settings.API_PREFIX, tags=["Ingestion"])
 app.include_router(csv_ingestion.router, prefix=f"{settings.API_PREFIX}/ingestion", tags=["CSV Ingestion"])
 app.include_router(admin.router, prefix=settings.API_PREFIX, tags=["Admin"])
+app.include_router(lab.router, prefix=f"{settings.API_PREFIX}/lab", tags=["Learning Lab"])
 
 @app.on_event("startup")
 async def startup_event():

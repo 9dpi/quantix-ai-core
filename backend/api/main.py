@@ -36,54 +36,48 @@ app.include_router(admin.router, prefix=settings.API_PREFIX, tags=["Admin"])
 
 @app.on_event("startup")
 async def startup_event():
-    logger.info(f"🚀 Starting {settings.APP_NAME} v{settings.APP_VERSION}...")
+    # SERVER PHẢI ONLINE NGAY LẬP TỨC
+    logger.info(f"🚀 Quantix AI Core Engine ONLINE")
     
-    # 1. Health check nhanh
-    is_healthy = await db.health_check()
-    if is_healthy:
-        logger.info("✅ Database connection verified")
-        # 2. CHẠY NGẦM VIỆC NẠP DATA (Không chặn khởi động)
-        import asyncio
-        asyncio.create_task(seed_data())
-    else:
-        logger.warning("⚠️ Database connection check failed")
+    # Chạy toàn bộ việc kiểm tra DB và nạp data vào luồng ngầm
+    import asyncio
+    asyncio.create_task(background_startup_tasks())
+
+async def background_startup_tasks():
+    await asyncio.sleep(1) # Đợi server ổn định
+    logger.info("🔍 Running background connectivity checks...")
+    
+    # Kiểm tra DB ngầm
+    try:
+        is_healthy = await db.health_check()
+        if is_healthy:
+            logger.info("✅ Database connection verified in background")
+            await seed_data()
+        else:
+            logger.warning("⚠️ Database check failed - check your Railway Variables")
+    except Exception as e:
+        logger.error(f"❌ Background startup error: {e}")
 
 async def seed_data():
     import os
-    from loguru import logger
-    # Tránh import vòng (Circular Import)
     from ingestion.pipeline import CSVIngestionPipeline
     from api.routes.csv_ingestion import _log_ingestion_audit
     
-    # Đợi 2 giây cho server ổn định hoàn toàn rồi mới nạp
-    await asyncio.sleep(2)
-    
     data_dir = "data"
-    if not os.path.exists(data_dir):
-        logger.info("📁 Seed directory not found.")
-        return
+    if not os.path.exists(data_dir): return
         
     pipeline = CSVIngestionPipeline()
     files = [f for f in os.listdir(data_dir) if f.endswith('.csv')]
-    
     if not files: return
         
-    logger.info(f"🌱 Auto-seeding starting for {len(files)} files...")
     for filename in files:
         try:
             path = os.path.join(data_dir, filename)
             asset = filename.split('_')[0].upper()
-            
             with open(path, 'r', encoding='utf-8') as f:
                 content = f.read()
                 
-            result = await pipeline.ingest_csv_content(
-                content, 
-                asset=asset, 
-                timeframe="D1",
-                source="auto_seed"
-            )
-            
+            result = await pipeline.ingest_csv_content(content, asset=asset, timeframe="D1", source="auto_seed")
             if result['status'] == 'success':
                 await _log_ingestion_audit(result, asset=asset, timeframe="D1")
                 logger.info(f"✅ Auto-seeded: {filename}")

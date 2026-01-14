@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quantix AI | Reasoning Panel</title>
+    <title>Quantix AI | Market Structure Reasoning</title>
     <link rel="stylesheet" href="static/css/style.css">
     <style>
         :root {
@@ -19,12 +19,27 @@
             --border: rgba(255, 255, 255, 0.08);
         }
 
-        body {
-            background: var(--bg-deep);
-            color: var(--text-main);
-            font-family: 'Inter', -apple-system, system-ui, sans-serif;
-            margin: 0;
-            line-height: 1.5;
+        .hero-block {
+            padding: 40px 0;
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hero-block h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(to right, #fff, var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-block p {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+            max-width: 800px;
+            line-height: 1.6;
         }
 
         .control-panel {
@@ -32,7 +47,7 @@
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 24px;
-            margin-bottom: 24px;
+            margin-bottom: 32px;
             display: flex;
             gap: 20px;
             align-items: flex-end;
@@ -60,22 +75,17 @@
             color: var(--text-main);
             padding: 10px 16px;
             border-radius: 6px;
+            font-family: inherit;
             font-size: 0.9rem;
-            min-width: 140px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        select:focus,
-        input:focus {
-            border-color: var(--accent);
+            height: 42px;
+            min-width: 180px;
         }
 
         .btn-analyze {
             background: var(--accent);
-            color: var(--bg-deep);
+            color: #000;
             border: none;
-            padding: 10px 24px;
+            padding: 0 24px;
             border-radius: 6px;
             font-weight: 700;
             font-size: 0.9rem;
@@ -95,13 +105,14 @@
             border-radius: 12px;
             padding: 24px;
             margin-bottom: 24px;
+            position: relative;
         }
 
         .state-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .state-title {
@@ -156,10 +167,17 @@
             color: var(--text-dim);
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             gap: 8px;
+        }
+
+        .section-desc {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-bottom: 16px;
+            line-height: 1.4;
         }
 
         .evidence-list {
@@ -187,18 +205,6 @@
             flex-shrink: 0;
         }
 
-        .evidence-item.positive {
-            border-left: 3px solid var(--highlight);
-        }
-
-        .evidence-item.warning {
-            border-left: 3px solid var(--warning);
-        }
-
-        .evidence-item.negative {
-            border-left: 3px solid var(--error);
-        }
-
         .confidence-bar {
             margin-top: 20px;
         }
@@ -206,7 +212,7 @@
         .confidence-label {
             display: flex;
             justify-content: space-between;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             margin-bottom: 8px;
             color: var(--text-dim);
         }
@@ -233,6 +239,7 @@
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.75rem;
             color: var(--text-dim);
+            margin-top: 32px;
         }
 
         .debug-grid {
@@ -244,10 +251,13 @@
         .debug-label {
             color: rgba(255, 255, 255, 0.3);
             margin-bottom: 4px;
+            text-transform: uppercase;
+            font-size: 0.65rem;
         }
 
         .debug-value {
             color: var(--text-main);
+            word-break: break-all;
         }
 
         .loading {
@@ -257,7 +267,7 @@
             font-weight: 600;
         }
 
-        .error {
+        .error-box {
             background: rgba(239, 68, 68, 0.05);
             border: 1px solid rgba(239, 68, 68, 0.2);
             border-radius: 12px;
@@ -283,19 +293,11 @@
             top: 10px;
             right: 10px;
             background: var(--accent);
-            color: var(--bg-deep);
+            color: #000;
             font-size: 0.6rem;
             font-weight: 800;
             padding: 2px 6px;
             border-radius: 3px;
-            letter-spacing: 0.1em;
-        }
-
-        .decision-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
         }
 
         .decision-tag {
@@ -303,6 +305,7 @@
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+            margin-bottom: 8px;
         }
 
         .decision-tag.buy {
@@ -325,6 +328,24 @@
             border-top: 1px solid var(--border);
             font-style: italic;
         }
+
+        .why-no-result {
+            margin-top: 24px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+        }
+
+        .why-no-result li {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            list-style: none;
+        }
+
+        .why-no-result b {
+            color: var(--text-main);
+        }
     </style>
 </head>
 
@@ -343,12 +364,19 @@
         </nav>
         <div class="status-tag hide-mobile"
             style="font-size: 0.7rem; color: var(--text-dim); display: flex; align-items: center; gap: 8px;">
-            <div class="dot dot-online"></div> INGEST_ACTIVE
+            <div class="dot dot-online"></div> REASONING_ENGINE
         </div>
     </header>
 
-    <div class="app-layout" style="max-width: 1200px; margin: 40px auto; padding: 0 20px;">
-        <h2 class="section-title">State Reasoning Panel</h2>
+    <div class="app-layout" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+        <!-- 1. HERO BLOCK -->
+        <div class="hero-block">
+            <h1>Market Structure Reasoning</h1>
+            <p>
+                This page shows how Quantix AI interprets market structure using validated price data.
+                The output is analytical, explainable, and deterministic — not trading advice.
+            </p>
+        </div>
 
         <div class="control-panel">
             <div class="form-group">
@@ -367,6 +395,14 @@
         </div>
 
         <div id="results"></div>
+
+        <div class="why-no-result">
+            <h3 class="section-title">Why no result?</h3>
+            <ul>
+                <li><b>DATA_NOT_AVAILABLE</b>: No validated candle data for this period.</li>
+                <li><b>DATA_NOT_SUFFICIENT</b>: Structure conditions not met for analysis.</li>
+            </ul>
+        </div>
     </div>
 
     <script>
@@ -391,7 +427,7 @@
                 renderResults(data);
             } catch (error) {
                 console.error(error);
-                resultsDiv.innerHTML = `<div class="error"><h3>Analysis Failed</h3><p>${error.message}</p></div>`;
+                resultsDiv.innerHTML = `<div class="error-box"><h3>Analysis Failed</h3><p>${error.message}</p></div>`;
             }
         }
 
@@ -403,8 +439,6 @@
             const evidence = data.evidence || [];
             const traceId = data.trace_id || 'unknown';
 
-            // Lab Signal Mapping (Simplified for UI logic)
-            // BUY_CANDIDATE if bullish AND confidence >= 88% AND dominance.bullish > dominance.bearish
             let labDecision = "NO_ACTION";
             let decisionClass = "none";
             if (state === 'bullish' && confidence >= 88 && dominance.bullish >= 0.65) {
@@ -420,7 +454,7 @@
             else if (state === 'bearish') badgeClass = 'fakeout';
 
             let html = `
-                <!-- 1. MARKET STATE -->
+                <!-- 2. STRUCTURAL BIAS -->
                 <div class="state-summary">
                     <div class="state-header">
                         <div>
@@ -429,23 +463,24 @@
                         </div>
                         <div class="state-badge ${badgeClass}">${state.toUpperCase()}</div>
                     </div>
-                    <div style="font-size: 0.65rem; color: var(--text-dim); margin-bottom: 16px; text-align: right;">Reflects current structure, not price prediction.</div>
                     
                     <div class="confidence-bar">
                         <div class="confidence-label">
-                            <span>Structural Confidence</span>
+                            <span title="Structural Confidence reflects the strength of market structure evidence, not probability of price movement.">Structural Confidence ⓘ</span>
                             <span><strong>${confidence.toFixed(1)}%</strong></span>
                         </div>
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: ${confidence}%"></div>
                         </div>
                     </div>
+                    <div style="font-size: 0.65rem; color: var(--text-dim); margin-top: 12px; text-align: right;">Reflects current structure, not price prediction.</div>
                 </div>
 
                 <div class="evidence-section">
-                    <!-- 2. EVIDENCE LIST -->
+                    <!-- 3. STRUCTURAL EVIDENCE -->
                     <div>
-                        <h3 class="section-title">🧠 Reasoning Evidence</h3>
+                        <h3 class="section-title">🧠 Structural Evidence</h3>
+                        <p class="section-desc">Each conclusion is supported by explicit market structure observations.</p>
                         <ul class="evidence-list">
                             ${evidence.map(ev => `
                                 <li class="evidence-item">
@@ -453,12 +488,14 @@
                                     <span>${ev}</span>
                                 </li>
                             `).join('')}
+                            ${evidence.length === 0 ? '<li class="evidence-item">No explicit evidence recorded.</li>' : ''}
                         </ul>
                     </div>
 
-                    <!-- 3. DOMINANCE -->
+                    <!-- 4. DIRECTIONAL DOMINANCE -->
                     <div>
                         <h3 class="section-title">📊 Directional Dominance</h3>
+                        <p class="section-desc">Relative strength of bullish vs bearish structural forces.</p>
                         <div style="background: var(--bg-sub); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
                             <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
                                 <div>
@@ -471,19 +508,18 @@
                                 </div>
                             </div>
                             <div class="progress-bar" style="height: 10px; background: var(--error);">
-                                <div class="progress-fill" style="width: ${(dominance.bullish / (dominance.bullish + dominance.bearish) * 100).toFixed(0)}%; background: var(--highlight);"></div>
+                                <div class="progress-fill" style="width: ${(dominance.bullish / (dominance.bullish + dominance.bearish + 0.0001) * 100).toFixed(0)}%; background: var(--highlight);"></div>
                             </div>
+                            <div style="font-size: 0.65rem; color: var(--text-dim); margin-top: 12px;">Values are comparative, not absolute probabilities.</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 4. DECISION SUPPORT (LAB) -->
+                <!-- 5. DECISION SUPPORT (LAB) -->
                 ${data.show_lab_signals ? `
                 <div class="decision-panel">
                     <h3 class="section-title" style="margin-bottom: 12px;">🧠 Decision Support (Lab)</h3>
-                    <div class="decision-header">
-                        <div class="decision-tag ${decisionClass}">${labDecision.replace('_', ' ')}</div>
-                    </div>
+                    <div class="decision-tag ${decisionClass}">${labDecision.replace('_', ' ')}</div>
                     <div style="font-size: 0.85rem; color: var(--text-main);">
                         Reasoning: ${labDecision !== 'NO_ACTION' ? 'High-confidence structural alignment detected.' : 'Insufficent evidence for decision candidacy.'}
                     </div>
@@ -495,20 +531,22 @@
                 </div>
                 ` : ''}
 
-                <!-- 5. TRACE INFO -->
+                <!-- 6. ANALYSIS TRACE -->
                 <div class="debug-panel">
+                 <h3 class="section-title" style="margin-bottom: 12px;">🔍 Analysis Trace</h3>
+                 <p class="section-desc">Unique Trace ID for auditability and reproducibility.</p>
                     <div class="debug-grid">
                         <div class="debug-item">
                             <div class="debug-label">Trace ID</div>
-                            <div class="debug-value">${traceId}</div>
+                            <div class="debug-value" style="font-family: inherit;">${traceId}</div>
                         </div>
                         <div class="debug-item">
                             <div class="debug-label">Engine</div>
                             <div class="debug-value">Structure v1 (Frozen)</div>
                         </div>
                         <div class="debug-item">
-                            <div class="debug-label">Audit</div>
-                            <div class="debug-value">Signal Mapping v1</div>
+                            <div class="debug-label">Method</div>
+                            <div class="debug-value">Deterministic Logic</div>
                         </div>
                     </div>
                 </div>
@@ -520,21 +558,18 @@
             text = text.toLowerCase();
             if (text.includes('bos')) return '🔓';
             if (text.includes('choch')) return '🔄';
+            if (text.includes('fake')) return '⚠️';
             if (text.includes('bullish')) return '📈';
             if (text.includes('bearish')) return '📉';
             return '•';
-        }
-
-        function formatState(state) {
-            return state.toUpperCase();
         }
     </script>
 
     <footer class="app-footer">
         <div class="disclaimer">
-            Quantix AI provides market structure analysis for research. It does NOT provide financial advice or price
-            predictions.
-            Trading carries risk. Use at your own risk.
+            Quantix AI provides institutional-grade market structure analysis.
+            It does not provide trading signals, predictions, or investment advice.
+            All interpretations and decisions remain the responsibility of the user.
         </div>
     </footer>
     <script src="static/js/ui_shared.js"></script>

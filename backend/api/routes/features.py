@@ -57,14 +57,26 @@ async def get_feature_state(
         
         logger.info(f"[{trace_id}] Calculating feature state for {symbol} {tf}")
         
-        # Fetch data
-        data_result = fetcher.fetch_daily_ohlcv(symbol, period=period)
-        
-        if not data_result:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Unable to fetch data for {symbol}"
-            )
+        # Fetch data using production-grade fetcher
+        try:
+            data_result = fetcher.fetch_ohlcv(symbol, timeframe=tf, period=period)
+        except Exception as fetch_error:
+            # Handle DataFetchError with rich details
+            if hasattr(fetch_error, 'error_code'):
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": fetch_error.error_code,
+                        "symbol": symbol,
+                        "timeframe": tf,
+                        "details": fetch_error.details
+                    }
+                )
+            else:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Data fetch failed: {str(fetch_error)}"
+                )
         
         # Convert to DataFrame
         df = pd.DataFrame(data_result['data'])

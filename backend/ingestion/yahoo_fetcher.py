@@ -1,5 +1,5 @@
 """
-Yahoo Finance Data Fetcher for Quantix AI Core
+Yahoo Finance Data Fetcher for Quantix AI Core (Production-grade)
 Provides clean, normalized OHLCV data with explainable metadata
 """
 
@@ -9,71 +9,135 @@ from datetime import datetime, timezone
 from typing import Dict, List, Optional
 from loguru import logger
 
+from ingestion.symbol_resolver import SymbolResolver
+from ingestion.candle_aggregator import CandleAggregator
+
+
+class DataFetchError(Exception):
+    """Rich error for data fetching failures"""
+    def __init__(self, error_code: str, symbol: str, details: Dict):
+        self.error_code = error_code
+        self.symbol = symbol
+        self.details = details
+        super().__init__(f"{error_code}: {details}")
+
 
 class YahooFinanceFetcher:
     """
     Fetches and normalizes forex data from Yahoo Finance.
-    Ensures data quality with timezone handling, missing day detection, and confidence scoring.
-    """
     
-    FOREX_SYMBOLS = {
-        "EURUSD": "EURUSD=X",
-        "GBPUSD": "GBPUSD=X",
-        "USDJPY": "USDJPY=X",
-        "AUDUSD": "AUDUSD=X",
-        "USDCAD": "USDCAD=X"
-    }
+    Production-grade with:
+    - Symbol resolution
+    - Timeframe aggregation
+    - Rich error messages
+    - Explainable metadata
+    """
     
     def __init__(self):
         self.source = "yahoo_finance"
-        self.version = "1.0.0"
+        self.version = "2.0.0"  # Updated for production
+        self.resolver = SymbolResolver
+        self.aggregator = CandleAggregator
     
-    def fetch_daily_ohlcv(
+    def fetch_ohlcv(
         self, 
-        symbol: str, 
-        period: str = "1mo"
+        symbol: str,
+        timeframe: str = "D1",
+        period: str = "3mo"
     ) -> Optional[Dict]:
         """
-        Fetch daily OHLCV data for a forex pair.
+        Fetch OHLCV data for any supported timeframe.
         
         Args:
-            symbol: Forex pair (e.g., "EURUSD")
+            symbol: Quantix standard symbol (e.g., "EURUSD")
+            timeframe: Quantix timeframe (e.g., "H4", "D1")
             period: Time period (e.g., "1mo", "3mo", "1y")
             
         Returns:
             Dictionary with normalized data and metadata
+            
+        Raises:
+            DataFetchError: With rich error details for debugging
         """
         try:
-            yahoo_symbol = self.FOREX_SYMBOLS.get(symbol)
+            # Step 1: Resolve symbol
+            yahoo_symbol = self.resolver.resolve_yahoo_symbol(symbol)
             if not yahoo_symbol:
-                logger.error(f"❌ Unknown symbol: {symbol}")
-                return None
+                raise DataFetchError(
+                    error_code="SYMBOL_NOT_SUPPORTED",
+                    symbol=symbol,
+                    details={
+                        "message": f"Symbol '{symbol}' not supported",
+                        "supported_symbols": self.resolver.get_supported_symbols()
+                    }
+                )
             
-            # Fetch data from Yahoo Finance
+            # Step 2: Resolve interval
+            yahoo_interval = self.resolver.resolve_yahoo_interval(timeframe)
+            if not yahoo_interval:
+                raise DataFetchError(
+                    error_code="TIMEFRAME_NOT_SUPPORTED",
+                    symbol=symbol,
+                    details={
+                        "message": f"Timeframe '{timeframe}' not supported",
+                        "supported_timeframes": self.resolver.get_supported_timeframes()
+                    }
+                )
+            
+            logger.info(f"📊 Fetching {symbol} ({yahoo_symbol}) @ {timeframe} (interval={yahoo_interval})")
+            
+            # Step 3: Fetch from Yahoo
             ticker = yf.Ticker(yahoo_symbol)
-            df = ticker.history(period=period, interval="1d")
+            df = ticker.history(period=period, interval=yahoo_interval)
+            
+            logger.info(f"📦 Received {len(df)} candles from Yahoo")
             
             if df.empty:
-                logger.warning(f"⚠️ No data returned for {symbol}")
-                return None
+                raise DataFetchError(
+                    error_code="DATA_NOT_AVAILABLE",
+                    symbol=symbol,
+                    details={
+                        "resolved_symbol": yahoo_symbol,
+                        "interval": yahoo_interval,
+                        "period": period,
+                        "message": "Yahoo returned empty dataset"
+                    }
+                )
             
-            # Normalize data
+            # Step 4: Aggregate if needed (e.g., H1 → H4)
+            if self.resolver.needs_aggregation(timeframe):
+                factor = self.resolver.get_aggregation_factor(timeframe)
+                logger.info(f"🔄 Aggregating {yahoo_interval} → {timeframe} (factor={factor})")
+                df = self.aggregator.aggregate(df, factor)
+                logger.info(f"✅ Aggregated to {len(df)} {timeframe} candles")
+            
+            # Step 5: Normalize data
             normalized_data = self._normalize_dataframe(df, symbol)
             
-            # Calculate metadata
-            metadata = self._generate_metadata(df, symbol, period)
+            # Step 6: Generate metadata
+            metadata = self._generate_metadata(df, symbol, timeframe, period)
             
-            logger.info(f"✅ Fetched {len(df)} candles for {symbol}")
+            logger.info(f"✅ Successfully fetched {len(normalized_data)} candles for {symbol} @ {timeframe}")
             
             return {
                 "symbol": symbol,
+                "timeframe": timeframe,
                 "data": normalized_data,
                 "metadata": metadata
             }
             
+        except DataFetchError:
+            raise
         except Exception as e:
-            logger.error(f"❌ Failed to fetch {symbol}: {e}")
-            return None
+            logger.error(f"❌ Unexpected error fetching {symbol}: {e}")
+            raise DataFetchError(
+                error_code="FETCH_FAILED",
+                symbol=symbol,
+                details={
+                    "message": str(e),
+                    "type": type(e).__name__
+                }
+            )
     
     def _normalize_dataframe(self, df: pd.DataFrame, symbol: str) -> List[Dict]:
         """

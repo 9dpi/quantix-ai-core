@@ -14,8 +14,14 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="logo">
-                <div class="logo-icon">Q</div>
-                <span>QUANTIX<span class="logo-core">AI</span></span>
+                <div class="logo-icon"
+                    style="background: linear-gradient(135deg, #00f2ff 0%, #0066ff 100%); box-shadow: 0 0 20px rgba(0, 242, 255, 0.5);">
+                    Q</div>
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <span style="font-size: 1.1rem; font-weight: 700; letter-spacing: 1px;">QUANTIX AI</span>
+                    <span class="logo-core"
+                        style="font-size: 0.7rem; color: var(--accent); font-weight: 600; letter-spacing: 2px;">CORE</span>
+                </div>
             </div>
 
             <nav class="nav-links">
@@ -37,12 +43,43 @@
                 </a>
             </nav>
 
+            <!-- Learning Stats -->
+            <div class="card"
+                style="margin-top: 30px; background: linear-gradient(135deg, rgba(0, 242, 255, 0.05) 0%, rgba(0, 102, 255, 0.05) 100%); border: 1px solid rgba(0, 242, 255, 0.2);">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                    <div
+                        style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); animation: pulse 2s infinite;">
+                    </div>
+                    <span
+                        style="font-size: 0.75rem; font-weight: 600; color: var(--accent); letter-spacing: 1px;">LEARNING
+                        ENGINE</span>
+                </div>
+                <div id="learning-stats" style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.7rem; color: var(--text-secondary);">Total Candles</span>
+                        <span id="total-candles-sidebar"
+                            style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary);">0</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.7rem; color: var(--text-secondary);">Learning Set</span>
+                        <span id="learning-candles-sidebar"
+                            style="font-size: 0.9rem; font-weight: 700; color: var(--accent);">0</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.7rem; color: var(--text-secondary);">Avg Weight</span>
+                        <span id="avg-weight-sidebar"
+                            style="font-size: 0.9rem; font-weight: 700; color: #00ff88;">0.00</span>
+                    </div>
+                </div>
+            </div>
+
             <div class="pill animate-pulse"
                 style="margin-top: 20px; background: rgba(0, 242, 255, 0.1); border: 1px solid var(--accent); color: var(--accent);">
-                <span>INTERNAL_ALPHA_ENGINE</span>
+                <span>ALPHA_ENGINE_v3.1</span>
             </div>
-            <div style="margin-top: 15px; font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4;">
-                Institutional Data Gateway. Professional Use Only.
+            <div
+                style="margin-top: 15px; font-size: 0.7rem; color: var(--text-secondary); line-height: 1.5; opacity: 0.7;">
+                Institutional-Grade Data Gateway<br />Professional Use Only
             </div>
         </aside>
 
@@ -50,9 +87,17 @@
         <main class="content">
             <header class="top-header animate-fade-in">
                 <div>
-                    <h1>Data Ingestion Gateway</h1>
-                    <p style="color: var(--text-secondary);">3-Tier pipeline for high-fidelity market data processing.
-                    </p>
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 10px;">
+                        <h1
+                            style="background: linear-gradient(135deg, #00f2ff 0%, #0066ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 2rem; font-weight: 800;">
+                            Data Ingestion Gateway</h1>
+                        <div class="pill"
+                            style="background: rgba(0, 255, 136, 0.1); border-color: #00ff88; color: #00ff88;">
+                            <span style="font-size: 0.7rem;">ACTIVE</span>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">3-Tier pipeline for high-fidelity market
+                        data processing & autonomous learning</p>
                 </div>
             </header>
 

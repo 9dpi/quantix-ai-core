@@ -96,8 +96,33 @@ function showSuccess(data) {
     const avgWeight = stats.avg_learning_weight;
     document.getElementById('avg-weight').innerText = avgWeight !== undefined ? avgWeight.toFixed(2) : '-';
 
+    // Update sidebar learning stats
+    updateLearningSidebar(stats);
+
     fetchAuditLogs();
 }
+
+function updateLearningSidebar(stats) {
+    // Update sidebar with learning data
+    const totalCandles = stats.total_rows || 0;
+    const learningCandles = stats.tradable || 0;
+    const avgWeight = stats.avg_learning_weight || 0;
+
+    document.getElementById('total-candles-sidebar').innerText = totalCandles.toLocaleString();
+    document.getElementById('learning-candles-sidebar').innerText = learningCandles.toLocaleString();
+    document.getElementById('avg-weight-sidebar').innerText = avgWeight.toFixed(2);
+
+    // Add animation
+    ['total-candles-sidebar', 'learning-candles-sidebar', 'avg-weight-sidebar'].forEach(id => {
+        const el = document.getElementById(id);
+        el.style.transform = 'scale(1.1)';
+        el.style.transition = 'transform 0.3s ease';
+        setTimeout(() => {
+            el.style.transform = 'scale(1)';
+        }, 300);
+    });
+}
+
 
 function showError(msg) {
     document.getElementById('error-box').style.display = 'block';

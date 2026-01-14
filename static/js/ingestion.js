@@ -7,39 +7,43 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initIngestion() {
-    const form = document.getElementById('upload-form');
     const dropZone = document.getElementById('drop-zone');
-    const fileInput = document.getElementById('csv-file');
+    const fileInput = document.getElementById('file-input');
+    const uploadBtn = document.getElementById('upload-btn');
+    const fileNameDisplay = document.getElementById('file-name');
 
-    // Drag and Drop handlers
-    dropZone.addEventListener('click', () => fileInput.click());
+    if (dropZone && fileInput) {
+        dropZone.addEventListener('click', () => fileInput.click());
 
-    fileInput.addEventListener('change', () => {
-        if (fileInput.files.length) {
-            dropZone.querySelector('p').innerText = fileInput.files[0].name;
-        }
-    });
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) {
+                fileNameDisplay.innerText = `READY: ${fileInput.files[0].name}`;
+            }
+        });
+    }
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        handleUpload();
-    });
+    if (uploadBtn) {
+        uploadBtn.addEventListener('click', async (e) => {
+            handleUpload();
+        });
+    }
 
     fetchAuditLogs();
 }
 
 async function handleUpload() {
     const btn = document.getElementById('upload-btn');
-    const asset = document.getElementById('asset').value;
+    const asset = document.getElementById('asset-symbol').value;
     const timeframe = document.getElementById('timeframe').value;
-    const file = document.getElementById('csv-file').files[0];
+    const fileInput = document.getElementById('file-input');
+    const file = fileInput.files[0];
 
     if (!file) {
-        alert("Please select a CSV file");
+        showError("SELECT_SOURCE_CSV_REQUIRED");
         return;
     }
 
-    btn.innerText = "Processing Pipeline...";
+    btn.innerText = "EXECUTING PIPELINE...";
     btn.disabled = true;
 
     const formData = new FormData();
@@ -57,105 +61,66 @@ async function handleUpload() {
         const result = await response.json();
 
         if (response.ok) {
-            showSuccess(result);
+            // Success - refresh the UI
+            if (typeof UI_MANAGER !== 'undefined') {
+                UI_MANAGER.refreshGlobalStats();
+            }
+            fetchAuditLogs();
+            btn.innerText = "INGESTION_COMPLETE";
+            setTimeout(() => {
+                btn.innerText = "EXECUTE INGESTION SEQUENCE";
+                btn.disabled = false;
+            }, 3000);
         } else {
-            const errorMsg = result.detail || result.message || "Ingestion failed";
+            const errorMsg = result.detail || result.message || "PIPELINE_ERROR";
             showError(`[${response.status}] ${errorMsg}`);
-            console.error('❌ API Error:', {
-                endpoint: `${API_BASE}/ingestion/csv`,
-                status: response.status,
-                statusText: response.statusText,
-                response: result
-            });
+            btn.disabled = false;
+            btn.innerText = "EXECUTE INGESTION SEQUENCE";
         }
     } catch (e) {
-        const errorDetails = `Backend connection failed: ${e.message}`;
-        showError(errorDetails);
-        console.error('❌ Network Error:', {
-            endpoint: `${API_BASE}/ingestion/csv`,
-            error: e,
-            message: e.message,
-            stack: e.stack
-        });
-    } finally {
-        btn.innerText = "Start Ingestion Process";
+        showError(`NETWORK_FAILURE: ${e.message}`);
         btn.disabled = false;
+        btn.innerText = "EXECUTE INGESTION SEQUENCE";
     }
 }
 
-function showSuccess(data) {
-    document.getElementById('result-box').style.display = 'block';
-    document.getElementById('error-box').style.display = 'none';
-
-    console.log('✅ Upload Success:', data);
-
-    const stats = data.statistics || {};
-    document.getElementById('total-rows').innerText = stats.total_rows || '-';
-    document.getElementById('tradable-rows').innerText = stats.tradable || '-';
-
-    const avgWeight = stats.avg_learning_weight;
-    document.getElementById('avg-weight').innerText = avgWeight !== undefined ? avgWeight.toFixed(2) : '-';
-
-    // Update sidebar learning stats
-    updateLearningSidebar(stats);
-
-    fetchAuditLogs();
-}
-
-function updateLearningSidebar(stats) {
-    // Update sidebar with learning data
-    const totalCandles = stats.total_rows || 0;
-    const learningCandles = stats.tradable || 0;
-    const avgWeight = stats.avg_learning_weight || 0;
-
-    document.getElementById('total-candles-sidebar').innerText = totalCandles.toLocaleString();
-    document.getElementById('learning-candles-sidebar').innerText = learningCandles.toLocaleString();
-    document.getElementById('avg-weight-sidebar').innerText = avgWeight.toFixed(2);
-
-    // Add animation
-    ['total-candles-sidebar', 'learning-candles-sidebar', 'avg-weight-sidebar'].forEach(id => {
-        const el = document.getElementById(id);
-        el.style.transform = 'scale(1.1)';
-        el.style.transition = 'transform 0.3s ease';
-        setTimeout(() => {
-            el.style.transform = 'scale(1)';
-        }, 300);
-    });
-}
-
-
 function showError(msg) {
-    document.getElementById('error-box').style.display = 'block';
-    document.getElementById('result-box').style.display = 'none';
-    document.getElementById('error-message').innerText = msg;
+    const errorBox = document.getElementById('error-box');
+    const errorMsg = document.getElementById('error-msg');
+    if (errorBox && errorMsg) {
+        errorBox.style.display = 'block';
+        errorMsg.innerText = msg;
+        setTimeout(() => {
+            errorBox.style.display = 'none';
+        }, 5000);
+    }
 }
 
 async function fetchAuditLogs() {
-    const container = document.getElementById('audit-log-container');
+    const container = document.getElementById('audit-log');
+    if (!container) return;
 
     try {
-        const response = await fetch(`${API_BASE}/ingestion/audit-log?limit=5`);
+        const response = await fetch(`${API_BASE}/ingestion/audit-log?limit=8`);
         const data = await response.json();
 
         if (data.status === 'success' && data.logs.length > 0) {
             container.innerHTML = data.logs.map(log => `
-                <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; margin-bottom: 8px; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.05);">
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="color: var(--accent); font-weight: 600;">${log.asset} ${log.timeframe}</span>
-                        <span style="color: #666;">${new Date(log.ingested_at).toLocaleString()}</span>
+                <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 4px; margin-bottom: 8px; font-size: 0.7rem; border: 1px solid var(--border);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <span style="color: var(--accent); font-weight: 700;">${log.asset} / ${log.timeframe.toUpperCase()}</span>
+                        <span style="color: var(--text-dim); font-size: 0.6rem;">${new Date(log.ingested_at).toLocaleTimeString()}</span>
                     </div>
-                    <div style="color: #888; margin-top: 4px;">Rows: ${log.total_rows} | Tradable: ${log.tradable_count} | Status: ${log.status}</div>
+                    <div style="display: flex; justify-content: space-between; opacity: 0.8;">
+                        <span>Rows: ${log.total_rows.toLocaleString()}</span>
+                        <span style="color: var(--highlight);">Alpha Wt: ${log.avg_learning_weight.toFixed(2)}</span>
+                    </div>
                 </div>
             `).join('');
         } else {
-            container.innerHTML = '<p style="color: #555;">No recent audit records.</p>';
+            container.innerHTML = '<p style="color: var(--text-dim); font-size: 0.7rem; text-align: center; padding: 20px; border: 1px dashed var(--border);">No recent activities.</p>';
         }
     } catch (e) {
-        container.innerHTML = '<p style="color: #555;">No recent audit records.</p>';
-        console.error('❌ Audit Log Fetch Error:', {
-            endpoint: `${API_BASE}/ingestion/audit-log`,
-            error: e,
-            message: e.message
-        });
+        console.error('Audit Log Sync Failed');
     }
 }

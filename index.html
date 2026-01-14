@@ -87,21 +87,31 @@
                 </div>
             </div>
 
-            <!-- Signal Section -->
-            <section class="card signals-section animate-fade-in" style="animation-delay: 0.4s; min-height: 400px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-                    <h2>Internal Sniper Alerts</h2>
-                    <div class="pill">REAL-TIME BROADCAST</div>
-                </div>
-
-                <div id="signals-container">
-                    <div style="text-align: center; padding: 100px 0; color: var(--text-secondary);">
-                        <p>Scanning markets for high-probability structures...</p>
+            <!-- Signal & Intelligence Grid -->
+            <div class="dashboard-layout-split" style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+                <!-- Left: Signal Feed -->
+                <section class="card signals-section animate-fade-in" style="animation-delay: 0.4s; min-height: 400px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                        <h2>Internal Sniper Alerts</h2>
+                        <div class="pill">REAL-TIME BROADCAST</div>
                     </div>
-                </div>
-            </section>
 
-            <footer class="footer animate-fade-in" style="animation-delay: 0.5s;">
+                    <div id="signals-container">
+                        <div style="text-align: center; padding: 100px 0; color: var(--text-secondary);">
+                            <p>Scanning markets for high-probability structures...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Right: Explainability Intelligence Panel -->
+                <aside id="explain-panel" class="card explain-card animate-fade-in"
+                    style="animation-delay: 0.5s; display: none; height: fit-content; border: 1px solid var(--accent-glow);">
+                    <!-- Content will be injected by JS -->
+                </aside>
+            </div>
+
+            <footer class="footer animate-fade-in" style="animation-delay: 0.5s; margin-top: 40px;">
                 <div
                     style="background: rgba(255, 145, 0, 0.05); border: 1px solid rgba(255, 145, 0, 0.2); padding: 20px; border-radius: 16px; margin-bottom: 25px;">
                     <strong

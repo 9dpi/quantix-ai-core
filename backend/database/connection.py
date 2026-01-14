@@ -40,9 +40,11 @@ class SupabaseConnection:
 
     async def health_check(self) -> bool:
         try:
-            result = self._client.table(settings.TABLE_SIGNALS).select("id").limit(1).execute()
+            # Try to query the signals table as a heartbeat
+            self._client.table(settings.TABLE_SIGNALS).select("id").limit(1).execute()
             return True
-        except Exception:
+        except Exception as e:
+            logger.error(f"❌ Database connection failed: {str(e)}")
             return False
 
     async def execute(self, query: str, *args):

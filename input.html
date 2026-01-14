@@ -49,8 +49,9 @@
             <div class="intelligence-node">
                 <h2 class="section-title">Ingestion Pipeline Control</h2>
 
-                <div class="data-card" style="padding: 32px; border-style: dashed; text-align: center;">
-                    <div id="drop-zone" style="cursor: pointer; padding: 40px;">
+                <div class="data-card" style="padding: 32px; border-style: dashed; text-align: center; cursor: pointer;"
+                    id="drop-zone-wrapper">
+                    <div id="drop-zone" style="cursor: pointer; padding: 40px; pointer-events: none;">
                         <div style="font-size: 2.5rem; margin-bottom: 16px; opacity: 0.3;">📥</div>
                         <p style="font-weight: 500;">Drop market CSV or click to browse</p>
                         <p id="file-name" style="font-size: 0.75rem; color: var(--accent); margin-top: 8px;"></p>

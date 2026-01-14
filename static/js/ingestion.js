@@ -7,21 +7,23 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initIngestion() {
+    const dropZoneWrapper = document.getElementById('drop-zone-wrapper');
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('file-input');
     const uploadBtn = document.getElementById('upload-btn');
     const fileNameDisplay = document.getElementById('file-name');
 
     // DEBUG LOG
-    console.log('📌 Ingestion Init:', { dropZone, fileInput, uploadBtn });
+    console.log('📌 Ingestion Init:', { dropZoneWrapper, dropZone, fileInput, uploadBtn });
 
-    if (dropZone && fileInput) {
+    if (dropZoneWrapper && fileInput) {
         // Force pointer cursor
-        dropZone.style.cursor = 'pointer';
+        dropZoneWrapper.style.cursor = 'pointer';
 
-        // Use a more robust click handler
-        dropZone.onclick = (e) => {
+        // Use wrapper for click events (more reliable)
+        dropZoneWrapper.onclick = (e) => {
             console.log('🖱️ Drop zone clicked');
+            e.preventDefault();
             fileInput.click();
         };
 
@@ -35,22 +37,22 @@ function initIngestion() {
             }
         };
 
-        // Drag & Drop effects
-        dropZone.ondragover = (e) => {
+        // Drag & Drop effects on wrapper
+        dropZoneWrapper.ondragover = (e) => {
             e.preventDefault();
-            dropZone.style.borderColor = 'var(--accent)';
-            dropZone.style.background = 'rgba(56, 189, 248, 0.05)';
+            dropZoneWrapper.style.borderColor = 'var(--accent)';
+            dropZoneWrapper.style.background = 'rgba(56, 189, 248, 0.05)';
         };
 
-        dropZone.ondragleave = () => {
-            dropZone.style.borderColor = '';
-            dropZone.style.background = '';
+        dropZoneWrapper.ondragleave = () => {
+            dropZoneWrapper.style.borderColor = '';
+            dropZoneWrapper.style.background = '';
         };
 
-        dropZone.ondrop = (e) => {
+        dropZoneWrapper.ondrop = (e) => {
             e.preventDefault();
-            dropZone.style.borderColor = '';
-            dropZone.style.background = '';
+            dropZoneWrapper.style.borderColor = '';
+            dropZoneWrapper.style.background = '';
             if (e.dataTransfer.files.length) {
                 fileInput.files = e.dataTransfer.files;
                 if (fileNameDisplay) {

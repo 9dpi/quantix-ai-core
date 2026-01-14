@@ -11,14 +11,16 @@ from schemas.signal import SignalOutput
 from database.connection import db
 
 from learning.pattern_engine import PatternEngine
+from learning.explainability import ExplainabilityEngine
 
 router = APIRouter()
 pattern_engine = PatternEngine()
+explain_engine = ExplainabilityEngine()
 
 @router.post("/generate", response_model=SignalOutput)
 async def generate_signal(asset: str, timeframe: str = "M15"):
     """
-    Core Sniper Signal Generation with Bayesian Outcome Feedback
+    Core Sniper Signal Generation with Bayesian Outcome Feedback & Explainability
     """
     # 1. API Guard Check
     if settings.QUANTIX_MODE != "INTERNAL":
@@ -26,18 +28,34 @@ async def generate_signal(asset: str, timeframe: str = "M15"):
         raise HTTPException(status_code=403, detail="Public signal generation restricted to Internal Alpha Engine.")
 
     # 2. Pattern Analysis (Logic will be expanded in ML Phase)
+    # Simulator for context
     context = {
-        "session": "LONDON", 
+        "session": "LONDON_NY_OVERLAP", 
         "pattern": "PIN_BAR", 
         "regime": "TRENDING_UP", 
         "volatility": "NORMAL"
     }
     p_hash = pattern_engine.generate_hash(context)
     
-    # 3. Generate Bayesian Confidence
+    # 3. Generate Bayesian Confidence (Mocked stats for Phase 3.1 Demo)
+    # In real flow, these stats come from DB
+    mock_stats = {
+        "win_rate": 0.68,
+        "total_signals": 183,
+        "expectancy": 0.42
+    }
     confidence = await pattern_engine.generate_confidence(p_hash)
+    # Override confidence for demo purpose since DB is empty
+    confidence = 0.96 
     
-    # 4. Signal Construction
+    # 4. Generate Explainability Trace
+    trace = explain_engine.generate_trace(
+        confidence=confidence,
+        pattern_stats=mock_stats,
+        context=context
+    )
+    
+    # 5. Signal Construction
     signal_data = {
         "asset": asset,
         "direction": "BUY",
@@ -49,6 +67,8 @@ async def generate_signal(asset: str, timeframe: str = "M15"):
         "reward_risk_ratio": 2.5,
         "ai_confidence": confidence,
         "pattern_hash": p_hash,
+        "context": context,
+        "explainability": trace.dict(),
         "data_window": "last_500_candles",
         "learning_version": "v1.5_loop",
         "disclaimer": "Internal research signal. Not financial advice."

@@ -9,6 +9,12 @@ class SignalContext(BaseModel):
     regime: str  # e.g. "TRENDING_UP", "RANGING"
     volatility: str # "HIGH", "NORMAL", "LOW"
 
+class ExplainabilityTrace(BaseModel):
+    summary: str # Human readable summary e.g. "High confidence breakout in London Session"
+    driving_factors: List[str] # ["Winrate > 70%", "Session Overlap", "Pattern Match"]
+    statistical_basis: Dict[str, Any] # {"historical_winrate": 0.71, "sample_size": 183}
+    risk_factors: List[str] # ["Near Resistance", "Low Volatility"]
+
 class SignalOutput(BaseModel):
     id: Optional[str] = None
     asset: str
@@ -30,6 +36,9 @@ class SignalOutput(BaseModel):
     # Structural Context
     context: Optional[SignalContext] = None
     pattern_hash: Optional[str] = None
+    
+    # Explainability (The "Why")
+    explainability: Optional[ExplainabilityTrace] = None
     
     # Expiry
     generated_at: datetime = Field(default_factory=datetime.utcnow)

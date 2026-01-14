@@ -7,7 +7,7 @@ const API_CONFIG = {
     getBaseUrl: () => {
         // --- PRODUCTION URL ---
         // This is the engine's primary heartbeat on Railway
-        const productionUrl = 'https://quantix-ai-core-production.up.railway.app';
+        const productionUrl = 'https://quantixaicore-production.up.railway.app';
 
         // Return production URL directly to ensure online connectivity
         return `${productionUrl}/api/v1`;

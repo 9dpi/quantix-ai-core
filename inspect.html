@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Inspection - Quantix AI Core</title>
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="logo-area">
+            <div class="logo-icon"></div>
+            <span class="logo-text">QUANTIX AI CORE</span>
+        </div>
+        <div class="hamburger" id="menu-toggle">☰</div>
+        <nav class="main-nav" id="main-nav">
+            <a href="index.html" class="nav-link">Dashboard</a>
+            <a href="input.html" class="nav-link">Data Ingestion</a>
+            <a href="#" class="nav-link">Strategy Lab</a>
+            <a href="docs.html" class="nav-link">Documentation</a>
+        </nav>
+    </header>
+
+    <main class="app-layout">
+        <aside class="column left-col">
+            <h2 class="section-title">Database Status</h2>
+            <div class="data-card">
+                <div class="label">Connection</div>
+                <div id="db-status" class="value">Checking...</div>
+            </div>
+            <div class="data-card">
+                <div class="label">Learning Ready</div>
+                <div id="learning-ready" class="value">--</div>
+            </div>
+        </aside>
+
+        <section class="column middle-col" style="background: var(--bg-main);">
+            <div class="intelligence-node">
+                <h2 class="section-title">Database Inspection Results</h2>
+
+                <div class="data-card" style="padding: 24px;">
+                    <h3 style="font-size: 0.8rem; margin-bottom: 15px; color: var(--accent);">Raw Candles</h3>
+                    <div id="raw-candles-info" style="font-size: 0.85rem;">Loading...</div>
+                </div>
+
+                <div class="data-card" style="padding: 24px; margin-top: 20px;">
+                    <h3 style="font-size: 0.8rem; margin-bottom: 15px; color: var(--accent);">Validated Candles
+                        (Learning Set)</h3>
+                    <div id="validated-candles-info" style="font-size: 0.85rem;">Loading...</div>
+                </div>
+
+                <div class="data-card" style="padding: 24px; margin-top: 20px;">
+                    <h3 style="font-size: 0.8rem; margin-bottom: 15px; color: var(--accent);">Ingestion History</h3>
+                    <div id="ingestion-info" style="font-size: 0.85rem;">Loading...</div>
+                </div>
+
+                <div class="data-card" style="padding: 24px; margin-top: 20px;">
+                    <h3 style="font-size: 0.8rem; margin-bottom: 15px; color: var(--accent);">v3.2 Learning Schema</h3>
+                    <div id="v32-schema-info" style="font-size: 0.85rem;">Loading...</div>
+                </div>
+            </div>
+        </section>
+
+        <aside class="column right-col">
+            <h2 class="section-title">Assessment</h2>
+            <div id="assessment-container" style="font-size: 0.8rem;">
+                <div style="padding: 20px; text-align: center; color: var(--text-dim);">
+                    Analyzing database...
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <footer class="app-footer">
+        <div class="disclaimer">
+            Database Inspection Tool - Internal Use Only
+        </div>
+    </footer>
+
+    <script src="static/js/ui_shared.js"></script>
+    <script>
+        // Database inspection logic
+        async function inspectDatabase() {
+            const API_BASE = 'https://quantixaicore-production.up.railway.app/api/v1';
+
+            try {
+                // Try to fetch global stats (this tells us if we have data)
+                const response = await fetch(`${API_BASE}/ingestion/global-stats`);
+                const result = await response.json();
+
+                if (result.status === 'success' && result.data) {
+                    const data = result.data;
+
+                    // Update status
+                    document.getElementById('db-status').innerText = 'ONLINE';
+                    document.getElementById('db-status').style.color = 'var(--highlight)';
+
+                    // Check if we have learning data
+                    const hasLearningData = data.total_learning > 0;
+                    document.getElementById('learning-ready').innerText = hasLearningData ? 'YES' : 'NO';
+                    document.getElementById('learning-ready').style.color = hasLearningData ? 'var(--highlight)' : 'var(--warning)';
+
+                    // Raw candles info
+                    document.getElementById('raw-candles-info').innerHTML = `
+                        <div>Total Ingested: <strong>${data.total_ingested.toLocaleString()}</strong></div>
+                        <div style="margin-top: 8px; color: var(--text-dim); font-size: 0.75rem;">
+                            These are all candles uploaded via the Ingestion Portal
+                        </div>
+                    `;
+
+                    // Validated candles info
+                    document.getElementById('validated-candles-info').innerHTML = `
+                        <div>Learning Set: <strong style="color: var(--accent);">${data.total_learning.toLocaleString()}</strong></div>
+                        <div>Average Alpha Weight: <strong style="color: var(--highlight);">${data.avg_weight.toFixed(2)}</strong></div>
+                        <div style="margin-top: 8px; color: var(--text-dim); font-size: 0.75rem;">
+                            These candles have learning_weight > 0 and are used for pattern analysis
+                        </div>
+                    `;
+
+                    // Ingestion history
+                    const auditResponse = await fetch(`${API_BASE}/ingestion/audit-log?limit=5`);
+                    const auditResult = await auditResponse.json();
+
+                    if (auditResult.status === 'success' && auditResult.logs.length > 0) {
+                        const logsHtml = auditResult.logs.map(log => `
+                            <div style="margin-bottom: 10px; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 4px;">
+                                <div><strong>${log.asset}</strong> / ${log.timeframe.toUpperCase()}</div>
+                                <div style="font-size: 0.7rem; color: var(--text-dim);">
+                                    ${log.total_rows.toLocaleString()} rows - ${new Date(log.ingested_at).toLocaleString()}
+                                </div>
+                            </div>
+                        `).join('');
+
+                        document.getElementById('ingestion-info').innerHTML = logsHtml;
+                    } else {
+                        document.getElementById('ingestion-info').innerHTML = '<div style="color: var(--text-dim);">No ingestion history found</div>';
+                    }
+
+                    // v3.2 schema status (we can't check this directly without the admin endpoint)
+                    document.getElementById('v32-schema-info').innerHTML = `
+                        <div style="color: var(--warning);">⚠️ Status Unknown</div>
+                        <div style="margin-top: 8px; color: var(--text-dim); font-size: 0.75rem;">
+                            Deploy backend to check v3.2 learning schema status
+                        </div>
+                    `;
+
+                    // Assessment
+                    const assessmentHtml = `
+                        <div class="data-card" style="padding: 20px;">
+                            <h3 style="font-size: 0.75rem; margin-bottom: 15px; color: var(--accent);">Learning Readiness</h3>
+                            ${hasLearningData ? `
+                                <div style="color: var(--highlight); font-weight: 700; margin-bottom: 10px;">✅ QUANTIX HAS DATA TO LEARN FROM</div>
+                                <div style="font-size: 0.75rem; color: var(--text-dim);">
+                                    ${data.total_learning.toLocaleString()} validated candles available for pattern analysis
+                                </div>
+                            ` : `
+                                <div style="color: var(--warning); font-weight: 700; margin-bottom: 10px;">⚠️ NO LEARNING DATA YET</div>
+                                <div style="font-size: 0.75rem; color: var(--text-dim);">
+                                    Upload CSV data via Ingestion Portal to begin
+                                </div>
+                            `}
+                        </div>
+                        
+                        <div class="data-card" style="padding: 20px; margin-top: 15px;">
+                            <h3 style="font-size: 0.75rem; margin-bottom: 15px; color: var(--accent);">Next Steps</h3>
+                            <div style="font-size: 0.75rem; line-height: 1.8;">
+                                ${!hasLearningData ? '1. Upload CSV data via <a href="input.html" style="color: var(--accent);">Ingestion Portal</a><br>' : ''}
+                                ${hasLearningData ? '1. ✅ Data ready for learning<br>' : ''}
+                                2. Deploy v3.2 learning schema to Supabase<br>
+                                3. Integrate Quality Gate with ingestion<br>
+                                4. Begin signal generation and learning loop
+                            </div>
+                        </div>
+                    `;
+
+                    document.getElementById('assessment-container').innerHTML = assessmentHtml;
+
+                } else {
+                    throw new Error('Invalid response from API');
+                }
+
+            } catch (error) {
+                console.error('Database inspection failed:', error);
+                document.getElementById('db-status').innerText = 'ERROR';
+                document.getElementById('db-status').style.color = 'var(--warning)';
+
+                document.getElementById('raw-candles-info').innerHTML = '<div style="color: var(--warning);">Failed to fetch data</div>';
+                document.getElementById('validated-candles-info').innerHTML = '<div style="color: var(--warning);">Failed to fetch data</div>';
+                document.getElementById('ingestion-info').innerHTML = '<div style="color: var(--warning);">Failed to fetch data</div>';
+                document.getElementById('v32-schema-info').innerHTML = '<div style="color: var(--warning);">Failed to fetch data</div>';
+
+                document.getElementById('assessment-container').innerHTML = `
+                    <div class="data-card" style="padding: 20px;">
+                        <div style="color: var(--warning);">❌ Database connection failed</div>
+                        <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 10px;">
+                            Error: ${error.message}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Run inspection on page load
+        document.addEventListener('DOMContentLoaded', inspectDatabase);
+    </script>
+</body>
+
+</html>

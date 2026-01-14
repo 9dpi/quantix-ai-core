@@ -4,7 +4,7 @@ GET /api/v1/admin/inspect-db
 """
 
 from fastapi import APIRouter
-from backend.database.supabase_client import get_supabase_client
+from database.connection import get_db
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -21,7 +21,7 @@ async def inspect_database():
     - v3.2 learning tables status
     """
     
-    db = get_supabase_client()
+    db = get_db()
     
     summary = {
         "status": "success",

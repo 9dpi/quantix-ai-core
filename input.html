@@ -4,181 +4,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Quantix AI Core - Data Ingestion Portal">
     <title>Quantix AI Core | Ingestion Gateway</title>
     <link rel="stylesheet" href="static/css/style.css">
 </head>
 
 <body>
     <div class="app-container">
-        <!-- Sidebar -->
+        <!-- Shared Sidebar -->
         <aside class="sidebar">
             <div class="logo">
-                <div class="logo-icon"
-                    style="background: linear-gradient(135deg, #00f2ff 0%, #0066ff 100%); box-shadow: 0 0 20px rgba(0, 242, 255, 0.5);">
-                    Q</div>
-                <div style="display: flex; flex-direction: column; gap: 2px;">
-                    <span style="font-size: 1.1rem; font-weight: 700; letter-spacing: 1px;">QUANTIX AI</span>
-                    <span class="logo-core"
-                        style="font-size: 0.7rem; color: var(--accent); font-weight: 600; letter-spacing: 2px;">CORE</span>
+                <div class="logo-icon" style="background: var(--grad-primary);">Q</div>
+                <div style="display: flex; flex-direction: column;">
+                    <span style="font-weight: 800; font-size: 1.1rem; letter-spacing: 1px;">QUANTIX AI</span>
+                    <span
+                        style="color: var(--accent); font-size: 0.7rem; font-weight: 600; letter-spacing: 2px;">CORE</span>
                 </div>
             </div>
 
             <nav class="nav-links">
                 <a href="index.html" class="nav-item">
-                    <span class="icon">📊</span>
-                    <span>Dashboard</span>
+                    <span class="icon">📊</span> Dashboard
                 </a>
                 <a href="input.html" class="nav-item active">
-                    <span class="icon">📥</span>
-                    <span>Data Ingestion</span>
+                    <span class="icon">📥</span> Ingestion
                 </a>
                 <a href="#" class="nav-item">
-                    <span class="icon">🎯</span>
-                    <span>Strategy Lab</span>
+                    <span class="icon">🎯</span> Strategy
                 </a>
                 <a href="#" class="nav-item">
-                    <span class="icon">🧪</span>
-                    <span>Backtest Hub</span>
+                    <span class="icon">🧪</span> Backtest
                 </a>
             </nav>
 
-            <!-- Learning Stats -->
-            <div class="card"
-                style="margin-top: 30px; background: linear-gradient(135deg, rgba(0, 242, 255, 0.05) 0%, rgba(0, 102, 255, 0.05) 100%); border: 1px solid rgba(0, 242, 255, 0.2);">
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                    <div
-                        style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); animation: pulse 2s infinite;">
-                    </div>
+            <!-- Learning Stats Component -->
+            <div class="sidebar-stats-card">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                    <div class="dot animate-pulse"
+                        style="width: 5px; height: 5px; background: var(--accent); border-radius: 50%;"></div>
                     <span
-                        style="font-size: 0.75rem; font-weight: 600; color: var(--accent); letter-spacing: 1px;">LEARNING
-                        ENGINE</span>
+                        style="font-size: 0.6rem; font-weight: 700; color: var(--accent); text-transform: uppercase;">Learning
+                        Engine</span>
                 </div>
-                <div id="learning-stats" style="display: flex; flex-direction: column; gap: 12px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 0.7rem; color: var(--text-secondary);">Total Candles</span>
-                        <span id="total-candles-sidebar"
-                            style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary);">0</span>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="font-size: 0.65rem; color: var(--text-secondary);">Ingested</span>
+                        <span id="total-candles-sidebar" style="font-size: 0.75rem; font-weight: 700;">0</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 0.7rem; color: var(--text-secondary);">Learning Set</span>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="font-size: 0.65rem; color: var(--text-secondary);">Learning</span>
                         <span id="learning-candles-sidebar"
-                            style="font-size: 0.9rem; font-weight: 700; color: var(--accent);">0</span>
+                            style="font-size: 0.75rem; font-weight: 700; color: var(--accent);">0</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 0.7rem; color: var(--text-secondary);">Avg Weight</span>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="font-size: 0.65rem; color: var(--text-secondary);">Alpha Wt.</span>
                         <span id="avg-weight-sidebar"
-                            style="font-size: 0.9rem; font-weight: 700; color: #00ff88;">0.00</span>
+                            style="font-size: 0.75rem; font-weight: 700; color: #00ff88;">0.00</span>
                     </div>
                 </div>
             </div>
 
-            <div class="pill animate-pulse"
-                style="margin-top: 20px; background: rgba(0, 242, 255, 0.1); border: 1px solid var(--accent); color: var(--accent);">
-                <span>ALPHA_ENGINE_v3.1</span>
-            </div>
-            <div
-                style="margin-top: 15px; font-size: 0.7rem; color: var(--text-secondary); line-height: 1.5; opacity: 0.7;">
-                Institutional-Grade Data Gateway<br />Professional Use Only
+            <div class="status-tag"
+                style="margin-top: 20px; border-radius: 6px; justify-content: center; background: rgba(0,242,255,0.05);">
+                <span style="font-size: 0.6rem; color: var(--accent);">v3.1_ACTIVE</span>
             </div>
         </aside>
 
-        <!-- Main Content -->
+        <!-- Main Ingestion Content -->
         <main class="content">
-            <header class="top-header animate-fade-in">
+            <header class="top-header animate-bento">
                 <div>
-                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 10px;">
-                        <h1
-                            style="background: linear-gradient(135deg, #00f2ff 0%, #0066ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 2rem; font-weight: 800;">
-                            Data Ingestion Gateway</h1>
-                        <div class="pill"
-                            style="background: rgba(0, 255, 136, 0.1); border-color: #00ff88; color: #00ff88;">
-                            <span style="font-size: 0.7rem;">ACTIVE</span>
-                        </div>
-                    </div>
-                    <p style="color: var(--text-secondary); font-size: 0.9rem;">3-Tier pipeline for high-fidelity market
-                        data processing & autonomous learning</p>
+                    <h1
+                        style="background: var(--grad-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 5px;">
+                        Data Gateway</h1>
+                    <p style="color: var(--text-secondary); font-size: 0.8rem;">High-fidelity ingestion pipeline
+                        management.</p>
                 </div>
             </header>
 
-            <div class="upload-container animate-fade-in" style="animation-delay: 0.1s;">
-                <div class="card">
-                    <form id="upload-form">
-                        <div class="form-row">
-                            <div class="input-group">
-                                <label>Asset / Symbol</label>
-                                <input type="text" id="asset" value="EURUSD" placeholder="e.g. BTCUSD, GOLD">
-                            </div>
-                            <div class="input-group">
-                                <label>Timeframe</label>
-                                <select id="timeframe">
-                                    <option value="M1">M1 (Scalper)</option>
-                                    <option value="M5">M5 (Intraday)</option>
-                                    <option value="M15" selected>M15 (Standard)</option>
-                                    <option value="H1">H1 (Swing)</option>
-                                    <option value="H4">H4 (Strategic)</option>
-                                    <option value="D1">D1 (Macro)</option>
-                                </select>
-                            </div>
+            <div class="bento-grid">
+                <!-- Configuration Card -->
+                <div class="card col-span-2 animate-bento">
+                    <h3
+                        style="margin-bottom: 20px; font-size: 0.8rem; text-transform: uppercase; color: var(--text-secondary);">
+                        Metadata Config</h3>
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="input-group">
+                            <label style="font-size: 0.65rem;">ASSET_HUB</label>
+                            <input type="text" id="asset-symbol" value="EURUSD"
+                                style="padding: 10px; font-size: 0.85rem; border-radius: 6px;">
                         </div>
-
-                        <div id="drop-zone" class="drop-zone">
-                            <div style="font-size: 3.5rem; filter: drop-shadow(0 0 10px rgba(0,242,255,0.3));">📄</div>
-                            <h3 style="margin-bottom: 0;">Drag & Drop CSV Dataset</h3>
-                            <p style="color: var(--text-secondary);">Supports standard OHLCV columns (timestamp, open,
-                                high, low, close, volume)</p>
-                            <input type="file" id="csv-file" style="display: none" accept=".csv">
-                        </div>
-
-                        <div style="margin-top: 30px;">
-                            <button type="submit" class="btn-primary" id="upload-btn">Initialize Ingestion
-                                Sequence</button>
-                        </div>
-                    </form>
-
-                    <!-- Feedback Containers -->
-                    <div id="result-box" class="card"
-                        style="display: none; margin-top: 30px; background: rgba(0, 255, 163, 0.05); border-color: rgba(0, 255, 163, 0.2);">
-                        <h3 style="color: #00ffa3;">⚡ Sequence Optimized & Stored</h3>
-                        <div class="dashboard-grid" style="grid-template-columns: repeat(3, 1fr); margin-top: 20px;">
-                            <div class="stat-mini">
-                                <small style="color: var(--text-secondary);">RAW PROCESSED</small>
-                                <div id="total-rows" style="font-size: 1.5rem; font-weight: 700;">-</div>
-                            </div>
-                            <div class="stat-mini">
-                                <small style="color: var(--text-secondary);">TRADABLE</small>
-                                <div id="tradable-rows" style="font-size: 1.5rem; font-weight: 700;">-</div>
-                            </div>
-                            <div class="stat-mini">
-                                <small style="color: var(--text-secondary);">ALPHA WT.</small>
-                                <div id="avg-weight" style="font-size: 1.5rem; font-weight: 700;">-</div>
-                            </div>
+                        <div class="input-group">
+                            <label style="font-size: 0.65rem;">TIMEFRAME_QUANT</label>
+                            <select id="timeframe" style="padding: 10px; font-size: 0.85rem; border-radius: 6px;">
+                                <option value="m15">M15 (Standard)</option>
+                                <option value="h1">H1 (Hourly)</option>
+                                <option value="d1">D1 (Daily)</option>
+                            </select>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Error Box -->
+                <!-- Status Card -->
+                <div class="card col-span-2 animate-bento" style="animation-delay: 0.1s;">
+                    <h3
+                        style="margin-bottom: 15px; font-size: 0.8rem; text-transform: uppercase; color: var(--text-secondary);">
+                        Pipeline Status</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div>
+                            <div style="font-size: 0.6rem; color: var(--text-secondary);">STORAGE_TIER</div>
+                            <div style="font-size: 1rem; color: var(--accent); font-weight: 700;">SUPABASE_CLOUD</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.6rem; color: var(--text-secondary);">VALIDATION_LOGIC</div>
+                            <div style="font-size: 1rem; color: #00ff88; font-weight: 700;">ACTIVE_FILTER</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upload Area -->
+                <div class="card col-span-3 animate-bento" style="animation-delay: 0.2s;">
+                    <div id="drop-zone" class="upload-zone" style="height: 180px; border-radius: 8px;">
+                        <div style="font-size: 2rem; opacity: 0.5;">📥</div>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary);">Drop CSV or <span
+                                style="color: var(--accent);">Browse</span></p>
+                        <p id="file-name" style="font-size: 0.7rem; color: var(--accent); font-weight: 700;"></p>
+                    </div>
+                    <input type="file" id="file-input" accept=".csv" style="display: none;">
+                    <button id="upload-btn" class="btn-bento"
+                        style="width: 100%; margin-top: 15px; font-size: 0.8rem; border-radius: 8px;">INITIALIZE
+                        INGESTION SEQUENCE</button>
+
                     <div id="error-box" class="card"
-                        style="display: none; margin-top: 30px; background: rgba(255, 0, 92, 0.05); border-color: rgba(255, 0, 92, 0.2);">
-                        <h3 style="color: #ff005c;">❌ Ingestion Failed</h3>
-                        <p id="error-message" style="color: var(--text-secondary); margin-top: 15px;"></p>
+                        style="display: none; margin-top: 15px; background: rgba(255,0,0,0.05); border-color: rgba(255,0,0,0.2); padding: 15px;">
+                        <span id="error-msg" style="color: #ff4444; font-size: 0.7rem;"></span>
+                    </div>
+                </div>
+
+                <!-- Result Stats -->
+                <div class="card animate-bento"
+                    style="animation-delay: 0.3s; background: linear-gradient(135deg, rgba(0, 242, 255, 0.05) 0%, transparent 100%);">
+                    <h3 id="result-title"
+                        style="font-size: 0.75rem; margin-bottom: 20px; color: var(--text-secondary);">LAST_RESULT</h3>
+                    <div id="result-box" style="display: none;">
+                        <div style="margin-bottom: 12px;">
+                            <div style="font-size: 0.6rem; color: var(--text-secondary);">RAW_PROCESSED</div>
+                            <div id="total-rows" style="font-size: 1.2rem; font-weight: 700;">0</div>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <div style="font-size: 0.6rem; color: var(--text-secondary);">TRADABLE</div>
+                            <div id="tradable-rows" style="font-size: 1.2rem; font-weight: 700; color: var(--accent);">0
+                            </div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.6rem; color: var(--text-secondary);">ALPHA_WEIGHT</div>
+                            <div id="avg-weight" style="font-size: 1.2rem; font-weight: 700; color: #00ff88;">0.00</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Audit Log Section -->
+                <div class="card col-span-4 animate-bento" style="animation-delay: 0.4s;">
+                    <h3 style="font-size: 0.8rem; margin-bottom: 15px; color: var(--text-secondary);">NETWORK_AUDIT_LOG
+                    </h3>
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.7rem;">
+                            <thead>
+                                <tr
+                                    style="text-align: left; opacity: 0.5; border-bottom: 1px solid var(--border-color);">
+                                    <th style="padding: 10px;">TIMESTAMP</th>
+                                    <th style="padding: 10px;">ASSET</th>
+                                    <th style="padding: 10px;">ROWS</th>
+                                    <th style="padding: 10px;">WEIGHT</th>
+                                    <th style="padding: 10px;">STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="audit-log">
+                                <!-- Logs will appear here -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-
-            <!-- Ingestion Log -->
-            <section class="card animate-fade-in" style="margin-top: 40px; animation-delay: 0.2s;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                    <h2>Recent Network Activity</h2>
-                    <div class="pill">PIPELINE AUDIT</div>
-                </div>
-                <div id="audit-log-container">
-                    <p style="color: var(--text-secondary);">Connecting to ingestion node...</p>
-                </div>
-            </section>
         </main>
     </div>
 
-    <script type="module" src="static/js/ingestion.js"></script>
+    <!-- Scripts -->
+    <script src="static/js/api.js"></script>
+    <script src="static/js/ui_shared.js"></script>
+    <script src="static/js/ingestion.js"></script>
 </body>
 
 </html>

@@ -4,125 +4,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Quantix AI Core - Internal Alpha Engine Dashboard">
-    <title>Quantix AI Core | Alpha Intelligence</title>
+    <title>Quantix AI Core | Autonomous Dashboard</title>
     <link rel="stylesheet" href="static/css/style.css">
 </head>
 
 <body>
     <div class="app-container">
-        <!-- Modern Sidebar -->
+        <!-- Shared Sidebar -->
         <aside class="sidebar">
             <div class="logo">
-                <div class="logo-icon">Q</div>
-                <span>QUANTIX<span class="logo-core">AI</span></span>
+                <div class="logo-icon" style="background: var(--grad-primary);">Q</div>
+                <div style="display: flex; flex-direction: column;">
+                    <span style="font-weight: 800; font-size: 1.1rem; letter-spacing: 1px;">QUANTIX AI</span>
+                    <span
+                        style="color: var(--accent); font-size: 0.7rem; font-weight: 600; letter-spacing: 2px;">CORE</span>
+                </div>
             </div>
 
             <nav class="nav-links">
                 <a href="index.html" class="nav-item active">
-                    <span class="icon">📊</span>
-                    <span>Dashboard</span>
+                    <span class="icon">📊</span> Dashboard
                 </a>
                 <a href="input.html" class="nav-item">
-                    <span class="icon">📥</span>
-                    <span>Data Ingestion</span>
+                    <span class="icon">📥</span> Ingestion
                 </a>
                 <a href="#" class="nav-item">
-                    <span class="icon">🎯</span>
-                    <span>Strategy Lab</span>
+                    <span class="icon">🎯</span> Strategy
                 </a>
                 <a href="#" class="nav-item">
-                    <span class="icon">🧪</span>
-                    <span>Backtest Hub</span>
+                    <span class="icon">🧪</span> Backtest
                 </a>
             </nav>
 
-            <div class="pill animate-pulse"
-                style="margin-top: 20px; background: rgba(0, 242, 255, 0.1); border: 1px solid var(--accent); color: var(--accent);">
-                <span>INTERNAL_ALPHA_ENGINE</span>
+            <!-- Bento Sidebar Component: Learning Engine -->
+            <div class="sidebar-stats-card">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
+                    <div class="dot animate-pulse"></div>
+                    <span style="font-size: 0.7rem; font-weight: 700; color: var(--accent);">LEARNING ENGINE</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="font-size: 0.7rem; color: var(--text-secondary);">Ingested</span>
+                        <span id="total-ingested-sidebar" style="font-size: 0.8rem; font-weight: 700;">0</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="font-size: 0.7rem; color: var(--text-secondary);">Learning</span>
+                        <span id="learning-status-sidebar"
+                            style="font-size: 0.8rem; font-weight: 700; color: var(--accent);">0</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="font-size: 0.7rem; color: var(--text-secondary);">Alpha Wt.</span>
+                        <span id="alpha-weight-sidebar"
+                            style="font-size: 0.8rem; font-weight: 700; color: #00ff88;">0.00</span>
+                    </div>
+                </div>
             </div>
-            <div style="margin-top: 15px; font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4;">
-                Institutional Research Hub. Not financial advice.
+
+            <div class="pill animate-pulse"
+                style="margin-top: 20px; background: rgba(0,242,255,0.1); border-color: var(--accent); color: var(--accent); width: 100%; justify-content: center;">
+                <span>v3.1_SNIPER</span>
             </div>
         </aside>
 
-        <!-- Main Content -->
+        <!-- Main Bento Content -->
         <main class="content">
-            <header class="top-header animate-fade-in">
+            <header class="top-header animate-bento">
                 <div>
-                    <h1>System Overview</h1>
-                    <p style="color: var(--text-secondary);">Real-time Quantix Core monitoring and probability analysis.
+                    <h1
+                        style="background: var(--grad-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                        Autonomous Intel.</h1>
+                    <p style="color: var(--text-secondary);">Real-time pattern discovery and alpha generation engine.
                     </p>
                 </div>
-
                 <div class="status-pills">
                     <div class="pill">
-                        <div id="api-status-dot" class="dot"></div>
-                        <span>CORE STATUS: ONLINE</span>
+                        <div class="dot"></div> API: LOCAL
                     </div>
-                    <div class="pill">
-                        <span style="color: var(--accent);">MODE: INTERNAL_ALPHA</span>
-                    </div>
+                    <div class="pill" style="border-color: #BC13FE; color: #BC13FE;">BETA_ACCESS</div>
                 </div>
             </header>
 
-            <!-- Dashboard Grid -->
-            <div class="dashboard-grid">
-                <div class="card stat-card animate-fade-in" style="animation-delay: 0.1s;">
-                    <span class="stat-label">Learning Data Score</span>
-                    <div id="learning-score" class="stat-value">92.4%</div>
-                    <p style="font-size: 0.8rem; color: var(--text-secondary);">Validated high-performance candles</p>
-                </div>
+    </div>
 
-                <div class="card stat-card animate-fade-in" style="animation-delay: 0.2s;">
-                    <span class="stat-label">Model Reliability</span>
-                    <div id="model-reliability" class="stat-value">88.7%</div>
-                    <p style="font-size: 0.8rem; color: var(--text-secondary);">30-day historical accuracy</p>
-                </div>
+    <div class="card stat-card animate-fade-in" style="animation-delay: 0.3s;">
+        <span class="stat-label">Active Alpha Signals</span>
+        <div id="active-signals" class="stat-value">---</div>
+        <p style="font-size: 0.8rem; color: var(--text-secondary);">Internal research sniper alerts</p>
+    </div>
+    </div>
 
-                <div class="card stat-card animate-fade-in" style="animation-delay: 0.3s;">
-                    <span class="stat-label">Active Alpha Signals</span>
-                    <div id="active-signals" class="stat-value">---</div>
-                    <p style="font-size: 0.8rem; color: var(--text-secondary);">Internal research sniper alerts</p>
-                </div>
+    <!-- Signal & Intelligence Grid -->
+    <div class="dashboard-layout-split" style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+        <!-- Left: Signal Feed -->
+        <section class="card signals-section animate-fade-in" style="animation-delay: 0.4s; min-height: 400px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h2>Internal Sniper Alerts</h2>
+                <div class="pill">REAL-TIME BROADCAST</div>
             </div>
 
-            <!-- Signal & Intelligence Grid -->
-            <div class="dashboard-layout-split" style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
-                <!-- Left: Signal Feed -->
-                <section class="card signals-section animate-fade-in" style="animation-delay: 0.4s; min-height: 400px;">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-                        <h2>Internal Sniper Alerts</h2>
-                        <div class="pill">REAL-TIME BROADCAST</div>
-                    </div>
-
-                    <div id="signals-container">
-                        <div style="text-align: center; padding: 100px 0; color: var(--text-secondary);">
-                            <p>Scanning markets for high-probability structures...</p>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Right: Explainability Intelligence Panel -->
-                <aside id="explain-panel" class="card explain-card animate-fade-in"
-                    style="animation-delay: 0.5s; display: none; height: fit-content; border: 1px solid var(--accent-glow);">
-                    <!-- Content will be injected by JS -->
-                </aside>
-            </div>
-
-            <footer class="footer animate-fade-in" style="animation-delay: 0.5s; margin-top: 40px;">
-                <div
-                    style="background: rgba(255, 145, 0, 0.05); border: 1px solid rgba(255, 145, 0, 0.2); padding: 20px; border-radius: 16px; margin-bottom: 25px;">
-                    <strong
-                        style="color: #ff9100; font-family: 'Space Grotesk', sans-serif;">QUANTIX_LEGAL_NOTICE:</strong>
-                    <p style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">Quantix AI Core is a
-                        probabilistic forecasting engine. Signals are internal research data based on statistical
-                        models. These are NOT trade recommendations or financial advice. Trading involves high risk.</p>
+            <div id="signals-container">
+                <div style="text-align: center; padding: 100px 0; color: var(--text-secondary);">
+                    <p>Scanning markets for high-probability structures...</p>
                 </div>
-                <p>INTERNAL ALPHA ENGINE v1.5. © 2026 Quantix AI Research Lab.</p>
-            </footer>
-        </main>
+            </div>
+        </section>
+
+        <!-- Right: Explainability Intelligence Panel -->
+        <aside id="explain-panel" class="card explain-card animate-fade-in"
+            style="animation-delay: 0.5s; display: none; height: fit-content; border: 1px solid var(--accent-glow);">
+            <!-- Content will be injected by JS -->
+        </aside>
+    </div>
+
+    <footer class="footer animate-fade-in" style="animation-delay: 0.5s; margin-top: 40px;">
+        <div
+            style="background: rgba(255, 145, 0, 0.05); border: 1px solid rgba(255, 145, 0, 0.2); padding: 20px; border-radius: 16px; margin-bottom: 25px;">
+            <strong style="color: #ff9100; font-family: 'Space Grotesk', sans-serif;">QUANTIX_LEGAL_NOTICE:</strong>
+            <p style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">Quantix AI Core is a
+                probabilistic forecasting engine. Signals are internal research data based on statistical
+                models. These are NOT trade recommendations or financial advice. Trading involves high risk.</p>
+        </div>
+        <p>INTERNAL ALPHA ENGINE v1.5. © 2026 Quantix AI Research Lab.</p>
+    </footer>
+    </main>
     </div>
 
     <script type="module" src="static/js/dashboard.js"></script>

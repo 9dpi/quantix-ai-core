@@ -63,10 +63,11 @@ body.scrollable-page {
 }
 
 .logo-icon {
-    width: 24px;
-    height: 24px;
-    background: var(--accent);
-    border-radius: 4px;
+    width: 32px;
+    height: 32px;
+    background: url('../img/logo.png') no-repeat center center;
+    background-size: contain;
+    border-radius: 0;
 }
 
 /* Logo Animation - Blue to Purple */
@@ -95,13 +96,7 @@ body.scrollable-page {
     -webkit-text-fill-color: transparent;
 }
 
-.logo-icon {
-    width: 24px;
-    height: 24px;
-    background: linear-gradient(135deg, #38bdf8 0%, #a855f7 100%);
-    border-radius: 4px;
-    box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
-}
+/* Logo icon override removed - centralized above */
 
 .main-nav {
     display: flex;

@@ -9,7 +9,7 @@ import uvicorn
 import asyncio
 import os
 
-from api.routes import health, signals, ingestion, csv_ingestion, admin, features
+from api.routes import health, signals, ingestion, csv_ingestion, admin, features, structure
 from config.settings import settings
 from database.connection import db
 
@@ -31,6 +31,7 @@ app.add_middleware(
 
 # Include Routers
 app.include_router(health.router, prefix=settings.API_PREFIX, tags=["Health"])
+app.include_router(structure.router, prefix=settings.API_PREFIX, tags=["Structure"])
 app.include_router(features.router, prefix=settings.API_PREFIX, tags=["Features"])
 app.include_router(signals.router, prefix=settings.API_PREFIX, tags=["Signals"])
 app.include_router(ingestion.router, prefix=settings.API_PREFIX, tags=["Ingestion"])

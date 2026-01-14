@@ -41,8 +41,52 @@ async def startup_event():
     is_healthy = await db.health_check()
     if is_healthy:
         logger.info("✅ Database connection verified")
+        # --- AUTO-SEED DATA ---
+        try:
+            await seed_data()
+        except Exception as e:
+            logger.error(f"❌ Auto-seeding failed: {e}")
     else:
         logger.warning("⚠️ Database connection check failed - ensure SUPABASE keys are correct")
+
+async def seed_data():
+    import os
+    from ingestion.pipeline import CSVIngestionPipeline
+    from api.routes.csv_ingestion import _log_ingestion_audit
+    
+    # In Docker, the path will be 'data' because we copied backend/ to /app/
+    data_dir = "data"
+    if not os.path.exists(data_dir):
+        logger.info(f"📁 Seed directory '{data_dir}' not found, skipping auto-seed.")
+        return
+        
+    pipeline = CSVIngestionPipeline()
+    files = [f for f in os.listdir(data_dir) if f.endswith('.csv')]
+    
+    if not files:
+        return
+        
+    logger.info(f"🌱 Auto-seeding found {len(files)} files: {files}")
+    for filename in files:
+        try:
+            path = os.path.join(data_dir, filename)
+            asset = filename.split('_')[0].upper()
+            
+            with open(path, 'r', encoding='utf-8') as f:
+                content = f.read()
+                
+            result = await pipeline.ingest_csv_content(
+                content, 
+                asset=asset, 
+                timeframe="D1",
+                source="auto_seed"
+            )
+            
+            if result['status'] == 'success':
+                await _log_ingestion_audit(result, asset=asset, timeframe="D1")
+                logger.info(f"✅ Auto-seeded: {filename}")
+        except Exception as e:
+            logger.error(f"⚠️ Failed to seed {filename}: {e}")
 
 @app.get("/")
 async def root():

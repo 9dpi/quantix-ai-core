@@ -84,6 +84,7 @@ async function fetchSignals() {
         }
 
         // Render Signals
+        // Render Signals
         container.innerHTML = signals.map(sig => `
             <div class="card signal-card-item" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 20px; border-radius: 16px; margin-bottom: 16px; transition: all 0.2s;">
                 <div style="display: flex; justify-content: space-between; align-items: start;">
@@ -100,19 +101,14 @@ async function fetchSignals() {
                     </div>
                 </div>
                 
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px;">
-                    <div>
-                        <div style="font-size: 0.7rem; color: #888;">ENTRY</div>
-                        <div style="font-family: 'Space Grotesk'; font-weight: 600;">${sig.entry_low}</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 0.7rem; color: #00ffa3;">TP</div>
-                        <div style="font-family: 'Space Grotesk'; font-weight: 600;">${sig.tp}</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 0.7rem; color: #ff005c;">SL</div>
-                        <div style="font-family: 'Space Grotesk'; font-weight: 600;">${sig.sl}</div>
-                    </div>
+                <!-- NEW: Canonical Output Table -->
+                <div class="signal-output">
+                    <h3>📊 Trade Signal Details</h3>
+                    <table class="signal-table">
+                        <tbody id="signal-output-body-${sig.asset}">
+                            ${generateSignalTableRows(canonicalizeSignal(sig))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         `).join('');
@@ -202,3 +198,89 @@ function renderExplainability(explain) {
       </div>
     `;
 }
+
+// -----------------------------------------------------------
+// DATA ADAPTER: Convert Raw Signal to Canonical Output
+// -----------------------------------------------------------
+function canonicalizeSignal(raw) {
+    // Map raw backend keys to standardized Frontend Model
+    return {
+        asset: raw.asset,
+        direction: raw.direction,
+        timeframe: raw.timeframe,
+        session: raw.context?.session || "London  New York Overlap", 
+        
+        entry_zone: [raw.entry_low, raw.entry_high],
+        take_profit: raw.tp,
+        stop_loss: raw.sl,
+        
+        // Calculated fields mock logic (Backend should ideally provide these)
+        target_pips: Math.abs(raw.tp - raw.entry_high) * 10000, 
+        risk_reward: `1 : ${raw.reward_risk_ratio || 1.5}`,
+        suggested_risk: "0.5%  1%",
+        
+        trade_type: "Intraday / Sniper",
+        confidence: raw.ai_confidence,
+        
+        posted_at: raw.generated_at,
+        expiry_rule: [
+            "Signal is valid for this session only",
+            "Expires at session close or if TP/SL is hit",
+            "Do not enter if price moves > 5 pips beyond entry"
+        ]
+    };
+}
+
+// -----------------------------------------------------------
+// HTML GENERATOR: Signal Table Rows
+// -----------------------------------------------------------
+function formatPrice(p) { return Number(p).toFixed(5); }
+function formatDate(iso) { return new Date(iso).toUTCString(); }
+
+function generateSignalTableRows(signal) {
+    return `
+    <tr><td>Asset</td><td><strong>${signal.asset}</strong></td></tr>
+
+    <tr><td>Trade</td>
+      <td>
+        <span class="trade ${signal.direction.toLowerCase()}">
+          ${signal.direction === "BUY" ? " BUY" : " SELL"}
+        </span>
+      </td>
+    </tr>
+
+    <tr><td>Timeframe</td><td>${signal.timeframe}</td></tr>
+    <tr><td>Session</td><td>${signal.session}</td></tr>
+
+    <tr class="section"><td colspan="2"> Price Levels</td></tr>
+    <tr><td>Entry Zone</td>
+      <td>${formatPrice(signal.entry_zone[0])}  ${formatPrice(signal.entry_zone[1])}</td>
+    </tr>
+    <tr><td>Take Profit</td><td>${formatPrice(signal.take_profit)}</td></tr>
+    <tr><td>Stop Loss</td><td>${formatPrice(signal.stop_loss)}</td></tr>
+
+    <tr class="section"><td colspan="2"> Trade Details</td></tr>
+    <tr><td>Target (Est)</td><td>+${Math.round(signal.target_pips)} pips</td></tr>
+    <tr><td>RiskReward</td><td>${signal.risk_reward}</td></tr>
+    <tr><td>Suggested Risk</td><td>${signal.suggested_risk}</td></tr>
+
+    <tr><td>Trade Type</td><td>${signal.trade_type}</td></tr>
+
+    <tr class="highlight">
+      <td>AI Confidence</td>
+      <td><strong>${Math.round(signal.confidence * 100)}%</strong> </td>
+    </tr>
+
+    <tr><td>Posted</td><td>${formatDate(signal.posted_at)}</td></tr>
+
+    <tr class="section"><td colspan="2"> Auto-Expiry Rules</td></tr>
+    <tr>
+      <td colspan="2">
+        <ul class="expiry-rules">
+          ${signal.expiry_rule.map(r => `<li>${r}</li>`).join("")}
+        </ul>
+      </td>
+    </tr>
+    `;
+}
+

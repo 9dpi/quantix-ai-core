@@ -18,20 +18,13 @@ app = FastAPI(
 )
 
 # --- CORS Configuration ---
-# Allow GitHub Pages and other internal domains to talk to this API
+# Allow all origins for testing (will restrict later)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://localhost:8000",
-        "https://9dpi.github.io",
-        "https://quantix-ai-core-production.up.railway.app"
-    ],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"]
 )
 
 # Include Routers

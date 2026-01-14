@@ -66,6 +66,7 @@ class Settings(BaseSettings):
     ENABLE_BACKTEST: bool = True
     ENABLE_LEARNING: bool = True
     ENABLE_LAB_SIGNALS: bool = True
+    QUANTIX_PUBLIC_API_KEY: str = "quantix_dev_beta_2026"
     
     class Config:
         env_file = ".env"

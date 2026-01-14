@@ -1,13 +1,15 @@
 const API_CONFIG = {
     // FORCE PRODUCTION ENVIRONMENT
     getBaseUrl: () => {
-        // --- PRODUCTION URL ---
         const productionUrl = 'https://quantixaicore-production.up.railway.app';
+        // Add cache buster to the URL for every fetch to prevent stale 502s
+        const buster = `?t=${Date.now()}`;
         return `${productionUrl}/api/v1`;
     },
-    // Adding BASE_URL directly for compatibility with ui_shared.js
+    // For direct string usage
     BASE_URL: 'https://quantixaicore-production.up.railway.app/api/v1',
-    VERSION: Date.now() // Logic to break cache
+    // Helper for cache busting query params
+    getBuster: () => `_=${Date.now()}`
 };
 
 // Make it globally accessible across all scripts

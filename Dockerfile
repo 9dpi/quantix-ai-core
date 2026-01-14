@@ -18,5 +18,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy backend application code
 COPY backend/ .
 
-# Run the application using the dynamic PORT provided by Railway
-CMD ["sh", "-c", "uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Railway injects PORT environment variable automatically
+# We use uvicorn directly to ensure it picks up the system PORT
+CMD uvicorn api.main:app --host 0.0.0.0 --port $PORT

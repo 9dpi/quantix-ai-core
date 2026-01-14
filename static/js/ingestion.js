@@ -105,8 +105,11 @@ async function handleUpload() {
     formData.append('source', 'operator_dashboard');
 
     try {
-        console.log('📤 Uploading to:', `${API_BASE}/ingestion/csv`);
-        const response = await fetch(`${API_BASE}/ingestion/csv`, {
+        const buster = window.API_CONFIG ? window.API_CONFIG.getBuster() : `t=${Date.now()}`;
+        const uploadUrl = `${API_BASE}/ingestion/csv?${buster}`;
+
+        console.log('📤 Uploading to:', uploadUrl);
+        const response = await fetch(uploadUrl, {
             method: 'POST',
             body: formData
         });
@@ -157,7 +160,8 @@ async function fetchAuditLogs() {
     if (!container) return;
 
     try {
-        const response = await fetch(`${API_BASE}/ingestion/audit-log?limit=8`);
+        const buster = window.API_CONFIG ? window.API_CONFIG.getBuster() : `t=${Date.now()}`;
+        const response = await fetch(`${API_BASE}/ingestion/audit-log?limit=8&${buster}`);
         const data = await response.json();
 
         if (data.status === 'success' && data.logs.length > 0) {

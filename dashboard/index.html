@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Quantix AI Core</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="logo-area">
+            <div class="logo-icon"></div>
+            <span class="logo-text">QUANTIX AI CORE</span>
+        </div>
+        <div class="hamburger" id="menu-toggle">☰</div>
+        <nav class="main-nav" id="main-nav">
+            <a href="../" class="nav-link">About</a>
+            <a href="../dashboard/" class="nav-link active">Dashboard</a>
+            <a href="../api/" class="nav-link">API</a>
+            <a href="../status/" class="nav-link">Status</a>
+        </nav>
+        <div class="status-tag hide-mobile"
+            style="font-size: 0.7rem; color: var(--text-dim); display: flex; align-items: center; gap: 8px;">
+            <div class="dot dot-online"></div> SYSTEM_OF_RECORD
+        </div>
+    </header>
+
+    <main class="app-layout">
+        <!-- LEFT: IDENTITY & LAW -->
+        <aside class="column left-col">
+            <div style="margin-bottom: 32px; border-bottom: 1px solid var(--border); padding-bottom: 24px;">
+                <h1 style="font-size: 1.2rem; font-weight: 800; color: var(--accent); margin-bottom: 8px;">Quantix AI
+                </h1>
+                <div style="font-size: 0.75rem; color: var(--text-dim); line-height: 1.5;">
+                    Market Structure Reasoning Engine.
+                    <br><br>
+                    Quantix analyzes market <strong>state</strong>, not trade signals.
+                </div>
+            </div>
+            <h2 class="section-title">📜 Data Constitution</h2>
+            <div class="constitution-box">
+                <ul class="constitution-list">
+                    <li>Source: Dukascopy Tick</li>
+                    <li>Zero Inference Policy</li>
+                    <li>Determinism: 1:1 Mapping</li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- MIDDLE: REASONING & PIPELINE -->
+        <section class="column middle-col" style="background: var(--bg-main);">
+            <div class="intelligence-node">
+                <h2 class="section-title">📊 Market State Reasoning (Core)</h2>
+                <div class="snapshot-card" style="background: var(--bg-sub); border: 1px solid var(--border);">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                        <div>
+                            <div style="font-size: 1.5rem; font-weight: 800;">EUR/USD <span
+                                    style="font-weight: 400; color: var(--text-dim);">H4</span></div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div id="core-state" style="font-size: 1.2rem; font-weight: 700; color: var(--highlight);">
+                                BULLISH</div>
+                        </div>
+                    </div>
+                    <div class="snapshot-grid">
+                        <div class="snapshot-item">
+                            <div class="snapshot-label">Structural Confidence</div>
+                            <div id="core-confidence" class="snapshot-value">78.4%</div>
+                        </div>
+                        <div class="snapshot-item">
+                            <div class="snapshot-label">Directional Dominance</div>
+                            <div id="core-dominance" class="snapshot-value">0.72</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT: PROOF & DEMO -->
+        <aside class="column right-col">
+            <h2 class="section-title">Live Reasoning</h2>
+            <div class="data-card" style="border: 1px solid var(--accent);">
+                <a href="../reasoning/" class="spec-link"
+                    style="background: var(--accent); color: var(--bg-main); width: 100%; justify-content: center;">
+                    Open Reasoning Panel →
+                </a>
+            </div>
+        </aside>
+    </main>
+
+    <footer class="app-footer">
+        <div class="disclaimer"><strong>LEGAL SHIELD:</strong> Market structure analysis for research.</div>
+    </footer>
+
+    <script src="../static/js/api.js"></script>
+    <script src="../static/js/ui_shared.js"></script>
+    <script src="../static/js/dashboard.js"></script>
+</body>
+
+</html>

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quantix API | Market Intelligence Documentation</title>
-    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="stylesheet" href="../static/css/style.css">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
         rel="stylesheet">
@@ -90,14 +90,6 @@
             letter-spacing: 0.1em;
         }
 
-        .compliance-box {
-            border-left: 4px solid var(--warning);
-            background: rgba(244, 63, 94, 0.05);
-            padding: 20px;
-            margin: 40px 0;
-            border-radius: 0 8px 8px 0;
-        }
-
         .lab-tag {
             position: absolute;
             top: 12px;
@@ -132,15 +124,12 @@
         </div>
         <div class="hamburger" id="menu-toggle">☰</div>
         <nav class="main-nav" id="main-nav">
-            <a href="about.html" class="nav-link">About</a>
-            <a href="index.html" class="nav-link">Dashboard</a>
-            <a href="https://9dpi.github.io/quantix-ai-core/api_usage.html" class="nav-link active">API</a>
-            <a href="docs.html" class="nav-link">Documentation</a>
+            <a href="../" class="nav-link">About</a>
+            <a href="../reasoning/" class="nav-link">Reasoning</a>
+            <a href="../api/" class="nav-link active">API</a>
+            <a href="../status/" class="nav-link">Status</a>
+            <a href="../disclaimer/" class="nav-link">Legal</a>
         </nav>
-        <div class="status-tag hide-mobile"
-            style="font-size: 0.7rem; color: var(--text-dim); display: flex; align-items: center; gap: 8px;">
-            <div class="dot dot-online"></div> B2B_PORTAL_ACTIVE
-        </div>
     </header>
 
     <main class="api-container">
@@ -166,14 +155,8 @@
 
         <div class="doc-section">
             <h2 class="section-title">2. Endpoint: Market State</h2>
-            <p style="color: var(--text-dim); margin-bottom: 16px;">Retrieve the current structural state of the market
-                for a given asset and timeframe.</p>
-
             <div class="endpoint-box">
-                <div>
-                    <span class="method">GET</span>
-                    <span class="url">/market-state</span>
-                </div>
+                <div><span class="method">GET</span><span class="url">/market-state</span></div>
                 <table class="param-table">
                     <thead>
                         <tr>
@@ -198,7 +181,6 @@
                         </tr>
                     </tbody>
                 </table>
-
                 <h4 style="margin-top: 24px; font-size: 0.8rem; text-transform: uppercase; color: var(--accent);">
                     Example Response</h4>
                 <pre>{
@@ -206,15 +188,8 @@
   "timeframe": "H4",
   "state": "bullish",
   "confidence": 0.78,
-  "dominance": {
-    "bullish": 1.42,
-    "bearish": 0.31
-  },
-  "evidence": [
-    "Bullish break of structure confirmed",
-    "Higher low respected",
-    "No fake breakout detected"
-  ],
+  "dominance": { "bullish": 1.42, "bearish": 0.31 },
+  "evidence": ["Bullish break of structure confirmed", "Higher low respected", "No fake breakout detected"],
   "updated_at": "2026-01-15T04:00:00Z",
   "trace_id": "qtx-struct-9e21c"
 }</pre>
@@ -223,8 +198,6 @@
 
         <div class="doc-section">
             <h2 class="section-title">3. Interpretation Guide (Educational)</h2>
-            <p style="color: var(--text-dim); margin-bottom: 16px;">This section is provided for informational purposes.
-                It is not a recommendation.</p>
             <ul class="feature-list" style="color: var(--text-main); font-size: 0.95rem;">
                 <li class="feature-item"><span>• <code>confidence > 0.75</code>: Strong directional bias</span></li>
                 <li class="feature-item"><span>• <code>confidence 0.45–0.75</code>: Mixed or transitional</span></li>
@@ -234,20 +207,9 @@
 
         <div class="doc-section">
             <h2 class="section-title">4. Sandbox: Signal Engine Lab (Experimental)</h2>
-            <p style="color: var(--text-dim); line-height: 1.6; margin-bottom: 16px;">
-                This sandbox endpoint allows exploration of user-defined mapping from state + confidence to signals. It
-                is for experimentation only and is <strong>not suitable for live trading</strong> or production signals.
-            </p>
-
             <div class="endpoint-box">
                 <div class="lab-tag">SANDBOX</div>
-                <div>
-                    <span class="method post">POST</span>
-                    <span class="url">/lab/signal-engine/evaluate</span>
-                </div>
-
-                <h4 style="margin-top: 24px; font-size: 0.8rem; text-transform: uppercase; color: var(--accent);">
-                    Payload Example</h4>
+                <div><span class="method post">POST</span><span class="url">/lab/signal-engine/evaluate</span></div>
                 <pre>{
   "rules": {
     "buy_if": "state == bullish AND confidence >= 0.75",
@@ -256,20 +218,6 @@
   "asset": "EURUSD",
   "timeframe": "H4",
   "historical_range": "30d"
-}</pre>
-
-                <h4 style="margin-top: 24px; font-size: 0.8rem; text-transform: uppercase; color: var(--accent);">
-                    Response Example</h4>
-                <pre>{
-  "results": [
-    {
-      "timestamp": "2025-12-10T08:00:00Z",
-      "state": "bullish",
-      "confidence": 0.81,
-      "user_signal": "BUY"
-    }
-  ],
-  "notice": "Sandbox only. Not for live trading."
 }</pre>
             </div>
         </div>
@@ -289,12 +237,10 @@
 
     <footer class="app-footer">
         <div class="disclaimer">
-            <p style="margin-bottom: 8px;"><strong>Legal Firewall:</strong> This API provides analytical insights only.
-                User-generated signals in Sandbox are experimental and not validated by Quantix. All API access is
-                subject to Quantix B2B Terms of Service.</p>
+            All API access is subject to Quantix B2B Terms of Service.
         </div>
     </footer>
-    <script src="static/js/ui_shared.js"></script>
+    <script src="../static/js/ui_shared.js"></script>
 </body>
 
 </html>

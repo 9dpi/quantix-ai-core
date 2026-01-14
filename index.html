@@ -4,11 +4,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quantix AI Core | Probabilistic Intelligence</title>
+    <title>Quantix AI Core | Institutional Market Intelligence</title>
     <link rel="stylesheet" href="static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .hero-section {
+            padding: 100px 0 60px;
+            text-align: center;
+            background: radial-gradient(circle at center, rgba(56, 189, 248, 0.05) 0%, transparent 70%);
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            background: linear-gradient(to bottom, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--accent);
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .landing-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        @media (max-width: 768px) {
+            .landing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+        }
+
+        .landing-card {
+            background: var(--bg-sub);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            transition: transform 0.3s ease;
+        }
+
+        .card-header {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-header::before {
+            content: '';
+            width: 20px;
+            height: 1px;
+            background: var(--accent);
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-item {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            font-size: 0.95rem;
+        }
+
+        .status-live {
+            background: var(--highlight);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .philosophy-box {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 20px;
+        }
+    </style>
 </head>
 
-<body>
+<body class="scrollable-page">
     <header class="app-header">
         <div class="logo-area">
             <div class="logo-icon"></div>
@@ -16,235 +114,52 @@
         </div>
         <div class="hamburger" id="menu-toggle">☰</div>
         <nav class="main-nav" id="main-nav">
-            <a href="about.html" class="nav-link">About</a>
-            <a href="index.html" class="nav-link active">Dashboard</a>
-            <a href="https://9dpi.github.io/quantix-ai-core/api_usage.html" class="nav-link">API</a>
-            <a href="docs.html" class="nav-link">Documentation</a>
+            <a href="./" class="nav-link active">About</a>
+            <a href="reasoning/" class="nav-link">Reasoning</a>
+            <a href="api/" class="nav-link">API</a>
+            <a href="status/" class="nav-link">Status</a>
+            <a href="disclaimer/" class="nav-link">Legal</a>
         </nav>
         <div class="status-tag hide-mobile"
             style="font-size: 0.7rem; color: var(--text-dim); display: flex; align-items: center; gap: 8px;">
-            <div class="dot dot-online"></div> SYSTEM_OF_RECORD
+            <div class="dot dot-online"></div> SYSTEM_READY
         </div>
     </header>
 
-    <main class="app-layout">
-        <!-- LEFT: IDENTITY & LAW -->
-        <aside class="column left-col">
-            <!-- BLOCK 1: SYSTEM IDENTITY -->
-            <div style="margin-bottom: 32px; border-bottom: 1px solid var(--border); padding-bottom: 24px;">
-                <h1 style="font-size: 1.2rem; font-weight: 800; color: var(--accent); margin-bottom: 8px;">Quantix AI
-                </h1>
-                <div style="font-size: 0.75rem; color: var(--text-dim); line-height: 1.5;">
-                    Market Structure Reasoning Engine.
-                    <br><br>
-                    Quantix analyzes market <strong>state</strong>, not trade signals. It does not predict price. It
-                    explains <strong>why</strong> a state exists using auditable data.
-                </div>
+    <main class="content-container">
+        <div class="hero-section">
+            <div class="hero-subtitle">Quantix AI Core</div>
+            <h1 class="hero-title">Market State Analysis.<br>Not Prediction.</h1>
+            <div style="margin-top: 40px; display: flex; gap: 20px; justify-content: center;">
+                <a href="dashboard/" class="btn-analyze"
+                    style="text-decoration: none; display: flex; align-items: center; justify-content: center;">Enter
+                    Dashboard</a>
+                <a href="api/" class="btn-analyze"
+                    style="background: transparent; border: 1px solid var(--accent); color: var(--accent); text-decoration: none; display: flex; align-items: center; justify-content: center;">API
+                    Reference</a>
             </div>
+        </div>
 
-            <!-- BLOCK 2: DATA LAW -->
-            <h2 class="section-title">📜 Data Constitution</h2>
-            <div class="constitution-box" style="margin-top: 0;">
-                <div style="font-size: 0.65rem; color: var(--highlight); margin-bottom: 12px; font-weight: 700;">CLEAN
-                    FEED v1 (IMMUTABLE)</div>
-                <ul class="constitution-list">
-                    <li>Source: Dukascopy Tick</li>
-                    <li>Price: BID Only</li>
-                    <li>Timezone: UTC</li>
-                    <li>Zero Inference Policy</li>
-                    <li>FAIL HARD Validation</li>
-                    <li>Determinism: 1:1 Mapping</li>
-                </ul>
-                <a href="CLEAN_FEED_V1_SPEC.md" class="spec-link">
-                    <span>🔒 View v1 Spec</span>
-                </a>
+        <div class="landing-grid">
+            <div class="landing-card">
+                <div class="card-header">Deterministic Reasoning</div>
+                <p style="color: var(--text-dim);">Quantix resolves market structure based on immutable tick data. Every
+                    conclusion is explainable and auditable.</p>
             </div>
-
-            <h2 class="section-title" style="margin-top: 32px;">Feed Health</h2>
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-                <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
-                    <span style="color: var(--text-dim);">Dukascopy HTTP</span>
-                    <span style="color: var(--highlight);">Online</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
-                    <span style="color: var(--text-dim);">Last Ingested</span>
-                    <span class="value" style="font-size: 0.7rem; color: var(--text-main);">104,035 Ticks</span>
-                </div>
+            <div class="landing-card">
+                <div class="card-header">Institutional Proof</div>
+                <p style="color: var(--text-dim);">Built for B2B partners who require factual evidence over
+                    probabilistic "AI hallucinations".</p>
             </div>
-        </aside>
-
-        <!-- MIDDLE: REASONING & PIPELINE -->
-        <section class="column middle-col" style="background: var(--bg-main);">
-            <div class="intelligence-node">
-
-                <!-- LAYER 1: CORE (PRIMARY) - AUDITABLE SNAPSHOT -->
-                <h2 class="section-title">📊 Market State Reasoning (Core)</h2>
-                <div class="snapshot-card"
-                    style="margin-top: 0; background: var(--bg-sub); border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
-                        <div>
-                            <div style="font-size: 1.5rem; font-weight: 800;">EUR/USD <span
-                                    style="font-weight: 400; color: var(--text-dim);">H4</span></div>
-                            <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 4px;">Session: Global FX
-                                (UTC)</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div class="label">Structure State</div>
-                            <div id="core-state" style="font-size: 1.2rem; font-weight: 700; color: var(--highlight);">
-                                BULLISH</div>
-                            <div style="font-size: 0.55rem; color: var(--text-dim); margin-top: 2px;">Reflects
-                                structure, not prediction.</div>
-                        </div>
-                    </div>
-
-                    <div class="snapshot-grid">
-                        <div class="snapshot-item">
-                            <div class="snapshot-label">Structural Confidence</div>
-                            <div id="core-confidence" class="snapshot-value">78.4%</div>
-                        </div>
-                        <div class="snapshot-item">
-                            <div class="snapshot-label">Directional Dominance</div>
-                            <div id="core-dominance" class="snapshot-value">0.72</div>
-                        </div>
-                    </div>
-
-                    <div style="margin-top: 24px;">
-                        <div class="snapshot-label">Reasoning Evidence</div>
-                        <ul id="core-evidence" class="constitution-list" style="margin-top: 8px;">
-                            <li>Bullish BOS confirmed (82% acceptance)</li>
-                            <li>No fakeout detected after swing break</li>
-                            <li>Higher low structural integrity maintained</li>
-                        </ul>
-                    </div>
-
-                    <div
-                        style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
-                        <div style="font-size: 0.6rem; color: var(--text-dim); font-family: 'JetBrains Mono';">
-                            ID: <span id="core-trace">struct-9e21c</span> | <span id="core-time">2026-01-14 12:00
-                                UTC</span>
-                        </div>
-                        <div style="font-size: 0.6rem; font-weight: 700; color: var(--warning);">DETERMINISTIC ANALYSIS
-                        </div>
-                    </div>
-                </div>
-
-                <!-- LAYER 2: DECISION SUPPORT (LAB) - EXPERIMENTAL -->
-                <div id="lab-section" style="margin-top: 24px;">
-                    <h2 class="section-title">🧪 Decision Support (Lab Sandbox)</h2>
-                    <div class="snapshot-card"
-                        style="margin-top: 0; background: rgba(56, 189, 248, 0.03); border: 1px solid rgba(56, 189, 248, 0.15); position: relative;">
-                        <div
-                            style="position: absolute; top: 12px; right: 12px; font-size: 0.55rem; background: var(--accent); color: var(--bg-deep); padding: 2px 6px; border-radius: 3px; font-weight: 800; letter-spacing: 0.1em;">
-                            EXPERIMENTAL</div>
-
-                        <div id="lab-decision"
-                            style="font-size: 1.2rem; font-weight: 800; color: var(--highlight); margin-bottom: 8px;">
-                            BUY_CANDIDATE</div>
-                        <div id="lab-reason" style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 16px;">
-                            Sustained bullish structure favors continuation.</div>
-
-                        <div style="display: flex; gap: 16px; font-size: 0.7rem; color: var(--text-dim);">
-                            <div>Validity: <span id="lab-validity" style="color: var(--text-main);">2 candles</span>
-                            </div>
-                            <div>Audit: <span id="lab-ruleset" style="color: var(--text-main);">signal_mapping_v1</span>
-                            </div>
-                        </div>
-
-                        <div
-                            style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05); font-size: 0.65rem; color: var(--text-dim); font-style: italic;">
-                            ⚠️ Not a trading signal. Provided for research and decision-support only.
-                        </div>
-                    </div>
-                </div>
-
-                <!-- BLOCK 3: PIPELINE -->
-                <div class="visual-container" style="margin-top: 32px;">
-                    <div class="section-title">🔄 Reasoning Pipeline</div>
-                    <div style="display: flex; align-items: center; gap: 8px; width: 100%; justify-content: center;">
-                        <div class="pipeline-step" style="width: auto; padding: 6px 12px; font-size: 0.7rem;">Ticks
-                        </div>
-                        <div class="pipeline-arrow" style="font-size: 0.8rem;">→</div>
-                        <div class="pipeline-step active" style="width: auto; padding: 6px 12px; font-size: 0.7rem;">
-                            Clean Feed v1</div>
-                        <div class="pipeline-arrow" style="font-size: 0.8rem;">→</div>
-                        <div class="pipeline-step" style="width: auto; padding: 6px 12px; font-size: 0.7rem;">Structure
-                            Engine</div>
-                        <div class="pipeline-arrow" style="font-size: 0.8rem;">→</div>
-                        <div class="pipeline-step active" style="width: auto; padding: 6px 12px; font-size: 0.7rem;">
-                            Market State</div>
-                    </div>
-                    <div style="font-size: 0.65rem; color: var(--text-dim); margin-top: 8px;">
-                        Invariant: Structure Engine never sees dirty or inferred data.
-                    </div>
-                </div>
-
-                <div class="why-box" style="margin-top: 32px;">
-                    <div class="why-title">🛡️ SYSTEM INVARIANT</div>
-                    <div class="why-content" style="font-size: 0.85rem;">
-                        Quantix AI has transitioned to a <strong>Market State Reasoning System</strong>.
-                        By locking "Clean Feed v1", we eliminate data drift and non-deterministic hallucinations.
-                        Every conclusion is backed by auditable evidence from ground-truth tick data.
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- RIGHT: PROOF & DEMO -->
-        <aside class="column right-col">
-            <!-- BLOCK 5: LIVE REASONING DEMO -->
-            <h2 class="section-title">Live Reasoning</h2>
-            <div class="data-card" style="border: 1px solid var(--accent); background: rgba(56, 189, 248, 0.02);">
-                <div class="label" style="color: var(--accent);">Active Engine</div>
-                <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 12px;">Structure Engine v1</div>
-                <div style="font-size: 0.75rem; color: var(--text-dim); line-height: 1.4; margin-bottom: 16px;">
-                    Consumes real-time API providing deterministic logic resolution.
-                </div>
-                <a href="reasoning.html" class="spec-link"
-                    style="background: var(--accent); color: var(--bg-main); width: 100%; justify-content: center;">
-                    Open Reasoning Panel →
-                </a>
-            </div>
-
-            <!-- BLOCK 6: REPRODUCIBILITY PROOF -->
-            <h2 class="section-title" style="margin-top: 32px;">Reproducibility Proof</h2>
-            <div class="snapshot-card" style="margin-top: 0; padding: 16px;">
-                <div class="label">Golden Record</div>
-                <div style="font-size: 0.85rem; font-weight: 700; margin-bottom: 8px;">E2E_SNAPSHOT_V1</div>
-                <div style="font-size: 0.7rem; color: var(--text-dim); line-height: 1.5; margin-bottom: 12px;">
-                    Proof of System of Record: 104k+ ticks parsed into exactly 6 H4 candles with 100% integrity.
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <div style="font-size: 0.65rem; display: flex; justify-content: space-between;">
-                        <span style="color: var(--text-dim);">Ticks Parsed</span>
-                        <span style="color: var(--accent);">104,035</span>
-                    </div>
-                    <div style="font-size: 0.65rem; display: flex; justify-content: space-between;">
-                        <span style="color: var(--text-dim);">Candle Quality</span>
-                        <span style="color: var(--highlight);">100%</span>
-                    </div>
-                </div>
-                <a href="e2e_snapshot.json" target="_blank" class="json-link" style="margin-top: 16px;">
-                    <span>📄 View Ground Truth JSON</span>
-                </a>
-            </div>
-        </aside>
+        </div>
     </main>
 
     <footer class="app-footer">
-        <div class="disclaimer" style="max-width: 1000px;">
-            <strong>LEGAL SHIELD:</strong> Quantix AI provides market structure analysis and research-based decision
-            support.
-            It does NOT provide investment advice, price predictions, or automated trading signals.
-            Any trading decision remains the sole responsibility of the user.
-            No financial liability is assumed for decisions based on this research platform.
+        <div class="disclaimer">
+            <strong>LEGAL SHIELD:</strong> Research-based market intelligence only. No financial advice.
         </div>
     </footer>
-
-    <!-- Scripts -->
-    <script src="static/js/api.js"></script>
     <script src="static/js/ui_shared.js"></script>
-    <script src="static/js/dashboard.js"></script>
 </body>
 
 </html>

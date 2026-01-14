@@ -12,10 +12,15 @@ const UI_MANAGER = {
     },
 
     setActiveLink() {
-        const path = window.location.pathname.split("/").pop() || 'index.html';
+        const path = window.location.pathname;
         const navLinks = document.querySelectorAll('.nav-link');
+
         navLinks.forEach(link => {
-            if (link.getAttribute('href') === path) {
+            const href = link.getAttribute('href');
+            // Check if current path includes the href or is root
+            if ((href === './' || href === '../') && (path === '/' || path.endsWith('/quantix-ai-core/') || path.endsWith('/index.html'))) {
+                link.classList.add('active');
+            } else if (href !== './' && href !== '../' && path.includes(href)) {
                 link.classList.add('active');
             } else {
                 link.classList.remove('active');

@@ -6,9 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | Quantix AI Core</title>
     <link rel="stylesheet" href="../static/css/style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
 </head>
 
-<body>
+<body class="scrollable-page">
     <header class="app-header">
         <div class="logo-area">
             <div class="logo-icon"></div>
@@ -18,11 +21,12 @@
         <nav class="main-nav" id="main-nav">
             <a href="../" class="nav-link">About</a>
             <a href="../dashboard/" class="nav-link active">Dashboard</a>
+            <a href="../reasoning/" class="nav-link">Reasoning</a>
             <a href="../api/" class="nav-link">API</a>
             <a href="../status/" class="nav-link">Status</a>
         </nav>
         <div class="status-tag hide-mobile"
-            style="font-size: 0.7rem; color: var(--text-dim); display: flex; align-items: center; gap: 8px;">
+            style="width: 240px; display: flex; justify-content: flex-end; font-size: 0.7rem; color: var(--text-dim); align-items: center; gap: 8px;">
             <div class="dot dot-online"></div> SYSTEM_OF_RECORD
         </div>
     </header>
@@ -36,16 +40,34 @@
                 <div style="font-size: 0.75rem; color: var(--text-dim); line-height: 1.5;">
                     Market Structure Reasoning Engine.
                     <br><br>
-                    Quantix analyzes market <strong>state</strong>, not trade signals.
+                    Quantix analyzes market <strong>state</strong>, not trade signals. It explains <strong>why</strong>
+                    a state exists using auditable data.
                 </div>
             </div>
+
             <h2 class="section-title">📜 Data Constitution</h2>
-            <div class="constitution-box">
+            <div class="constitution-box" style="margin-top: 0;">
+                <div style="font-size: 0.65rem; color: var(--highlight); margin-bottom: 12px; font-weight: 700;">CLEAN
+                    FEED v1 (IMMUTABLE)</div>
                 <ul class="constitution-list">
                     <li>Source: Dukascopy Tick</li>
                     <li>Zero Inference Policy</li>
+                    <li>FAIL HARD Validation</li>
                     <li>Determinism: 1:1 Mapping</li>
                 </ul>
+            </div>
+
+            <h2 class="section-title" style="margin-top: 32px;">Feed Health</h2>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                    <span style="color: var(--text-dim);">Dukascopy HTTP</span>
+                    <span style="color: var(--highlight);">Online</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                    <span style="color: var(--text-dim);">Last Ingested</span>
+                    <span id="total-ingested-sidebar" class="value"
+                        style="font-size: 0.7rem; color: var(--text-main);">104,035 Ticks</span>
+                </div>
             </div>
         </aside>
 
@@ -53,7 +75,8 @@
         <section class="column middle-col" style="background: var(--bg-main);">
             <div class="intelligence-node">
                 <h2 class="section-title">📊 Market State Reasoning (Core)</h2>
-                <div class="snapshot-card" style="background: var(--bg-sub); border: 1px solid var(--border);">
+                <div class="snapshot-card"
+                    style="background: var(--bg-sub); border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
                     <div
                         style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
                         <div>
@@ -76,23 +99,44 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="visual-container" style="margin-top: 32px;">
+                    <div class="section-title">🔄 Reasoning Pipeline</div>
+                    <div style="display: flex; align-items: center; gap: 8px; width: 100%; justify-content: center;">
+                        <div class="pipeline-step">Ticks</div>
+                        <div class="pipeline-arrow">→</div>
+                        <div class="pipeline-step active">Clean Feed v1</div>
+                        <div class="pipeline-arrow">→</div>
+                        <div class="pipeline-step">Structure Engine</div>
+                        <div class="pipeline-arrow">→</div>
+                        <div class="pipeline-step active">Market State</div>
+                    </div>
+                </div>
             </div>
         </section>
 
         <!-- RIGHT: PROOF & DEMO -->
         <aside class="column right-col">
             <h2 class="section-title">Live Reasoning</h2>
-            <div class="data-card" style="border: 1px solid var(--accent);">
+            <div class="data-card" style="border: 1px solid var(--accent); background: rgba(56, 189, 248, 0.02);">
                 <a href="../reasoning/" class="spec-link"
                     style="background: var(--accent); color: var(--bg-main); width: 100%; justify-content: center;">
                     Open Reasoning Panel →
                 </a>
             </div>
+
+            <h2 class="section-title" style="margin-top: 32px;">Reproducibility Proof</h2>
+            <div class="snapshot-card" style="padding: 16px;">
+                <div class="label">Golden Record</div>
+                <div style="font-size: 0.85rem; font-weight: 700; margin-bottom: 8px;">E2E_SNAPSHOT_V1</div>
+                <div style="font-size: 0.70rem; color: var(--text-dim);">Proof: 104k ticks to 100% integrity candles.
+                </div>
+            </div>
         </aside>
     </main>
 
     <footer class="app-footer">
-        <div class="disclaimer"><strong>LEGAL SHIELD:</strong> Market structure analysis for research.</div>
+        <div class="disclaimer"><strong>LEGAL SHIELD:</strong> Institutional-grade analysis. No financial advice.</div>
     </footer>
 
     <script src="../static/js/api.js"></script>

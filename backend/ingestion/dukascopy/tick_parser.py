@@ -100,20 +100,20 @@ class TickParser:
     def _parse_single_tick(
         data: bytes, 
         hour_start: datetime,
-        cumulative_ms: int
+        _unused_cumulative_ms: int = 0
     ) -> tuple[Tick, int]:
         """
         Parse a single 20-byte tick.
         
         Binary format (big-endian):
-        - 4 bytes: timestamp delta (ms from PREVIOUS tick, or hour start if first)
+        - 4 bytes: timestamp delta (ms from HOUR START)
         - 4 bytes: ask price (scaled by 100000)
         - 4 bytes: bid price (scaled by 100000)
         - 4 bytes: ask volume
         - 4 bytes: bid volume
         
         Returns:
-            (Tick, new_cumulative_ms)
+            (Tick, timestamp_delta)
         """
         # Unpack big-endian unsigned integers
         (
@@ -124,9 +124,8 @@ class TickParser:
             bid_volume
         ) = struct.unpack('>IIIII', data)
         
-        # CRITICAL: Cumulative timestamp
-        cumulative_ms += timestamp_delta
-        timestamp = hour_start + timedelta(milliseconds=cumulative_ms)
+        # CRITICAL FIX: timestamp_delta is from HOUR START, not cumulative
+        timestamp = hour_start + timedelta(milliseconds=timestamp_delta)
         
         # Descale prices (CRITICAL: Must normalize to float)
         ask = ask_scaled / TickParser.PRICE_SCALE
@@ -136,9 +135,6 @@ class TickParser:
         if bid <= 0 or ask <= 0:
             raise ValueError(f"Invalid prices: bid={bid}, ask={ask}")
         
-        if ask < bid:
-            raise ValueError(f"Ask ({ask}) < Bid ({bid}) - invalid spread")
-        
         tick = Tick(
             timestamp=timestamp,
             bid=bid,  # CRITICAL: Use BID for Structure Engine
@@ -147,7 +143,7 @@ class TickParser:
             ask_volume=float(ask_volume)
         )
         
-        return tick, cumulative_ms
+        return tick, timestamp_delta
     
     @staticmethod
     def validate_tick_order(ticks: List[Tick]) -> bool:

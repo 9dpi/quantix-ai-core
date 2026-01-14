@@ -1,0 +1,1 @@
+from fastapi import FastAPI; from api.routes import health, signals, ingestion, csv_ingestion; app = FastAPI(); app.include_router(health.router); app.include_router(signals.router); app.include_router(ingestion.router); app.include_router(csv_ingestion.router)

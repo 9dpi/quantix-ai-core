@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Quantix AI Core | Institutional Market Intelligence</title>
+    <link rel="stylesheet" href="static/css/style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        .hero-section {
+            padding: 100px 0 60px;
+            text-align: center;
+            background: radial-gradient(circle at center, rgba(56, 189, 248, 0.05) 0%, transparent 70%);
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            background: linear-gradient(to bottom, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--accent);
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .landing-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        @media (max-width: 768px) {
+            .landing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+        }
+
+        .landing-card {
+            background: var(--bg-sub);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .landing-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(56, 189, 248, 0.3);
+        }
+
+        .card-header {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-header::before {
+            content: '';
+            width: 20px;
+            height: 1px;
+            background: var(--accent);
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .feature-item {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .feature-icon {
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .status-live {
+            background: var(--highlight);
+        }
+
+        .status-pending {
+            background: var(--warning);
+        }
+
+        .philosophy-box {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 20px;
+            border: 1px dashed var(--border);
+        }
+
+        .philosophy-quote {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 12px;
+            font-style: italic;
+        }
+
+        .philosophy-sub {
+            color: var(--text-dim);
+            font-size: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="logo-area">
+            <div class="logo-icon"></div>
+            <span class="logo-text">QUANTIX AI CORE</span>
+        </div>
+        <nav class="main-nav">
+            <a href="about.html" class="nav-link active">About</a>
+            <a href="index.html" class="nav-link">Dashboard</a>
+            <a href="docs.html" class="nav-link">Documentation</a>
+        </nav>
+        <div class="status-tag hide-mobile">
+            <div class="dot dot-online"></div> SYSTEM_OF_RECORD
+        </div>
+    </header>
+
+    <main class="app-layout" style="max-width: 1000px; margin: 0 auto; padding: 0 20px;">
+        <div class="hero-section">
+            <div class="hero-subtitle">Quantix AI Core</div>
+            <h1 class="hero-title">Market State Analysis.<br>Not Prediction.</h1>
+        </div>
+
+        <div class="landing-grid">
+            <!-- WHAT IT DOES -->
+            <div class="landing-card">
+                <div class="card-header">What Quantix Does</div>
+                <div style="font-size: 1.1rem; color: #fff; margin-bottom: 16px; font-weight: 600;">
+                    A specialized system for market structure resolution.
+                </div>
+                <p style="color: var(--text-dim); margin-bottom: 24px;">
+                    Instead of guessing price moves or issuing buy/sell orders, Quantix focuses on the most critical
+                    question:
+                </p>
+                <div
+                    style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; color: var(--accent); font-family: 'JetBrains Mono'; font-size: 0.9rem;">
+                    "What is the market's current structural state – and why?"
+                </div>
+            </div>
+
+            <!-- WHAT MAKES IT DIFFERENT -->
+            <div class="landing-card">
+                <div class="card-header">What Makes Us Different</div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <span class="feature-icon">❌</span>
+                        <span>Not a signal bot or "profit optimizer"</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">❌</span>
+                        <span>Not a black-box AI model</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">✅</span>
+                        <span>Deterministic market state analysis</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">✅</span>
+                        <span>Evidence-backed reasoning (Auditable)</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">✅</span>
+                        <span>Built with "Fail Hard" data laws</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- WHAT YOU SEE -->
+            <div class="landing-card">
+                <div class="card-header">What You See</div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <span style="color: var(--accent); font-weight: 700;">• Market State:</span>
+                        <span>Bullish / Bearish / Range / Unclear</span>
+                    </li>
+                    <li class="feature-item">
+                        <span style="color: var(--accent); font-weight: 700;">• Structural Confidence:</span>
+                        <span>Agreement level of multiple evidence pieces</span>
+                    </li>
+                    <li class="feature-item">
+                        <span style="color: var(--accent); font-weight: 700;">• Evidence Trace:</span>
+                        <span>The logical facts behind every conclusion</span>
+                    </li>
+                    <li class="feature-item">
+                        <span style="color: var(--accent); font-weight: 700;">• Audit Trail:</span>
+                        <span>Trace IDs for historical verification</span>
+                    </li>
+                </ul>
+                <div style="margin-top: 10px; font-size: 0.8rem; color: var(--warning); font-style: italic;">
+                    No vague signals. No "Trust the AI" black-boxes.
+                </div>
+            </div>
+
+            <!-- WHO IT'S FOR -->
+            <div class="landing-card">
+                <div class="card-header">Who Quantix Is For</div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <span style="color: var(--highlight);">◈</span>
+                        <span>Traders who prioritize context over commands</span>
+                    </li>
+                    <li class="feature-item">
+                        <span style="color: var(--highlight);">◈</span>
+                        <span>Instructional teams requiring auditable proof</span>
+                    </li>
+                    <li class="feature-item" style="margin-bottom: 0;">
+                        <span style="color: var(--highlight);">◈</span>
+                        <span>R&D units looking for scalable reasoning logic</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- PHILOSOPHY -->
+            <div class="philosophy-box">
+                <div class="philosophy-quote">"Understand first. Act later."</div>
+                <div class="philosophy-sub">Explain before convincing. Quantix doesn't make decisions for you; it helps
+                    you understand the foundation of your own decisions.</div>
+            </div>
+
+            <!-- CURRENT STATUS -->
+            <div class="landing-card" style="grid-column: 1 / -1;">
+                <div class="card-header">Current Status</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                    <div>
+                        <div class="feature-item"><span class="status-dot status-live"></span> Core System (v1) Live
+                        </div>
+                        <div class="feature-item"><span class="status-dot status-live"></span> State Reasoning Engine
+                            Live</div>
+                    </div>
+                    <div>
+                        <div class="feature-item"><span class="status-dot status-pending"></span> Expanding Persistence
+                            Metrics</div>
+                        <div class="feature-item"><span class="status-dot status-pending"></span> Controlled Learning
+                            Lab (Sandbox)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <div class="disclaimer">
+            Quantix AI provides institutional-grade market structure analysis.
+            It does not provide investment advice or price predictions.
+        </div>
+    </footer>
+</body>
+
+</html>

@@ -6,6 +6,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 import uvicorn
+import asyncio
+import os
 
 from api.routes import health, signals, ingestion, csv_ingestion, admin
 from config.settings import settings
@@ -36,12 +38,10 @@ app.include_router(admin.router, prefix=settings.API_PREFIX, tags=["Admin"])
 
 @app.on_event("startup")
 async def startup_event():
-    import os
     port = os.getenv("PORT", "8000")
     logger.info(f"🚀 Quantix AI Core Engine ONLINE - Listening on port: {port}")
     
     # Chạy toàn bộ việc kiểm tra DB và nạp data vào luồng ngầm
-    import asyncio
     asyncio.create_task(background_startup_tasks())
 
 async def background_startup_tasks():

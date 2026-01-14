@@ -37,7 +37,7 @@ async def upload_csv(
         
         if result['status'] == 'success':
             # Background task to log audit would be better, but keep it simple
-            await _log_ingestion_audit(result)
+            await _log_ingestion_audit(result, asset=asset.upper(), timeframe=timeframe.upper())
         
         return JSONResponse(status_code=200 if result['status'] == 'success' else 400, content=result)
     except Exception as e:
@@ -68,16 +68,40 @@ async def get_audit_log(limit: int = 10):
     except Exception as e:
         return {"status": "success", "logs": []}
 
-async def _log_ingestion_audit(result: dict):
+@router.get("/global-stats")
+async def get_global_stats():
+    """Returns aggregated stats for the Learning Engine across all history"""
+    try:
+        # Sum of all tradable rows and average of weights
+        query = "SELECT SUM(tradable_count) as total_learning, SUM(total_rows) as total_ingested, AVG(avg_learning_weight) as avg_weight FROM ingestion_audit_log"
+        results = await db.fetch(query)
+        
+        # Format for UI
+        res = results[0] if results else {}
+        stats = {
+            "total_ingested": int(res.get("total_ingested") or 0),
+            "total_learning": int(res.get("total_learning") or 0),
+            "avg_weight": float(res.get("avg_weight") or 0.0)
+        }
+        return {"status": "success", "data": stats}
+    except Exception as e:
+        logger.error(f"Global stats fetch failed: {e}")
+        return {
+            "status": "success", 
+            "data": {"total_ingested": 0, "total_learning": 0, "avg_weight": 0.0}
+        }
+
+async def _log_ingestion_audit(result: dict, asset: str = "UNKNOWN", timeframe: str = "UNKNOWN"):
     try:
         stats = result['statistics']
-        # Note: In a real Supabase SDK call, we'd use .table().insert()
-        # Our shim in connection.py handles the mapping
+        avg_weight = stats.get('avg_learning_weight', 0.0)
+        
         await db.execute(
-            "INSERT INTO ingestion_audit_log (asset, timeframe, source, total_rows, tradable_count, non_tradable_count, status) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-            result['asset'], result['timeframe'], result['source'], 
-            stats['total_rows'], stats['tradable'], stats['non_tradable'], 
-            result['status']
+            "INSERT INTO ingestion_audit_log (asset, timeframe, source, total_rows, tradable_count, non_tradable_count, avg_learning_weight, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+            asset, timeframe, "csv_upload", 
+            stats['total_rows'], stats['tradable'], stats['non_tradable'],
+            avg_weight, result['status']
         )
     except Exception as e:
         logger.error(f"⚠️ Failed to log audit: {str(e)}")
+

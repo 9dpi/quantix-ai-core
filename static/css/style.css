@@ -194,6 +194,104 @@ body {
     margin-top: 4px;
 }
 
+/* AI Architecture Flow */
+.architecture-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+.flow-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 0.75rem;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.flow-step:hover {
+    background: rgba(56, 189, 248, 0.05);
+    border-color: var(--accent);
+}
+
+.flow-step::after {
+    content: '↓';
+    position: absolute;
+    bottom: -18px;
+    left: 24px;
+    color: var(--border);
+    font-size: 0.8rem;
+}
+
+.flow-step:last-child::after {
+    display: none;
+}
+
+.step-num {
+    width: 20px;
+    height: 20px;
+    background: var(--bg-sub);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    font-weight: 800;
+}
+
+/* Detailed Alert Card */
+.alert-card-detailed {
+    background: var(--bg-sub);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 20px;
+    font-size: 0.8rem;
+    line-height: 1.5;
+}
+
+.alert-header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+}
+
+.alert-section {
+    margin-bottom: 12px;
+}
+
+.alert-section-title {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+}
+
+.price-level {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    padding: 2px 0;
+}
+
+.level-buy {
+    color: var(--highlight);
+}
+
+.level-sell {
+    color: var(--warning);
+}
+
 /* Content Styling */
 .section-title {
     font-size: 0.7rem;

@@ -75,25 +75,44 @@
                     </div>
                 </div>
 
-                <div class="data-card" style="padding: 24px; border-style: dashed;">
-                    <div class="label">Engine Calculations</div>
-                    <div style="display: flex; gap: 40px; margin-top: 15px;">
-                        <div>
-                            <div class="label">Volatility (Relative)</div>
-                            <div style="font-size: 1.2rem; font-weight: 600;">0.00421</div>
-                        </div>
-                        <div>
-                            <div class="label">Mean Reversion Prob.</div>
-                            <div style="font-size: 1.2rem; font-weight: 600; color: var(--accent);">82.1%</div>
-                        </div>
-                        <div>
-                            <div class="label">Trend Persistence</div>
-                            <div style="font-size: 1.2rem; font-weight: 600; color: var(--warning);">17.9%</div>
-                        </div>
+                <div class="architecture-flow">
+                    <div class="flow-step">
+                        <div class="step-num">1</div>
+                        <div>Market Data Stream <span style="color: var(--text-dim); font-size: 0.6rem;">(Live
+                                Feed)</span></div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="step-num">2</div>
+                        <div>Candle Quality Gate <span
+                                style="color: var(--text-dim); font-size: 0.6rem;">(Validation)</span></div>
+                    </div>
+                    <div class="flow-step" style="border-color: var(--accent); background: rgba(56, 189, 248, 0.05);">
+                        <div class="step-num">3</div>
+                        <div style="color: var(--accent); font-weight: 700;">Validated Market Memory</div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="step-num">4</div>
+                        <div>Signal Generation <span style="color: var(--text-dim); font-size: 0.6rem;">(Neural
+                                Match)</span></div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="step-num">5</div>
+                        <div>Outcome Feedback <span style="color: var(--text-dim); font-size: 0.6rem;">(TP / SL /
+                                Expired)</span></div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="step-num">6</div>
+                        <div>Confidence Adjustment <span style="color: var(--text-dim); font-size: 0.6rem;">(Alpha
+                                Weighting)</span></div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="step-num">7</div>
+                        <div>Learning Memory Update <span style="color: var(--text-dim); font-size: 0.6rem;">(Recursive
+                                Store)</span></div>
                     </div>
                 </div>
 
-                <div class="why-box">
+                <div class="why-box" style="margin-top: 40px;">
                     <div class="why-title">🧠 WHY THIS TRADE?</div>
                     <div class="why-content">
                         Current market structure shows a high-probability exhaustion pattern on the M15 timeframe.

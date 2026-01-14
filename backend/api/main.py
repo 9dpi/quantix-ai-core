@@ -36,8 +36,9 @@ app.include_router(admin.router, prefix=settings.API_PREFIX, tags=["Admin"])
 
 @app.on_event("startup")
 async def startup_event():
-    # SERVER PHẢI ONLINE NGAY LẬP TỨC
-    logger.info(f"🚀 Quantix AI Core Engine ONLINE")
+    import os
+    port = os.getenv("PORT", "8000")
+    logger.info(f"🚀 Quantix AI Core Engine ONLINE - Listening on port: {port}")
     
     # Chạy toàn bộ việc kiểm tra DB và nạp data vào luồng ngầm
     import asyncio

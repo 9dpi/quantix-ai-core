@@ -21,8 +21,8 @@ class Settings(BaseSettings):
     API_PREFIX: str = "/api/v1"
     
     # Supabase Database
-    SUPABASE_URL: str
-    SUPABASE_KEY: str
+    SUPABASE_URL: Optional[str] = None
+    SUPABASE_KEY: Optional[str] = None
     SUPABASE_SERVICE_ROLE_KEY: Optional[str] = None
     
     # Database Tables

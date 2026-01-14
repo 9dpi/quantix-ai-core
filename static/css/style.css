@@ -28,7 +28,7 @@ body {
     height: 100vh;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow-x: hidden;
 }
 
 /* Scrollable Page Override */
@@ -48,9 +48,9 @@ body.scrollable-page {
 .app-header {
     height: 60px;
     border-bottom: 1px solid var(--border);
-    display: flex;
+    display: grid;
+    grid-template-columns: 240px 1fr 240px;
     align-items: center;
-    justify-content: space-between;
     padding: 0 24px;
     background: var(--bg-main);
     z-index: 100;
@@ -106,6 +106,7 @@ body.scrollable-page {
 .main-nav {
     display: flex;
     gap: 32px;
+    justify-content: center;
 }
 
 .nav-link {

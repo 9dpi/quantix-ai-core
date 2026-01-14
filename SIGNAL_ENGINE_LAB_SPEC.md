@@ -1,108 +1,48 @@
-# SIGNAL_ENGINE_LAB_SPEC.md
+# SIGNAL ENGINE LAB — EXPERIMENTAL SPEC
 
-⚠️ **EXPERIMENTAL – NOT QUANTIX CORE**
-**(Sandbox – không thuộc Quantix Core)**
+⚠️ WARNING:
+This module is EXPERIMENTAL and NOT part of Quantix Core.
+It exists solely for research and controlled decision-support experiments.
 
-## 1. Purpose
-Signal Engine Lab là lớp Decision Support thử nghiệm, chuyển đổi:
-**Market Structure State + Confidence → Buy/Sell Candidate**
+---
 
-👉 Không phải prediction engine
-👉 Không kết nối trading
-👉 Không can thiệp Structure Engine
+## Purpose
+To explore mapping between Structure Engine confidence and
+human-readable decision candidates.
 
-## 2. Scope Boundary (HARD WALL)
-| Layer | Access |
-| :--- | :--- |
-| **Clean Feed v1** | ❌ Forbidden |
-| **Candles** | ❌ Forbidden |
-| **Structure Engine v1** | ✅ Read-only |
-| **analytics_snapshots_v1** | ✅ Access |
-| **Core DB** | ❌ Forbidden |
-| **Trading API** | ❌ Forbidden |
+---
 
-## 3. Inputs
+## Inputs
+- Structure Engine v1 output (read-only)
+- No direct access to raw market data
+
+---
+
+## Output
 ```json
 {
-  "asset": "EURUSD",
-  "timeframe": "H4",
-  "structure_state": "bullish",
-  "confidence": 0.92,
-  "dominance": 0.71,
-  "persistence": 3,
-  "engine_version": "structure_engine_v1",
-  "snapshot_id": "snap-2026-01-15-001"
-}
-```
-
-## 4. Outputs (LAB ONLY)
-```json
-{
-  "signal_id": "LAB_EURUSD_H4_2026-01-15T08",
-  "classification": "BUY_CANDIDATE",
-  "confidence": 0.92,
-  "reason": "Sustained bullish structure with high dominance",
-  "expires_in": "2 candles",
+  "decision": "BUY_CANDIDATE | SELL_CANDIDATE | NO_ACTION",
+  "confidence": float,
+  "valid_for": "N candles",
   "lab_only": true,
-  "audit": {
-    "snapshot_id": "snap-2026-01-15-001",
-    "ruleset": "signal_mapping_v1"
-  }
+  "explain": [string]
 }
 ```
-🚫 Không TP | 🚫 Không SL | 🚫 Không RR | 🚫 Không winrate
 
-## 5. Learning Constraints
-✅ **Allowed**:
-- Confidence bucket statistics
-- Continuation / failure rate
-- Persistence decay analysis
+## Decision Mapping (Example)
+| Structure State | Confidence | Decision |
+| :--- | :--- | :--- |
+| Bullish | ≥ 0.90 | BUY_CANDIDATE |
+| Bearish | ≥ 0.90 | SELL_CANDIDATE |
+| Otherwise | < 0.90 | NO_ACTION |
 
-❌ **Forbidden**:
-- Auto-weight tuning
-- Online learning
-- Self-reinforcement
-- Live trading hooks
+## Safeguards
+- Feature flag gated
+- Disabled by default
+- No price levels
+- No execution logic
+- No auto-learning
 
-## 6. CONFIDENCE → SIGNAL MAPPING (v1 – Explicit)
-### 6.1 Eligibility Matrix
-| Condition | Requirement |
-| :--- | :--- |
-| **Structure State** | Bullish / Bearish |
-| **Confidence** | ≥ threshold |
-| **Dominance** | ≥ threshold |
-| **Persistence** | ≥ candles |
-| **Fakeout Flag** | MUST be false |
-
-### 6.2 Concrete Thresholds
-#### 🟢 BUY CANDIDATE
-- `structure_state`: bullish
-- `confidence`: ≥ 0.88
-- `dominance`: ≥ 0.65
-- `persistence`: ≥ 2 candles
-- `fake_breakout`: false
-
-#### 🔴 SELL CANDIDATE
-- `structure_state`: bearish
-- `confidence`: ≥ 0.88
-- `dominance`: ≥ 0.65
-- `persistence`: ≥ 2 candles
-- `fake_breakout`: false
-
-#### ⚪ NO SIGNAL
-- `confidence` < 0.75
-- `dominance` < 0.55
-- `range` / `unclear`
-- `structure flip` < 2 candles
-👉 *NO SIGNAL là trạng thái mặc định*
-
-## 7. RISK & LEGAL POSITIONING
-### 7.1 Quantix KHÔNG LÀ:
-- Signal provider
-- Trading system
-- Investment advisor
-- Automated trading bot
-
-### 7.2 Quantix LÀ:
-- Market Structure Analysis System
-- Decision-support research platform
+## Legal Position
+Signal Engine Lab does NOT provide financial advice
+and MUST be presented as experimental decision support only.

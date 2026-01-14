@@ -1,26 +1,61 @@
-# STRUCTURE_ENGINE_V1_SPEC.md
+# STRUCTURE ENGINE V1 — OFFICIAL SPEC
 
-## 1. Purpose
-Market Structure Reasoning Engine (non-predictive). Quantix resolves market "state" using deterministic rules based on Price Action principles (SMC/Market Structure).
+## Purpose
+Structure Engine v1 is a deterministic Market Structure Reasoning Engine.
+It analyzes validated market candles to infer structural state, not to predict price.
 
-## 2. Inputs
-- **Clean Feed v1** candles only.
-- **Price Type**: BID price only.
-- **Timeframes**: H1, H4, D1.
+Quantix Structure Engine is NOT a trading signal generator.
 
-## 3. Outputs (STATE REASONING)
-- **State**: `bullish` / `bearish` / `range` / `unclear`.
-- **Confidence**: Consistency-based score [0.0 - 1.0]. Represents the agreement of multiple structural pieces of evidence.
-- **Dominance**: Quantitative ratio of bullish vs bearish pressure.
-- **Evidence**: Human-readable list of structural facts (e.g., "Bullish BOS confirmed", "No fakeout after swing break").
+---
 
-## 4. Non-goals
-- **No price targets**: Does not predict where the price will go.
-- **No signals**: Does not provide buy/sell recommendations in the core engine.
-- **No ML**: No black-box neural networks or non-deterministic optimization.
+## Inputs
+- Source: Clean Feed v1 ONLY
+- Data type: OHLC candles
+- Price: BID price only
+- Timezone: UTC
+- Completeness: complete=True candles only
 
-## 5. Persistence
-Structure state is calculated bar-by-bar. Persistence measures how many candles a specific state has been maintained without contradiction.
+---
 
-## 6. Failure Policy
-**FAIL HARD**: If data is missing or candle count is insufficient, the engine returns `unclear` state with 0.0 confidence. It does not perform "best effort" estimation on dirty data.
+## Core Concepts
+- Swing High / Swing Low
+- Break of Structure (BOS)
+- Change of Character (CHoCH)
+- Fake Breakout (filtered)
+
+---
+
+## Outputs
+```json
+{
+  "feature": "structure",
+  "state": "bullish | bearish | range | unclear",
+  "confidence": 0.0 - 1.0,
+  "dominance": {
+    "bullish": float,
+    "bearish": float
+  },
+  "evidence": [string],
+  "trace_id": string,
+  "source": string,
+  "timeframe": string
+}
+```
+
+## Confidence Definition
+Confidence represents consistency and dominance of structural evidence,
+not probability of price movement.
+
+## Non-Goals (Explicit)
+- ❌ No price prediction
+- ❌ No entry/exit levels
+- ❌ No buy/sell signals
+- ❌ No machine learning
+- ❌ No optimization against outcomes
+
+## Determinism
+Same input candles MUST always produce the same output state.
+
+## Contract Stability
+This spec is frozen as v1.
+Any change requires a version bump (v2).

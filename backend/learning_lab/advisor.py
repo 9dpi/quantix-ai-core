@@ -16,7 +16,7 @@ class LabAdvisor:
     """
     
     def __init__(self):
-        self.min_confidence = 0.88
+        self.min_confidence = 0.9
         self.min_dominance = 0.65
         self.min_persistence = 2
         self.lab_version = "signal_mapping_v1"

@@ -1,33 +1,42 @@
-# PUBLIC_POSITIONING.md
+# QUANTIX — PUBLIC POSITIONING
 
-## 1. Quantix Identity Statement
-Quantix is a **Market Structure Analysis System** and research-based decision-support platform. It analyzes market **state**, not trade signals. It explains **why** a state exists using auditable, deterministic data.
+## What Quantix Is
+Quantix is a Market Structure Analysis System.
+It explains market state using deterministic, auditable logic.
 
-## 2. Distinction (WHAT QUANTIX IS NOT)
-Quantix is **NOT**:
-- A signal provider.
-- A trading system or automated bot.
-- An investment advisor.
-- A price prediction engine.
+---
 
-## 3. Forbidden UI Language (DO NOT USE)
-| Forbidden Term | Use Instead | Reason |
-| :--- | :--- | :--- |
-| Buy / Sell Now | BUY_CANDIDATE | Prevent regulatory classification as an advisor. |
-| Profit / PnL | Potential Continuation | Avoid financial gain claims. |
-| Winrate | Stability Score / Accuracy | Avoid historical performance guarantees. |
-| Entry / SL / TP | Decision Support | Avoid signal-bot UX patterns. |
+## What Quantix Is NOT
+- ❌ Not a trading bot
+- ❌ Not an investment advisor
+- ❌ Not a signal service
+- ❌ Not a price prediction engine
 
-## 4. Mandatory Public Disclaimer
-> "Quantix AI provides market structure analysis and research-based decision support. It does not provide investment advice, price predictions, or automated trading signals. Any trading decision remains the sole responsibility of the user."
+---
 
-## 5. Visual Hierarchy Guidelines
-- **Market State**: Primary emphasis.
-- **Reasoning/Evidence**: Main context.
-- **Decision Support (Lab)**: Secondary, clearly labeled.
-- **Disclaimer**: Always visible and prominent.
+## What Users Receive
+- Market structure state
+- Confidence based on evidence consistency
+- Transparent reasoning ("why this state")
 
-## 6. Regulatory Protection
-- **No custody**: Quantix never touches user funds.
-- **No execution**: Quantix never places trades.
-- **Explainability**: Every state is backed by a Trace ID and raw data snapshot.
+---
+
+## Language Rules (Mandatory)
+Allowed:
+- "Market Structure"
+- "State"
+- "Confidence"
+- "Evidence"
+
+Forbidden:
+- Buy / Sell commands
+- Profit claims
+- Win rate
+- Entry / Stop / Target
+- Guaranteed outcomes
+
+---
+
+## Disclaimer (Required)
+Quantix provides analytical insights for educational and research purposes only.
+It does not constitute financial advice or trading recommendations.

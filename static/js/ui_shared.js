@@ -7,9 +7,22 @@ const UI_MANAGER = {
     async init() {
         console.log('🌐 Quantix UI Manager Initialized');
         await this.refreshGlobalStats();
+        this.initMobileMenu();
 
         // Refresh stats every 30 seconds
         setInterval(() => this.refreshGlobalStats(), 30000);
+    },
+
+    initMobileMenu() {
+        const toggle = document.getElementById('menu-toggle');
+        const nav = document.getElementById('main-nav');
+
+        if (toggle && nav) {
+            toggle.addEventListener('click', () => {
+                nav.classList.toggle('active');
+                toggle.innerText = nav.classList.contains('active') ? '✕' : '☰';
+            });
+        }
     },
 
     async refreshGlobalStats() {

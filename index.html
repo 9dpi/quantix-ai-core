@@ -14,13 +14,14 @@
             <div class="logo-icon"></div>
             <span class="logo-text">QUANTIX AI CORE</span>
         </div>
-        <nav class="main-nav">
+        <div class="hamburger" id="menu-toggle">☰</div>
+        <nav class="main-nav" id="main-nav">
             <a href="index.html" class="nav-link active">Dashboard</a>
             <a href="input.html" class="nav-link">Data Ingestion</a>
             <a href="#" class="nav-link">Strategy Lab</a>
             <a href="#" class="nav-link">Documentation</a>
         </nav>
-        <div class="status-tag"
+        <div class="status-tag hide-mobile"
             style="font-size: 0.7rem; color: var(--text-dim); display: flex; align-items: center; gap: 8px;">
             <div class="dot dot-online"></div> ENGINE_ACTIVE
         </div>
@@ -28,7 +29,7 @@
 
     <main class="app-layout">
         <!-- LEFT: DATA FEED -->
-        <aside class="column">
+        <aside class="column left-col">
             <h2 class="section-title">Market Data Feed</h2>
             <div class="data-card">
                 <div class="label">Ingested (Total)</div>
@@ -126,7 +127,7 @@
         </section>
 
         <!-- RIGHT: INTERNAL SNIPER ALERTS -->
-        <aside class="column">
+        <aside class="column right-col">
             <h2 class="section-title">Internal Sniper Alerts</h2>
             <div id="signal-container">
                 <div

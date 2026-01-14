@@ -38,7 +38,7 @@ app.include_router(admin.router, prefix=settings.API_PREFIX, tags=["Admin"])
 
 @app.on_event("startup")
 async def startup_event():
-    port = os.getenv("PORT", "8000")
+    port = os.getenv("PORT", "8080")  # Railway uses 8080 by default
     logger.info(f"🚀 Quantix AI Core Engine ONLINE - Listening on port: {port}")
     
     # Chạy toàn bộ việc kiểm tra DB và nạp data vào luồng ngầm

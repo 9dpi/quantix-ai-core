@@ -28,7 +28,9 @@ async def get_lab_reference(
     """
     logger.info(f"🧪 LAB: Snapshot request for {symbol} @ {tf}")
     
-    try:
+    import asyncio
+    
+    async def generate_mock_snapshot():
         # ✅ HOTFIX: Return deterministic mock snapshot based on seed
         import hashlib
         import random
@@ -141,6 +143,12 @@ async def get_lab_reference(
             },
             "disclaimer": "Confidence indicates statistical quality, not profit guarantee."
         }
+
+    try:
+        # 🛡️ HARD TIMEOUT PROTECTION: 
+        # Even mock generation is guarded by 2s timeout.
+        # Future real engine calls naturally fit here.
+        return await asyncio.wait_for(generate_mock_snapshot(), timeout=2.0)
         
     except Exception as e:
         logger.error(f"❌ Lab snapshot failed: {e}")

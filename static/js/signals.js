@@ -44,11 +44,11 @@ const SIGNALS = {
         try {
             // ... rest of logic stays same, will be handled by existing code flow
             const results = [];
-            // Run fetches in parallel for speed
+            // Start fetching
             const promises = symbols.map(symbol => this.fetchLabSnapshot(symbol, "H4"));
             const fetchedData = await Promise.all(promises);
 
-            // Filter out nulls (failed fetches)
+            // Filter out nulls
             fetchedData.forEach(data => {
                 if (data) results.push(data);
             });
@@ -56,30 +56,50 @@ const SIGNALS = {
             container.innerHTML = '';
 
             if (results.length > 0) {
-                results.forEach(data => {
-                    try {
-                        this.renderLabCard(container, data);
-                    } catch (renderError) {
-                        console.error("❌ Error rendering card:", renderError);
-                        this.renderErrorCard(container, data?.asset || "Unknown");
-                    }
-                });
+                // ✅ SUCCESS: Cache the fresh data
+                localStorage.setItem('qt_signals_cache', JSON.stringify({
+                    timestamp: Date.now(),
+                    data: results
+                }));
+
+                results.forEach(data => this.renderLabCard(container, data));
+
                 if (syncLabel) syncLabel.innerText = `Last snapshot: ${new Date().toLocaleTimeString()} UTC`;
             } else {
-                this.renderEmptyState(container);
+                // ❌ FAILURE: Try to load from cache
+                console.warn("⚠️ Fetch failed, attempting to load from cache...");
+                this.loadFromCache(container);
             }
 
         } catch (e) {
             console.error("🔥 Critical Error in Signals Load:", e);
-            container.innerHTML = `
-                <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: var(--warning); border: 1px dashed var(--warning); border-radius: 12px; background: rgba(255, 165, 0, 0.05);">
-                    <h3>⚠️ Signal Engine Unavailable</h3>
-                    <p>Unable to load market references at this time.</p>
-                    <button onclick="SIGNALS.loadReferences()" class="btn-primary" style="margin-top: 16px;">Try Again</button>
-                </div>
-            `;
+            // ❌ DRASTIC FAILURE: Try cache as last resort
+            this.loadFromCache(container);
         } finally {
-            this.isLoading = false; // Always release lock
+            this.isLoading = false;
+        }
+    },
+
+    loadFromCache(container) {
+        try {
+            const cached = localStorage.getItem('qt_signals_cache');
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                const timeDiff = Math.round((Date.now() - parsed.timestamp) / 60000); // Minutes
+
+                container.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 12px; margin-bottom: 20px; background: rgba(255, 165, 0, 0.1); border: 1px solid var(--warning); border-radius: 8px; color: var(--warning); font-size: 0.8rem;">
+                        ⚠️ Network Unavailable. Showing Cached Snapshot from ${timeDiff} mins ago.
+                    </div>
+                `;
+
+                parsed.data.forEach(data => this.renderLabCard(container, data));
+            } else {
+                this.renderEmptyState(container);
+            }
+        } catch (cacheErr) {
+            console.error("Cache load failed", cacheErr);
+            this.renderEmptyState(container);
         }
     },
 

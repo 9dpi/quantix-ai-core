@@ -132,13 +132,18 @@ class DukascopyFetcher:
             
             # 3. Parse ticks
             all_ticks = []
-            for date, tick_chunks in tick_data_by_date.items():
-                for chunk in tick_chunks:
+            for date_obj, tick_chunks in tick_data_by_date.items():
+                # Convert date back to datetime for hour_start calculation
+                base_dt = datetime.combine(date_obj, datetime.min.time())
+                
+                for i, chunk in enumerate(tick_chunks):
                     try:
-                        ticks = self.parser.parse(chunk)
+                        # Dukascopy chunks are per hour. i is the hour from 0-23
+                        hour_start = base_dt.replace(hour=i)
+                        ticks = self.parser.parse_ticks(chunk, hour_start)
                         all_ticks.extend(ticks)
                     except Exception as e:
-                        logger.warning(f"⚠️ Failed to parse tick chunk for {date}: {e}")
+                        logger.warning(f"⚠️ Failed to parse tick chunk for {date_obj} H{i}: {e}")
                         continue
             
             if not all_ticks:

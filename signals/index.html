@@ -182,119 +182,140 @@
     </header>
 
     <main class="content-container">
-        <div class="signals-header">
-            <h1 style="font-size: 2.8rem; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.02em;">📊 Market
-                Reference</h1>
-            <p
-                style="color: var(--accent); font-weight: 700; font-size: 1.1rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 24px;">
-                AI-powered Market Structure Insights</p>
-            <div style="display: flex; gap: 20px; justify-content: center; font-size: 0.75rem; color: var(--text-dim);">
-                <span>Neutral</span> • <span>Auditable</span> • <span>Non-predictive</span>
-            </div>
-        </div>
-
-        <div
-            style="max-width: 800px; margin: 0 auto 60px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 32px; border-radius: 16px;">
-            <h2
-                style="font-size: 1.25rem; color: var(--text-main); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 1.5rem;">🧭</span> What is Market Reference?
-            </h2>
-            <div style="color: var(--text-dim); line-height: 1.8; font-size: 0.95rem;">
-                <p style="margin-bottom: 16px;">
-                    Market Reference cung cấp cái nhìn trung lập và có dẫn chứng về cách AI của Quantix đang diễn giải
-                    cấu trúc thị trường hiện tại.
-                    Đây không phải tín hiệu giao dịch, không phải lời khuyên đầu tư, và không thay thế cho quyết định cá
-                    nhân của trader.
-                </p>
-                <p style="color: var(--text-main); font-weight: 600; font-style: italic;">
-                    Quantix chỉ trả lời một câu hỏi duy nhất: “Thị trường hiện tại đang nghiêng về kịch bản nào – và vì
-                    sao?”
-                </p>
-            </div>
-        </div>
-
-        <div id="signals-container" class="signals-grid">
-            <div style="grid-column: 1/-1; text-align: center; padding: 100px; color: var(--text-dim);">
-                <div class="pulse-small" style="margin: 0 auto 20px;"></div>
-                Synchronizing Structural Intelligence...
-            </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px; margin-top: 80px;">
-            <div>
-                <h2 class="section-title">🔍 How to Use This Reference (Suggested)</h2>
+        <main class="content-container">
+            <!-- HEADER -->
+            <div class="signals-header">
+                <h1 style="font-size: 2.8rem; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.02em;">📊 Market
+                    Reference <span
+                        style="font-size: 1rem; color: var(--warning); vertical-align: middle; border: 1px solid var(--warning); padding: 2px 8px; border-radius: 4px; margin-left: 10px;">🧪
+                        LAB</span></h1>
+                <p
+                    style="color: var(--accent); font-weight: 700; font-size: 1.1rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 24px;">
+                    Signal Engine Lab Snapshots</p>
                 <div
-                    style="background: var(--bg-sub); padding: 24px; border-radius: 12px; border: 1px solid var(--border);">
-                    <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 16px;">
-                        <li style="display: flex; gap: 12px; font-size: 0.9rem; color: var(--text-dim);">
-                            <span style="color: var(--accent);">01.</span> Xác định market bias trước khi tự vào lệnh
-                        </li>
-                        <li style="display: flex; gap: 12px; font-size: 0.9rem; color: var(--text-dim);">
-                            <span style="color: var(--accent);">02.</span> Lọc bớt kèo ngược cấu trúc (Counter-trend)
-                        </li>
-                        <li style="display: flex; gap: 12px; font-size: 0.9rem; color: var(--text-dim);">
-                            <span style="color: var(--accent);">03.</span> Đồng bộ multi-timeframe analysis
-                        </li>
-                        <li style="display: flex; gap: 12px; font-size: 0.9rem; color: var(--text-dim);">
-                            <span style="color: var(--accent);">04.</span> Kiểm tra lại cảm nhận thị trường cá nhân
-                        </li>
-                    </ul>
+                    style="display: flex; gap: 20px; justify-content: center; font-size: 0.75rem; color: var(--text-dim);">
+                    <span>Experimental</span> • <span>Snapshot-based</span> • <span>High-Precision</span>
                 </div>
 
-                <div class="disclaimer-box"
-                    style="margin-top: 32px; text-align: left; background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.2);">
-                    <strong style="color: #ef4444; display: block; margin-bottom: 12px;">⚠️ IMPORTANT NOTICE:</strong>
-                    <p style="margin-bottom: 8px;">• Quantix không cung cấp lệnh giao dịch và không chịu trách nhiệm cho
-                        kết quả.</p>
-                    <p style="margin-bottom: 8px;">• Trader tự quyết định entry, exit và risk management.</p>
-                    <p>• Reference mang tính tham khảo cấu trúc, không phải khuyến nghị. If you trade, you trade at your
-                        own discretion.</p>
+                <div style="margin-top: 32px;">
+                    <button onclick="SIGNALS.loadReferences()" class="btn-analyze btn-bright"
+                        style="font-size: 0.75rem; padding: 10px 24px; display: inline-flex; align-items: center; gap: 8px;">
+                        🔄 REFRESH SNAPSHOT
+                    </button>
+                    <div id="last-sync-time" style="font-size: 0.6rem; color: var(--text-dim); margin-top: 12px;">Last
+                        updated: --</div>
                 </div>
             </div>
 
-            <div>
-                <h2 class="section-title">🔒 Quantix Principles</h2>
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <div
-                        style="padding: 16px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--border);">
-                        <div style="font-weight: 700; font-size: 0.8rem; margin-bottom: 4px; color: var(--accent);">
-                            STRUCTURE OVER PREDICTION</div>
-                        <div style="font-size: 0.75rem; color: var(--text-dim);">We map what IS, not what might be.
-                        </div>
-                    </div>
-                    <div
-                        style="padding: 16px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--border);">
-                        <div style="font-weight: 700; font-size: 0.8rem; margin-bottom: 4px; color: var(--accent);">
-                            EVIDENCE OVER OPINION</div>
-                        <div style="font-size: 0.75rem; color: var(--text-dim);">Every bias is backed by audited tick
-                            data.</div>
-                    </div>
-                    <div
-                        style="padding: 16px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--border);">
-                        <div style="font-weight: 700; font-size: 0.8rem; margin-bottom: 4px; color: var(--accent);">
-                            TRADER STAYS IN CONTROL</div>
-                        <div style="font-size: 0.75rem; color: var(--text-dim);">AI assists, but the human decides.
-                        </div>
-                    </div>
-                </div>
-
-                <h2 class="section-title" style="margin-top: 40px;">🔗 Related Pages</h2>
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <a href="../reasoning/" class="spec-link" style="font-size: 0.8rem;">📘 AI Reasoning</a>
-                    <a href="../dashboard/" class="spec-link" style="font-size: 0.8rem;">📡 Live System Status</a>
-                    <a href="../api/" class="spec-link" style="font-size: 0.8rem;">🔌 API Access</a>
+            <!-- EXPLANATION SECTION -->
+            <div
+                style="max-width: 800px; margin: 0 auto 60px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 32px; border-radius: 16px;">
+                <h2
+                    style="font-size: 1.25rem; color: var(--text-main); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 1.5rem;">🧪</span> Signal Engine Lab (Experimental)
+                </h2>
+                <div style="color: var(--text-dim); line-height: 1.8; font-size: 0.95rem;">
+                    <p style="margin-bottom: 16px;">
+                        Quantix Signal Engine Lab tạo ra các <strong>Market Reference snapshots</strong> dựa trên kết
+                        quả của Structure Engine v1.
+                        Đây là mô hình tham chiếu có tính diễn giải cao (Explainable) và hoàn toàn mang tính thực
+                        nghiệm.
+                    </p>
+                    <p style="color: var(--warning); font-weight: 600; font-style: italic;">
+                        ⚠️ Đây KHÔNG phải là tín hiệu giao dịch streaming. Dữ liệu mang tính snapshot tại thời điểm truy
+                        vấn. User cần chủ động refresh để cập nhật trạng thái mới nhất.
+                    </p>
                 </div>
             </div>
-        </div>
-    </main>
 
-    <footer class="app-footer">
-        <div class="disclaimer">Institutional Grade Reference Engine. Mode: Public Alpha Alpha.</div>
-    </footer>
+            <div id="signals-container" class="signals-grid">
+                <div style="grid-column: 1/-1; text-align: center; padding: 100px; color: var(--text-dim);">
+                    <div class="pulse-small" style="margin: 0 auto 20px;"></div>
+                    Synchronizing Structural Intelligence...
+                </div>
+            </div>
 
-    <script src="../static/js/api.js"></script>
-    <script src="../static/js/ui_shared.js"></script>
-    <script src="../static/js/signals.js"></script>
+            <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px; margin-top: 80px;">
+                <div>
+                    <h2 class="section-title">🔍 How to Use This Reference (Suggested)</h2>
+                    <div
+                        style="background: var(--bg-sub); padding: 24px; border-radius: 12px; border: 1px solid var(--border);">
+                        <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 16px;">
+                            <li style="display: flex; gap: 12px; font-size: 0.9rem; color: var(--text-dim);">
+                                <span style="color: var(--accent);">01.</span> Xác định market bias trước khi tự vào
+                                lệnh
+                            </li>
+                            <li style="display: flex; gap: 12px; font-size: 0.9rem; color: var(--text-dim);">
+                                <span style="color: var(--accent);">02.</span> Lọc bớt kèo ngược cấu trúc
+                                (Counter-trend)
+                            </li>
+                            <li style="display: flex; gap: 12px; font-size: 0.9rem; color: var(--text-dim);">
+                                <span style="color: var(--accent);">03.</span> Đồng bộ multi-timeframe analysis
+                            </li>
+                            <li style="display: flex; gap: 12px; font-size: 0.9rem; color: var(--text-dim);">
+                                <span style="color: var(--accent);">04.</span> Kiểm tra lại cảm nhận thị trường cá nhân
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="disclaimer-box"
+                        style="margin-top: 32px; text-align: left; background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.2);">
+                        <strong style="color: #ef4444; display: block; margin-bottom: 12px;">⚠️ IMPORTANT
+                            NOTICE:</strong>
+                        <p style="margin-bottom: 8px;">• Quantix không cung cấp lệnh giao dịch và không chịu trách nhiệm
+                            cho
+                            kết quả.</p>
+                        <p style="margin-bottom: 8px;">• Trader tự quyết định entry, exit và risk management.</p>
+                        <p>• Reference mang tính tham khảo cấu trúc, không phải khuyến nghị. If you trade, you trade at
+                            your
+                            own discretion.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="section-title">🔒 Quantix Principles</h2>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <div
+                            style="padding: 16px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--border);">
+                            <div style="font-weight: 700; font-size: 0.8rem; margin-bottom: 4px; color: var(--accent);">
+                                STRUCTURE OVER PREDICTION</div>
+                            <div style="font-size: 0.75rem; color: var(--text-dim);">We map what IS, not what might be.
+                            </div>
+                        </div>
+                        <div
+                            style="padding: 16px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--border);">
+                            <div style="font-weight: 700; font-size: 0.8rem; margin-bottom: 4px; color: var(--accent);">
+                                EVIDENCE OVER OPINION</div>
+                            <div style="font-size: 0.75rem; color: var(--text-dim);">Every bias is backed by audited
+                                tick
+                                data.</div>
+                        </div>
+                        <div
+                            style="padding: 16px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--border);">
+                            <div style="font-weight: 700; font-size: 0.8rem; margin-bottom: 4px; color: var(--accent);">
+                                TRADER STAYS IN CONTROL</div>
+                            <div style="font-size: 0.75rem; color: var(--text-dim);">AI assists, but the human decides.
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 class="section-title" style="margin-top: 40px;">🔗 Related Pages</h2>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <a href="../reasoning/" class="spec-link" style="font-size: 0.8rem;">📘 AI Reasoning</a>
+                        <a href="../dashboard/" class="spec-link" style="font-size: 0.8rem;">📡 Live System Status</a>
+                        <a href="../api/" class="spec-link" style="font-size: 0.8rem;">🔌 API Access</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="app-footer">
+            <div class="disclaimer">Institutional Grade Reference Engine. Mode: Public Alpha Alpha.</div>
+        </footer>
+
+        <script src="../static/js/api.js"></script>
+        <script src="../static/js/ui_shared.js"></script>
+        <script src="../static/js/signals.js"></script>
 </body>
 
 </html>

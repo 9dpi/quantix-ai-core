@@ -91,7 +91,8 @@ const SIGNALS = {
         try {
             const baseUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'https://quantixaicore-production.up.railway.app/api/v1';
             // Use correct API params (backend expects uppercase)
-            const response = await fetch(`${baseUrl}/lab/market-reference?symbol=${symbol}&tf=${tf}`, {
+            // Added cache buster to prevent stale 304 responses
+            const response = await fetch(`${baseUrl}/lab/market-reference?symbol=${symbol}&tf=${tf}&_=${Date.now()}`, {
                 signal: controller.signal
             });
             clearTimeout(timeoutId);

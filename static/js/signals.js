@@ -180,6 +180,13 @@ const SIGNALS = {
         const entryText = levels.entry_zone ? `${levels.entry_zone[0]} — ${levels.entry_zone[1]}` : "—";
         const tradeDetails = data.trade_details || { target_pips: 0, risk_reward: 0, trade_type: "N/A" };
 
+        const expiresAt = data.expiry?.expires_at ? new Date(data.expiry.expires_at) : null;
+        const timeString = expiresAt ? expiresAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Unknown';
+        const ttlMinutes = data.expiry?.ttl_seconds ? Math.ceil(data.expiry.ttl_seconds / 60) : 0;
+
+        let footerStatus = `⏳ Next Snapshot: ${timeString} (${ttlMinutes}m)`;
+        if (ttlMinutes <= 0) footerStatus = `🔄 Update Available`;
+
         card.innerHTML = `
             <div style="position: absolute; top: 12px; left: 12px; display: flex; gap: 6px;">
                  <span style="font-size: 0.5rem; background: rgba(255,255,255,0.05); color: var(--text-dim); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);">SNAPSHOT</span>
@@ -224,9 +231,9 @@ const SIGNALS = {
                 <div style="color: var(--text-dim); text-align: right;">RRR: <span style="color: var(--text-main); font-weight: 700;">${tradeDetails.risk_reward > 0 ? '1:' + tradeDetails.risk_reward : '—'}</span></div>
             </div>
             
-            <div class="meta-footer" style="margin-top: 10px; font-size: 0.6rem;">
+            <div class="meta-footer" style="margin-top: 10px; font-size: 0.6rem; display: flex; justify-content: space-between;">
                 <div>Generating Engine: v1.4</div>
-                <div style="color: var(--warning);">⚠ ${data.disclaimer || 'No guarantees'}</div>
+                <div style="font-weight: 700; color: var(--accent);">${footerStatus}</div>
             </div>
         `;
 

@@ -5,7 +5,7 @@ Endpoint: /api/v1/lab/market-reference
 ⚠️ HOTFIX MODE: Zero dependencies, instant response
 """
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Response
 from datetime import datetime, timedelta, timezone
 from loguru import logger
 
@@ -17,6 +17,7 @@ router = APIRouter(prefix="/lab", tags=["Signal Engine Lab"])
 
 @router.get("/market-reference")
 async def get_lab_reference(
+    response: Response,
     symbol: str = Query(..., description="Symbol (e.g., EURUSD)"),
     tf: str = Query("H4", description="Timeframe")
 ):
@@ -35,8 +36,23 @@ async def get_lab_reference(
         import hashlib
         import random
         
-        # 1. Deterministic Seed
-        seed_str = f"{symbol}{tf}{datetime.utcnow().strftime('%Y-%m-%d-%H')}" # Changes every hour
+        # 1. Deterministic Seed via Caching Window
+        # We want the signal to be STABLE for the duration of the timeframe
+        now = datetime.utcnow()
+        
+        # TTL Mapping (Seconds)
+        ttl_map = {
+            "M15": 900,
+            "H1": 3600,
+            "H4": 14400,
+            "D1": 86400
+        }
+        ttl = ttl_map.get(tf, 3600) # Default 1h
+        
+        # Calculate current window start (e.g. current hour start)
+        window_timestamp = int(now.timestamp()) // ttl
+        
+        seed_str = f"{symbol}{tf}{window_timestamp}" 
         seed = int(hashlib.md5(seed_str.encode()).hexdigest()[:8], 16)
         random.seed(seed)
         
@@ -121,6 +137,18 @@ async def get_lab_reference(
             levels = {"entry_zone": [0,0], "take_profit": 0, "stop_loss": 0}
             trade_details = {"target_pips": 0, "risk_reward": 0, "type": "N/A"}
 
+        # Calculate Expires At
+        next_update_ts = (window_timestamp + 1) * ttl
+        expires_at = datetime.fromtimestamp(next_update_ts, tz=timezone.utc)
+        
+        # 🛡️ HTTP CACHING HEADERS (Crucial for cost control)
+        # CDN/Browser will cache this until the next window
+        # Max-age is remaining time in current window
+        seconds_left = max(0, int(next_update_ts - now.timestamp()))
+        response.headers["Cache-Control"] = f"public, max-age={seconds_left}, stale-while-revalidate=60"
+        response.headers["X-Quantix-TTL"] = str(seconds_left)
+        response.headers["X-Quantix-Next-Update"] = expires_at.isoformat()
+
         # 5. Construct Response
         return {
             "asset": symbol,
@@ -134,12 +162,14 @@ async def get_lab_reference(
             "price_levels": levels,
             "trade_details": trade_details,
             "expiry": {
-                "expires_at": (datetime.now(timezone.utc) + timedelta(hours=4)).isoformat(),
+                "expires_at": expires_at.isoformat(),
+                "ttl_seconds": seconds_left
             },
             "meta": {
                 "generated_at": datetime.now(timezone.utc).isoformat(),
                 "engine": "Signal Engine Lab (MOCK)",
-                "mapping_version": "1.0-official"
+                "mapping_version": "1.0-official",
+                "cache_status": "optimized"
             },
             "disclaimer": "Confidence indicates statistical quality, not profit guarantee."
         }

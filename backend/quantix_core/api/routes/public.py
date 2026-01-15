@@ -6,8 +6,7 @@ Endpoint: /api/v1/public/market-state
 from fastapi import APIRouter, HTTPException, Query, Header, Depends
 from quantix_core.config.settings import settings
 from quantix_core.engine.structure_engine_v1 import StructureEngineV1
-# DISABLED: YahooFinanceFetcher module does not exist - Quantix uses Dukascopy
-# from quantix_core.ingestion.yahoo_fetcher import YahooFinanceFetcher
+from quantix_core.ingestion.dukascopy import DukascopyFetcher, DukascopyFetcherError
 from loguru import logger
 import pandas as pd
 import uuid
@@ -17,8 +16,7 @@ router = APIRouter(prefix="/public", tags=["Public API"])
 
 # Components
 structure_engine = StructureEngineV1(sensitivity=2)
-# DISABLED: YahooFinanceFetcher not available - Quantix uses Dukascopy
-# fetcher = YahooFinanceFetcher()
+fetcher = DukascopyFetcher()
 
 async def verify_api_key(authorization: str = Header(..., alias="Authorization")):
     """Verify the public API key using Bearer token"""
@@ -31,15 +29,62 @@ async def verify_api_key(authorization: str = Header(..., alias="Authorization")
         raise HTTPException(status_code=403, detail="Invalid API Key")
     return auth_token
 
-# DISABLED: This endpoint requires YahooFinanceFetcher which is not available
-# TODO: Reimplement with Dukascopy fetcher
-"""
 @router.get("/market-state")
 async def get_market_state(
     asset: str = Query(..., description="Asset symbol (e.g., EURUSD)"),
     timeframe: str = Query("H4", description="Timeframe: H1, H4, D1"),
     api_key: str = Depends(verify_api_key)
 ):
-    # ENDPOINT DISABLED - REQUIRES YAHOO FINANCE FETCHER
-    pass
-"""
+    """
+    **Quantix Market State Reasoning API**
+    
+    Provides deterministic structural analysis, confidence, and evidence.
+    This API does NOT provide trading signals or financial advice.
+    """
+    trace_id = f"pub-{uuid.uuid4().hex[:8]}"
+    
+    try:
+        logger.info(f"[{trace_id}] 🌐 Public state request: {asset} @ {timeframe}")
+        
+        # 1. Fetch data from Dukascopy
+        try:
+            data_result = fetcher.fetch_ohlcv(asset, timeframe=timeframe, period="3mo")
+        except DukascopyFetcherError as e:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": e.error_code,
+                    "message": e.message,
+                    "details": e.details
+                }
+            )
+        
+        df = pd.DataFrame(data_result['data'])
+        df['timestamp'] = pd.to_datetime(df['timestamp'])
+        df = df.set_index('timestamp')
+        
+        # 2. Analyze structure
+        state = structure_engine.analyze(df, symbol=asset, timeframe=timeframe, source="dukascopy")
+        
+        # 3. Formulate response (aligned with Public Positioning)
+        return {
+            "asset": asset,
+            "timeframe": timeframe,
+            "state": state.state,
+            "confidence": round(state.confidence, 4),
+            "dominance": {
+                "bullish": round(state.stats.get('bullish_dominance', 0), 2),
+                "bearish": round(state.stats.get('bearish_dominance', 0), 2)
+            },
+            "evidence": list(state.evidence),
+            "updated_at": datetime.utcnow().isoformat() + "Z",
+            "trace_id": state.trace_id,
+            "data_source": "dukascopy",
+            "disclaimer": "Quantix AI provides market structure analysis and research insights only. Not financial advice."
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[{trace_id}] ❌ Public API failed: {e}")
+        raise HTTPException(status_code=500, detail="Internal analysis engine error")

@@ -9,15 +9,14 @@ from datetime import datetime, timezone
 import uuid
 
 from quantix_core.schemas.feature_state import FeatureStateObject, TrendFeatureState, MomentumFeatureState, VolatilityFeatureState
-from quantix_core.learning.primitives.structure import StructurePrimitive
-# DISABLED: YahooFinanceFetcher module does not exist - Quantix uses Dukascopy
-# from quantix_core.ingestion.yahoo_fetcher import YahooFinanceFetcher
+# ✅ IMPORT ARCHITECTURE: api.routes MUST go through engine layer, NOT learning directly
+from quantix_core.engine.primitives import StructurePrimitive
+from quantix_core.ingestion.dukascopy import DukascopyFetcher, DukascopyFetcherError
 from quantix_core.ingestion.data_validator import DataValidator, DataNotSufficientError
 from loguru import logger
 
 router = APIRouter()
-# DISABLED: YahooFinanceFetcher not available
-# fetcher = YahooFinanceFetcher()
+fetcher = DukascopyFetcher()
 structure_calc = StructurePrimitive()
 validator = DataValidator
 
@@ -100,7 +99,7 @@ async def get_feature_state(
                     **e.to_dict(),
                     "trace_id": trace_id,
                     "data_status": {
-                        "provider": "Yahoo Finance",
+                        "provider": "Dukascopy",
                         "raw_candles": len(data_result['data']),
                         "aggregated_candles": len(df),
                         "status": "insufficient"

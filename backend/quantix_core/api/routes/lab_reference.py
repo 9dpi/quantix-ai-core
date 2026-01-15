@@ -1,32 +1,19 @@
 """
 Quantix Signal Engine Lab - Market Reference (Experimental)
 Endpoint: /api/v1/lab/market-reference
+
+⚠️ HOTFIX MODE: Zero dependencies, instant response
 """
 
 from fastapi import APIRouter, HTTPException, Query
 from datetime import datetime, timedelta, timezone
-import pandas as pd
-
-from quantix_core.engine.structure_engine_v1 import StructureEngineV1
-from quantix_core.ingestion.dukascopy import DukascopyFetcher, DukascopyFetcherError
 from loguru import logger
 
 router = APIRouter(prefix="/lab", tags=["Signal Engine Lab"])
 
-# Components
-structure_engine = StructureEngineV1(sensitivity=2)
-fetcher = DukascopyFetcher()
-
-def map_trade_bias(state: str, confidence: float):
-    """Implementing the official Lab Confidence Mapping Rules"""
-    if state == "bullish":
-        if confidence >= 0.85: return "BUY", "strong"
-        if confidence >= 0.70: return "BUY", "weak"
-    elif state == "bearish":
-        if confidence >= 0.85: return "SELL", "strong"
-        if confidence >= 0.70: return "SELL", "weak"
-    
-    return "NEUTRAL", "N/A"
+# ✅ NO MODULE-LEVEL INIT - This was causing blocking
+# ✅ NO ENGINE IMPORT - Endpoint must be lightweight
+# ✅ NO FETCHER IMPORT - Mock data only
 
 @router.get("/market-reference")
 async def get_lab_reference(

@@ -8,6 +8,7 @@ from loguru import logger
 import uvicorn
 import asyncio
 import os
+from datetime import datetime
 
 from quantix_core.api.routes import health, signals, ingestion, csv_ingestion, admin, features, structure, lab, public, reference, lab_reference
 from quantix_core.config.settings import settings
@@ -46,6 +47,7 @@ app.include_router(lab_reference.router, prefix=settings.API_PREFIX, tags=["Sign
 async def startup_event():
     port = os.getenv("PORT", "8080")  # Railway uses 8080 by default
     logger.info(f"🚀 Quantix AI Core Engine ONLINE - Listening on port: {port}")
+    logger.info(f"♻️ FORCE DEPLOY: System restart triggered at {datetime.utcnow()}")
     
     # Chạy toàn bộ việc kiểm tra DB và nạp data vào luồng ngầm
     asyncio.create_task(background_startup_tasks())

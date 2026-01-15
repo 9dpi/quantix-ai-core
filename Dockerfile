@@ -12,7 +12,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy nội dung thư mục backend vào /app
 COPY backend/ .
 
-# Railway dùng biến môi trường PORT. 
-# CMD dạng shell để $PORT được thay thế chính xác.
-# Ta bind vào 0.0.0.0 để có thể nhận traffic từ internet.
-CMD uvicorn quantix_core.api.main:app --host 0.0.0.0 --port $PORT
+# Explicitly set PYTHONPATH to /app so Python can find quantix_core
+ENV PYTHONPATH=/app
+
+# Railway dùng biến môi trường PORT
+# Use exec form with sh -c to allow $PORT substitution
+CMD ["sh", "-c", "uvicorn quantix_core.api.main:app --host 0.0.0.0 --port ${PORT:-8080}"]

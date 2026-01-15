@@ -11,11 +11,6 @@
         rel="stylesheet">
     <link rel="icon" type="image/png" href="../static/img/favicon.png">
     <style>
-        .signals-header {
-            padding: 60px 0 40px;
-            text-align: center;
-        }
-
         .signals-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
@@ -23,139 +18,41 @@
             margin-top: 40px;
         }
 
-        .reference-card {
-            background: var(--bg-sub);
+        .bento-info-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 40px;
+            margin-top: 100px;
+        }
+
+        .bento-block {
+            background: rgba(255, 255, 255, 0.02);
             border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 24px;
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.3s ease, border-color 0.3s ease;
+            border-radius: 20px;
+            padding: 32px;
+            height: 100%;
         }
 
-        .reference-card:hover {
-            border-color: var(--accent);
-            transform: translateY(-4px);
-        }
-
-        .card-badge {
-            position: absolute;
-            top: 24px;
-            right: 24px;
-            padding: 4px 12px;
-            border-radius: 100px;
-            font-size: 0.7rem;
+        .block-header {
+            font-size: 0.75rem;
             font-weight: 800;
+            color: var(--accent);
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .badge-bullish {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--highlight);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-        }
-
-        .badge-bearish {
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-            border: 1px solid rgba(239, 68, 68, 0.2);
-        }
-
-        .symbol-title {
-            font-size: 1.5rem;
-            font-weight: 800;
-            margin-bottom: 4px;
-        }
-
-        .timeframe-label {
-            font-size: 0.8rem;
-            color: var(--text-dim);
+            letter-spacing: 0.1em;
             margin-bottom: 24px;
-            display: block;
-        }
-
-        .bias-row {
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 24px;
         }
 
-        .confidence-meter {
-            flex-grow: 1;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 3px;
-            overflow: hidden;
-        }
+        @media (max-width: 900px) {
+            .bento-info-grid {
+                grid-template-columns: 1fr;
+            }
 
-        .confidence-fill {
-            height: 100%;
-            background: var(--accent);
-        }
-
-        .level-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .level-item {
-            padding: 12px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            border: 1px solid var(--border);
-        }
-
-        .level-label {
-            font-size: 0.6rem;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            margin-bottom: 4px;
-        }
-
-        .level-value {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: var(--text-main);
-        }
-
-        .meta-footer {
-            border-top: 1px solid var(--border);
-            padding-top: 16px;
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.65rem;
-            color: var(--text-dim);
-        }
-
-        .timer-badge {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .pulse-tiny {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--highlight);
-            animation: pulse 2s infinite;
-        }
-
-        .disclaimer-box {
-            margin-top: 60px;
-            padding: 24px;
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px dashed var(--border);
-            border-radius: 12px;
-            font-size: 0.75rem;
-            color: var(--text-dim);
-            text-align: center;
-            line-height: 1.6;
+            .signals-header h1 {
+                font-size: 2.5rem !important;
+            }
         }
     </style>
 </head>
@@ -182,140 +79,114 @@
     </header>
 
     <main class="content-container">
-        <main class="content-container">
-            <!-- HEADER -->
-            <div class="signals-header">
-                <h1 style="font-size: 2.8rem; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.02em;">📊 Market
-                    Reference <span
-                        style="font-size: 1rem; color: var(--warning); vertical-align: middle; border: 1px solid var(--warning); padding: 2px 8px; border-radius: 4px; margin-left: 10px;">🧪
-                        LAB</span></h1>
-                <p
-                    style="color: var(--accent); font-weight: 700; font-size: 1.1rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 24px;">
-                    Signal Engine Lab Snapshots</p>
-                <div
-                    style="display: flex; gap: 20px; justify-content: center; font-size: 0.75rem; color: var(--text-dim);">
-                    <span>Experimental</span> • <span>Snapshot-based</span> • <span>High-Precision</span>
-                </div>
+        <!-- HEADER -->
+        <div class="signals-header" style="text-align: center; padding: 60px 0;">
+            <h1 style="font-size: 3.5rem; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.03em;">
+                Market Reference
+                <span
+                    style="font-size: 1rem; color: var(--warning); vertical-align: middle; border: 1px solid var(--warning); padding: 4px 12px; border-radius: 100px; margin-left: 10px; font-weight: 800;">🧪
+                    LAB</span>
+            </h1>
+            <p
+                style="color: var(--accent); font-weight: 700; font-size: 1.1rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 40px;">
+                High-Precision Structural Snapshots
+            </p>
 
-                <div style="margin-top: 32px;">
-                    <button onclick="SIGNALS.loadReferences()" class="btn-analyze btn-bright"
-                        style="font-size: 0.75rem; padding: 10px 24px; display: inline-flex; align-items: center; gap: 8px;">
-                        🔄 REFRESH SNAPSHOT
-                    </button>
-                    <div id="last-sync-time" style="font-size: 0.6rem; color: var(--text-dim); margin-top: 12px;">Last
-                        updated: --</div>
-                </div>
+            <div style="margin-top: 32px;">
+                <button onclick="SIGNALS.loadReferences()" class="btn-analyze btn-bright"
+                    style="padding: 12px 32px; border-radius: 100px;">
+                    🔄 REFRESH SNAPSHOT
+                </button>
+                <div id="last-sync-time" style="font-size: 0.65rem; color: var(--text-dim); margin-top: 16px;">Last
+                    updated: --</div>
+            </div>
+        </div>
+
+        <!-- EXPLANATION BLOCK -->
+        <div class="bento-block"
+            style="max-width: 900px; margin: 0 auto 60px; background: rgba(56, 189, 248, 0.03); border-color: rgba(56, 189, 248, 0.1);">
+            <div class="block-header" style="color: var(--accent);">🔍 Technical Context</div>
+            <div style="color: var(--text-dim); line-height: 1.8; font-size: 0.95rem;">
+                <p style="margin-bottom: 16px;">
+                    Quantix Market Reference generates structural bias snapshots derived from <strong>Structure Engine
+                        v1</strong>.
+                    This model maps deterministic market moments to actionable price zones without prediction noise.
+                </p>
+                <p style="color: var(--warning); font-weight: 600;">
+                    ⚠️ Snapshots are static. Users must manually refresh to synchronize with the latest AI state.
+                </p>
+            </div>
+        </div>
+
+        <!-- SIGNALS CONTAINER -->
+        <div id="signals-container" class="signals-grid">
+            <div style="grid-column: 1/-1; text-align: center; padding: 100px; color: var(--text-dim);">
+                <div class="pulse-small" style="margin: 0 auto 40px;"></div>
+                Synchronizing Structural Intelligence...
+            </div>
+        </div>
+
+        <!-- BENTO INFO GRID -->
+        <div class="bento-info-grid">
+            <div class="bento-block">
+                <div class="block-header">📖 Usage Guidelines</div>
+                <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 20px;">
+                    <li style="display: flex; gap: 16px; font-size: 0.95rem; color: var(--text-dim);">
+                        <strong style="color: var(--accent);">01.</strong> Confirm structural bias before trade entry.
+                    </li>
+                    <li style="display: flex; gap: 16px; font-size: 0.95rem; color: var(--text-dim);">
+                        <strong style="color: var(--accent);">02.</strong> Use provided Entry Zones for risk refinement.
+                    </li>
+                    <li style="display: flex; gap: 16px; font-size: 0.95rem; color: var(--text-dim);">
+                        <strong style="color: var(--accent);">03.</strong> Filter out counter-trend setups using AI
+                        bias.
+                    </li>
+                    <li style="display: flex; gap: 16px; font-size: 0.95rem; color: var(--text-dim);">
+                        <strong style="color: var(--accent);">04.</strong> Synchronize multi-timeframe structural logic.
+                    </li>
+                </ul>
             </div>
 
-            <!-- EXPLANATION SECTION -->
-            <div
-                style="max-width: 800px; margin: 0 auto 60px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 32px; border-radius: 16px;">
-                <h2
-                    style="font-size: 1.25rem; color: var(--text-main); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
-                    <span style="font-size: 1.5rem;">🧪</span> Signal Engine Lab (Experimental)
-                </h2>
-                <div style="color: var(--text-dim); line-height: 1.8; font-size: 0.95rem;">
-                    <p style="margin-bottom: 16px;">
-                        Quantix Signal Engine Lab generates <strong>Market Reference snapshots</strong> derived from
-                        Structure Engine v1 outputs.
-                        This is a high-precision, explainable reference model currently in its experimental phase.
-                    </p>
-                    <p style="color: var(--warning); font-weight: 600; font-style: italic;">
-                        ⚠️ This is NOT a streaming signal service. Data represents a snapshot at the time of query.
-                        Users must manually refresh to obtain the latest system state.
-                    </p>
-                </div>
-            </div>
-
-            <div id="signals-container" class="signals-grid">
-                <div style="grid-column: 1/-1; text-align: center; padding: 100px; color: var(--text-dim);">
-                    <div class="pulse-small" style="margin: 0 auto 20px;"></div>
-                    Synchronizing Structural Intelligence...
-                </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px; margin-top: 80px;">
-                <div>
-                    <h2 class="section-title">🔍 How to Use This Reference (Suggested)</h2>
-                    <div
-                        style="background: var(--bg-sub); padding: 24px; border-radius: 12px; border: 1px solid var(--border);">
-                        <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 16px;">
-                            <li style="display: flex; gap: 12px; font-size: 0.9rem; color: var(--text-dim);">
-                                <span style="color: var(--accent);">01.</span> Confirm market bias before manual
-                                execution
-                            </li>
-                            <li style="display: flex; gap: 12px; font-size: 0.9rem; color: var(--text-dim);">
-                                <span style="color: var(--accent);">02.</span> Filter out counter-structural trade
-                                setups
-                            </li>
-                            <li style="display: flex; gap: 12px; font-size: 0.9rem; color: var(--text-dim);">
-                                <span style="color: var(--accent);">03.</span> Synchronize multi-timeframe structural
-                                analysis
-                            </li>
-                            <li style="display: flex; gap: 12px; font-size: 0.9rem; color: var(--text-dim);">
-                                <span style="color: var(--accent);">04.</span> Cross-verify personal market intuition
-                                with AI logic
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="disclaimer-box"
-                        style="margin-top: 32px; text-align: left; background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.2);">
-                        <strong style="color: #ef4444; display: block; margin-bottom: 12px;">⚠️ IMPORTANT
-                            NOTICE:</strong>
-                        <p style="margin-bottom: 8px;">• Quantix does not provide trade execution services and holds no
-                            responsibility for trading results.</p>
-                        <p style="margin-bottom: 8px;">• Traders are solely responsible for entry, exit, and risk
-                            management decisions.</p>
-                        <p>• References are for structural analysis purposes only. If you trade, you trade at your own
-                            discretion.</p>
-                    </div>
-                </div>
-
-                <div>
-                    <h2 class="section-title">🔒 Quantix Principles</h2>
-                    <div style="display: flex; flex-direction: column; gap: 12px;">
-                        <div
-                            style="padding: 16px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--border);">
-                            <div style="font-weight: 700; font-size: 0.8rem; margin-bottom: 4px; color: var(--accent);">
-                                STRUCTURE OVER PREDICTION</div>
-                            <div style="font-size: 0.75rem; color: var(--text-dim);">We map what IS, not what might be.
-                            </div>
-                        </div>
-                        <div
-                            style="padding: 16px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--border);">
-                            <div style="font-weight: 700; font-size: 0.8rem; margin-bottom: 4px; color: var(--accent);">
-                                EVIDENCE OVER OPINION</div>
-                            <div style="font-size: 0.75rem; color: var(--text-dim);">Every bias is backed by audited
-                                tick
-                                data.</div>
-                        </div>
-                        <div
-                            style="padding: 16px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--border);">
-                            <div style="font-weight: 700; font-size: 0.8rem; margin-bottom: 4px; color: var(--accent);">
-                                TRADER STAYS IN CONTROL</div>
-                            <div style="font-size: 0.75rem; color: var(--text-dim);">AI assists, but the human decides.
-                            </div>
+            <div class="bento-block" style="background: rgba(239, 68, 68, 0.02); border-color: rgba(239, 68, 68, 0.1);">
+                <div class="block-header" style="color: #ef4444;">⚖️ Risk & Principles</div>
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div style="padding: 16px; background: rgba(0,0,0,0.2); border-radius: 12px;">
+                        <div style="font-weight: 800; font-size: 0.75rem; color: var(--accent); margin-bottom: 4px;">
+                            DETERMINISTIC LOGIC</div>
+                        <div style="font-size: 0.75rem; color: var(--text-dim);">We map what IS, not what might be.
                         </div>
                     </div>
-
-                    <h2 class="section-title" style="margin-top: 40px;">🔗 Related Pages</h2>
-                    <div style="display: flex; flex-direction: column; gap: 12px;">
-                        <a href="../lab/" class="spec-link" style="font-size: 0.8rem;">📘 Quantix Lab</a>
-                        <a href="../dashboard/" class="spec-link" style="font-size: 0.8rem;">📡 Live System Status</a>
-                        <a href="../api/" class="spec-link" style="font-size: 0.8rem;">🔌 API Access</a>
+                    <div style="padding: 16px; background: rgba(0,0,0,0.2); border-radius: 12px;">
+                        <div style="font-weight: 800; font-size: 0.75rem; color: var(--accent); margin-bottom: 4px;">NO
+                            GUARANTEES</div>
+                        <div style="font-size: 0.75rem; color: var(--text-dim);">Historical accuracy does not predict
+                            future results.</div>
+                    </div>
+                    <div style="padding: 16px; background: rgba(0,0,0,0.2); border-radius: 12px;">
+                        <div style="font-weight: 800; font-size: 0.75rem; color: var(--accent); margin-bottom: 4px;">
+                            TRADER SOVEREIGNTY</div>
+                        <div style="font-size: 0.75rem; color: var(--text-dim);">AI assists, but humans take the risk.
+                        </div>
                     </div>
                 </div>
             </div>
-        </main>
+        </div>
 
-        <footer class="app-footer">
-            <div class="disclaimer">Institutional Grade Reference Engine. Mode: Public Alpha Alpha.</div>
-        </footer>
+        <div class="disclaimer-box"
+            style="margin-top: 80px; text-align: center; border-style: dashed; padding: 24px; background: rgba(0,0,0,0.2); border: 1px dashed var(--border); border-radius: 12px; font-size: 0.75rem; color: var(--text-dim); line-height: 1.6;">
+            ⚠️ <strong>Legal Notice:</strong> For research and educational purposes only. Quantix is not a financial
+            advisor.
+            All trading involves significant risk.
+        </div>
+    </main>
 
-        <script src="../static/js/api.js"></script>
-        <script src="../static/js/ui_shared.js"></script>
-        <script src="../static/js/signals.js"></script>
+    <footer class="app-footer">
+        <div class="disclaimer">Institutional Grade Reference Engine. Mode: Public Alpha v1.4</div>
+    </footer>
+
+    <script src="../static/js/api.js"></script>
+    <script src="../static/js/ui_shared.js"></script>
+    <script src="../static/js/signals.js"></script>
 </body>
 
 </html>

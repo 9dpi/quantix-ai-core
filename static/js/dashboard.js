@@ -60,31 +60,35 @@ const DASHBOARD = {
         const elements = {
             state: document.getElementById('core-state'),
             confidence: document.getElementById('core-confidence'),
-            dominance: document.getElementById('core-dominance'),
-            trace: document.getElementById('trace-id-sidebar')
+            evidence: document.getElementById('evidence-container')
         };
 
         if (elements.state) {
-            elements.state.innerText = (data.state || 'UNKNOWN').toUpperCase();
-            elements.state.style.color = data.state === 'bullish' ? 'var(--highlight)' : (data.state === 'bearish' ? 'var(--error)' : 'var(--text-dim)');
+            const state = (data.state || 'UNKNOWN').toUpperCase();
+            elements.state.innerText = state;
+            elements.state.style.color = state.includes('BULLISH') ? 'var(--highlight)' : (state.includes('BEARISH') ? 'var(--warning)' : 'var(--text-dim)');
         }
+
         if (elements.confidence) {
             elements.confidence.innerText = `${((data.confidence || 0) * 100).toFixed(1)}%`;
         }
-        if (elements.dominance) {
-            // Check for dominance_ratio or statistics sub-object
-            const ratio = data.dominance_ratio || (data.dominance ? data.dominance.bullish / (data.dominance.bearish || 1) : 0);
-            elements.dominance.innerText = ratio.toFixed(2);
-        }
-        if (elements.trace) {
-            elements.trace.innerText = data.trace_id || 'manual';
+
+        // Populate evidence if data exists
+        if (elements.evidence && data.evidence && Array.isArray(data.evidence)) {
+            elements.evidence.innerHTML = data.evidence.map(item => `
+                <div style="padding: 16px; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px solid var(--border);">
+                    <div style="font-size: 0.65rem; color: var(--accent); margin-bottom: 8px;">ENGINE_TRACE</div>
+                    <div style="font-size: 0.85rem; color: var(--text-main);">${item}</div>
+                </div>
+            `).join('');
         }
     },
 
     updateTelemetry(latency) {
-        // Update heartbeat text in the infra card
-        const latencyEls = document.querySelectorAll('.status-indicator-compact');
-        // Simple mock for variety, but latency is real
+        const hb = document.getElementById('heartbeat-value');
+        if (hb) {
+            hb.innerText = `${latency}ms`;
+        }
         console.log(`📡 Latency: ${latency}ms`);
     },
 

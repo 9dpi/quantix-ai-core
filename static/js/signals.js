@@ -6,17 +6,33 @@
  */
 
 const SIGNALS = {
+    isLoading: false,
+
     async init() {
         console.log('🧪 Signal Engine Lab Initializing...');
+
+        // ✅ FIX 1: Always fetch on load
         await this.loadReferences();
+
+        // ✅ FIX 2: Refetch on visibility change (Tab Switch / Return)
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") {
+                console.log('👀 Tab visible - refreshing signals...');
+                this.loadReferences();
+            }
+        });
     },
 
     async loadReferences() {
+        // Simple debounce to prevent double-click spam, but allows refetch
+        if (this.isLoading) return;
+        this.isLoading = true;
+
         const container = document.getElementById('signals-container');
         const syncLabel = document.getElementById('last-sync-time');
         const symbols = ["EURUSD", "GBPUSD", "USDJPY", "AUDUSD"];
 
-        // Set Loading State
+        // Set Loading State (Reset View)
         container.innerHTML = `
             <div style="grid-column: 1/-1; text-align: center; padding: 100px; color: var(--text-dim);">
                 <div class="pulse-small" style="margin: 0 auto 20px;"></div>
@@ -26,6 +42,7 @@ const SIGNALS = {
         `;
 
         try {
+            // ... rest of logic stays same, will be handled by existing code flow
             const results = [];
             // Run fetches in parallel for speed
             const promises = symbols.map(symbol => this.fetchLabSnapshot(symbol, "H4"));
@@ -61,6 +78,8 @@ const SIGNALS = {
                     <button onclick="SIGNALS.loadReferences()" class="btn-primary" style="margin-top: 16px;">Try Again</button>
                 </div>
             `;
+        } finally {
+            this.isLoading = false; // Always release lock
         }
     },
 

@@ -37,13 +37,25 @@ const SIGNALS = {
     },
 
     async fetchLabSnapshot(symbol, tf) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
         try {
             const baseUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'https://quantixaicore-production.up.railway.app/api/v1';
-            const response = await fetch(`${baseUrl}/lab/market-reference?symbol=${symbol}&tf=${tf}`);
+            const response = await fetch(`${baseUrl}/lab/market-reference?symbol=${symbol}&tf=${tf}`, {
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
             if (!response.ok) return null;
             return await response.json();
         } catch (e) {
-            console.error(`❌ Lab fetch failed for ${symbol}:`, e);
+            clearTimeout(timeoutId);
+            if (e.name === 'AbortError') {
+                console.error(`🕒 Lab fetch timeout for ${symbol}`);
+            } else {
+                console.error(`❌ Lab fetch failed for ${symbol}:`, e);
+            }
             return null;
         }
     },

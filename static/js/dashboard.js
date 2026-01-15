@@ -38,22 +38,41 @@ const DASHBOARD = {
     },
 
     async fetchCore(symbol, tf) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
         try {
             const baseUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'https://quantixaicore-production.up.railway.app/api/v1';
-            // Using the production-grade structure endpoint
-            const response = await fetch(`${baseUrl}/internal/feature-state/structure?symbol=${symbol}&tf=${tf}&period=1mo`);
+            const response = await fetch(`${baseUrl}/internal/feature-state/structure?symbol=${symbol}&tf=${tf}&period=1mo`, {
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
             const data = await response.json();
             return response.ok ? data : null;
-        } catch (e) { return null; }
+        } catch (e) {
+            clearTimeout(timeoutId);
+            return null;
+        }
     },
 
     async fetchLab(symbol, tf) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
         try {
             const baseUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'https://quantixaicore-production.up.railway.app/api/v1';
-            const response = await fetch(`${baseUrl}/lab/signal-candidate?symbol=${symbol}&tf=${tf}`);
+            const response = await fetch(`${baseUrl}/lab/signal-candidate?symbol=${symbol}&tf=${tf}`, {
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
             if (response.status === 403 || !response.ok) return null;
             return await response.json();
-        } catch (e) { return null; }
+        } catch (e) {
+            clearTimeout(timeoutId);
+            return null;
+        }
     },
 
     updateCoreUI(data) {

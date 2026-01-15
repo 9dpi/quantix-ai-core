@@ -39,7 +39,7 @@ body.scrollable-page {
 }
 
 .content-container {
-    max-width: 1100px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 40px 24px;
 }
@@ -54,6 +54,8 @@ body.scrollable-page {
     padding: 0 24px;
     background: var(--bg-main);
     z-index: 100;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .logo-area {
@@ -681,11 +683,11 @@ body.scrollable-page {
 /* GLOBAL FOOTER STYLES */
 .app-footer-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 40px;
     padding: 80px 24px;
     margin: 100px auto 0;
-    max-width: 1100px;
+    max-width: 1200px;
     border-top: 1px solid var(--border);
     color: var(--text-dim);
     font-size: 0.75rem;

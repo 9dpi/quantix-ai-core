@@ -34,45 +34,55 @@ async def get_lab_reference(
     tf: str = Query("H4", description="Timeframe")
 ):
     """
-    **Signal Engine Lab - Market Reference Snapshot**
-    Deterministic, rule-based reference derived from Structure Engine V1.
+    **Signal Engine Lab - Market Reference Snapshot (HOTFIX MODE)**
+    
+    ⚠️ TEMPORARY: Returns mock snapshot to unblock frontend.
+    ⚠️ TODO: Implement proper async engine + snapshot store architecture.
+    
+    This endpoint should NOT run engine pipeline in HTTP request.
+    Proper flow: Async worker → Snapshot store → API reads snapshot.
     """
+    logger.info(f"🧪 LAB: Snapshot request for {symbol} @ {tf}")
+    
     try:
-        # 1. Fetch & Analyze
-        data_result = fetcher.fetch_ohlcv(symbol, timeframe=tf, period="1mo")
-        df = pd.DataFrame(data_result['data'])
-        df['timestamp'] = pd.to_datetime(df['timestamp'])
-        df = df.set_index('timestamp')
+        # ✅ HOTFIX: Return lightweight mock snapshot
+        # This prevents infinite hanging while we build proper architecture
         
-        state = structure_engine.analyze(df, symbol=symbol, timeframe=tf)
+        # Mock data based on symbol pattern (deterministic for demo)
+        import hashlib
+        seed = int(hashlib.md5(f"{symbol}{tf}".encode()).hexdigest()[:8], 16)
         
-        # 2. Apply Lab Logic
-        trade_bias, strength = map_trade_bias(state.state, state.confidence)
+        # Deterministic mock values
+        mock_states = ["BUY", "SELL", "NEUTRAL"]
+        mock_strengths = ["strong", "weak", "N/A"]
         
-        # 3. Derive Price Levels (Rule-based)
-        last_close = df['close'].iloc[-1]
-        atr = (df['high'] - df['low']).rolling(14).mean().iloc[-1]
+        state_idx = seed % 3
+        trade_bias = mock_states[state_idx]
+        strength = mock_strengths[state_idx] if state_idx < 2 else "N/A"
+        confidence = 0.75 + (seed % 20) / 100  # 0.75 - 0.94
         
-        # Calculation for TP/SL (Reward/Risk focus: 1.4)
+        # Mock price levels (realistic for EURUSD range)
+        base_price = 1.0850 if "EUR" in symbol else 1.2500
+        atr_mock = 0.0015
+        
         if trade_bias == "BUY":
-            entry_from = last_close - (atr * 0.3)
-            entry_to = last_close
-            tp = last_close + (atr * 1.5)
-            sl = last_close - (atr * 1.1)
+            entry_from = base_price - (atr_mock * 0.3)
+            entry_to = base_price
+            tp = base_price + (atr_mock * 1.5)
+            sl = base_price - (atr_mock * 1.1)
         elif trade_bias == "SELL":
-            entry_from = last_close
-            entry_to = last_close + (atr * 0.3)
-            tp = last_close - (atr * 1.5)
-            sl = last_close + (atr * 1.1)
+            entry_from = base_price
+            entry_to = base_price + (atr_mock * 0.3)
+            tp = base_price - (atr_mock * 1.5)
+            sl = base_price + (atr_mock * 1.1)
         else:
-            entry_from = entry_to = tp = sl = 0.0
-
-        # 4. Construct Response (Final Schema)
+            entry_from = entry_to = tp = sl = base_price
+        
         return {
             "asset": f"{symbol[:3]}/{symbol[3:]}",
             "trade_bias": trade_bias,
             "bias_strength": strength,
-            "confidence": round(state.confidence, 4),
+            "confidence": round(confidence, 4),
             "timeframe": tf,
             "session": "Global → NY Overlap",
             "price_levels": {
@@ -81,8 +91,8 @@ async def get_lab_reference(
                 "stop_loss": round(sl, 5)
             },
             "trade_details": {
-                "target_pips": round(abs(tp - last_close) * 10000, 1) if tp else 0,
-                "risk_reward": 1.40 if tp else 0,
+                "target_pips": round(abs(tp - base_price) * 10000, 1),
+                "risk_reward": 1.40,
                 "suggested_risk_pct": [0.5, 1.0],
                 "trade_type": "intraday"
             },
@@ -98,13 +108,14 @@ async def get_lab_reference(
             },
             "meta": {
                 "generated_at": datetime.now(timezone.utc).isoformat(),
-                "engine": "Signal Engine Lab",
-                "derived_from": "Structure Engine v1",
-                "snapshot": True
+                "engine": "Signal Engine Lab (MOCK MODE)",
+                "derived_from": "Snapshot placeholder - async engine pending",
+                "snapshot": True,
+                "hotfix_mode": True
             },
-            "disclaimer": "Market reference only — not financial advice."
+            "disclaimer": "⚠️ DEMO DATA - Market reference only. Not financial advice."
         }
         
     except Exception as e:
-        logger.error(f"❌ Lab Generation Failed: {e}")
-        raise HTTPException(status_code=500, detail="Lab engine failure")
+        logger.error(f"❌ Lab snapshot failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

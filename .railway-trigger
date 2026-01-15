@@ -1,0 +1,14 @@
+# Railway Deployment Trigger
+
+**Trigger Time:** 2026-01-15 08:28 UTC  
+**Purpose:** Force Railway rebuild after Dockerfile PYTHONPATH fix
+
+## Expected Result
+✅ Service should start successfully with PYTHONPATH=/app
+✅ No ModuleNotFoundError
+✅ All endpoints responding
+
+## Verification
+```bash
+curl https://quantixaicore-production.up.railway.app/api/v1/health
+```

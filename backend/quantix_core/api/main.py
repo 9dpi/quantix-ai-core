@@ -65,6 +65,10 @@ async def background_startup_tasks():
         else:
             logger.warning("⚠️ Database check failed - check your Railway Variables")
             
+        # 🛡️ ARCHITECTURE ENFORCEMENT
+        logger.info("🛡️ DATA LAYER: READ ONLY MODE ACTIVE")
+        logger.info("🚫 INGESTION BLOCKED in API Layer - Workers Only")
+            
     except Exception as e:
         logger.error(f"⚠️ Background task failed (non-critical): {e}")
         # App continues running even if background tasks fail

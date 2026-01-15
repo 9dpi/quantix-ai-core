@@ -11,82 +11,115 @@
         rel="stylesheet">
     <link rel="icon" type="image/png" href="../static/img/favicon.png">
     <style>
-        .control-panel {
-            background: var(--bg-sub);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 20px;
+        /* Bento Layout Enhancements */
+        .lab-bento-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 32px;
+            margin-top: 40px;
+        }
+
+        .bento-header {
             display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .form-group label {
-            font-size: 0.65rem;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            font-weight: 700;
-        }
-
-        select,
-        input {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-        }
-
-        .btn-analyze {
-            background: var(--accent);
-            color: var(--bg-main);
-            border: none;
-            padding: 12px;
-            border-radius: 4px;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            font-size: 0.75rem;
             font-weight: 800;
-            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .select-bar {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 40px;
+        }
+
+        .select-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1.5fr 1.2fr;
+            gap: 20px;
+            align-items: flex-end;
+        }
+
+        /* Input Styling */
+        .lab-input {
+            width: 100%;
+            background: #000;
+            color: #fff;
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.2s;
+        }
+
+        .lab-input:focus {
+            border-color: var(--accent);
+            outline: none;
+        }
+
+        /* Fix Calendar Icon Color - Invert to White */
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
             cursor: pointer;
-            transition: opacity 0.2s;
         }
 
-        .btn-analyze:hover {
-            opacity: 0.9;
+        .label-tiny {
+            display: block;
+            font-size: 0.65rem;
+            color: var(--accent);
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: 0.05em;
         }
 
-        .evidence-item {
+        .reasoning-box {
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 10px;
-            font-size: 0.8rem;
-            margin-bottom: 8px;
-            display: flex;
-            gap: 10px;
+            padding: 40px;
+            border-radius: 20px;
+            height: 100%;
         }
 
-        .state-badge {
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            font-weight: 800;
-            text-transform: uppercase;
+        .reference-card-bento {
+            background: var(--bg-sub);
+            border: 1px solid var(--border);
+            padding: 32px;
+            border-radius: 20px;
+            position: relative;
         }
 
-        .state-badge.bullish {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--highlight);
+        @media (max-width: 992px) {
+            .lab-bento-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .select-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .btn-run-wrap {
+                grid-column: 1 / -1;
+            }
         }
 
-        .state-badge.bearish {
-            background: rgba(244, 63, 94, 0.1);
-            color: var(--warning);
+        @media (max-width: 600px) {
+            .select-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .signals-header h1 {
+                font-size: 2rem !important;
+            }
+
+            .reasoning-box {
+                padding: 24px;
+            }
         }
     </style>
 </head>
@@ -115,220 +148,209 @@
     <main class="content-container">
         <!-- TOP CONTEXT BANNER -->
         <div
-            style="background: rgba(56, 189, 248, 0.1); border: 1px solid var(--accent); padding: 16px; border-radius: 8px; margin-bottom: 40px; text-align: center;">
-            <span style="color: var(--highlight); font-weight: 800;">🧪 Quantix Lab – Historical AI Reasoning</span><br>
-            <span style="font-size: 0.85rem; color: var(--text-dim);">This snapshot shows how the AI interpreted the
-                market structure at a specific point in time.</span>
+            style="background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.2); padding: 12px; border-radius: 100px; margin-bottom: 40px; text-align: center; max-width: 600px; margin-left: auto; margin-right: auto;">
+            <span style="font-size: 0.75rem; color: var(--text-dim);">🧪 <strong>Quantix Lab</strong> — Explore how AI
+                interpreted the market at any given timestamp.</span>
         </div>
 
-        <div class="signals-header">
-            <h1 style="font-size: 2.8rem; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.02em;">Quantix Lab
+        <div class="signals-header" style="margin-bottom: 60px;">
+            <h1 style="font-size: 3rem; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.03em;">Quantix Lab
             </h1>
             <p
-                style="color: var(--accent); font-weight: 700; font-size: 1.1rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px;">
-                Market Reasoning Explorer</p>
-            <p style="color: var(--text-dim); max-width: 700px; margin: 0 auto; line-height: 1.6;">
-                Quantix Lab allows traders and partners to explore how Quantix AI interpreted market structure at
-                specific historical moments.
-                It is a transparent reasoning environment, not a trading system.
-            </p>
+                style="color: var(--accent); font-weight: 700; font-size: 1.1rem; letter-spacing: 0.1em; text-transform: uppercase;">
+                Historical Market Reasoning</p>
         </div>
 
-        <!-- PURPOSE SECTION -->
-        <div
-            style="max-width: 800px; margin: 40px auto; background: rgba(0,0,0,0.2); border: 1px solid var(--border); padding: 32px; border-radius: 16px;">
-            <h2 style="font-size: 1.25rem; color: var(--text-main); margin-bottom: 16px;">🎯 Purpose</h2>
-            <p style="color: var(--text-dim); line-height: 1.6; font-size: 0.95rem;">
-                Explore how Quantix AI reasoned about market structure at a specific point in time.
-                This environment is for research and educational purposes only. It does not provide trading advice,
-                does not claim performance, and is not a financial recommendation engine.
-            </p>
-        </div>
-
-        <!-- SELECTOR -->
-        <div
-            style="background: var(--bg-sub); border: 1px solid var(--border); padding: 40px; border-radius: 16px; margin-bottom: 60px;">
-            <div
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 24px; align-items: flex-end;">
+        <!-- SELECTOR BAR (BENTO STYLE) -->
+        <div class="select-bar">
+            <div class="select-grid">
                 <div>
-                    <label
-                        style="display: block; font-size: 0.7rem; color: var(--accent); font-weight: 800; margin-bottom: 8px;">ASSET</label>
-                    <select id="lab-asset"
-                        style="width: 100%; background: #000; color: #fff; border: 1px solid var(--border); padding: 12px; border-radius: 8px;">
+                    <label class="label-tiny">ASSET</label>
+                    <select id="lab-asset" class="lab-input">
                         <option value="EURUSD">EUR/USD</option>
                         <option value="GBPUSD">GBP/USD</option>
                         <option value="USDJPY">USD/JPY</option>
                     </select>
                 </div>
                 <div>
-                    <label
-                        style="display: block; font-size: 0.7rem; color: var(--accent); font-weight: 800; margin-bottom: 8px;">TIMEFRAME</label>
-                    <select id="lab-tf"
-                        style="width: 100%; background: #000; color: #fff; border: 1px solid var(--border); padding: 12px; border-radius: 8px;">
+                    <label class="label-tiny">TIMEFRAME</label>
+                    <select id="lab-tf" class="lab-input">
                         <option value="M15">M15</option>
                         <option value="H1">H1</option>
                         <option value="H4">H4</option>
                     </select>
                 </div>
                 <div>
-                    <label
-                        style="display: block; font-size: 0.7rem; color: var(--accent); font-weight: 800; margin-bottom: 8px;">REFERENCE
-                        POINT (UTC)</label>
-                    <input type="datetime-local" id="lab-time"
-                        style="width: 100%; background: #000; color: #fff; border: 1px solid var(--border); padding: 12px; border-radius: 8px;">
+                    <label class="label-tiny">REFERENCE POINT (UTC)</label>
+                    <input type="datetime-local" id="lab-time" class="lab-input">
                 </div>
-                <button onclick="runLabReasoning()" class="btn-analyze btn-bright"
-                    style="width: 100%; height: 48px; border-radius: 8px; font-weight: 800;">RUN AI REASONING</button>
+                <div class="btn-run-wrap">
+                    <button onclick="runLabReasoning()" class="btn-analyze btn-bright"
+                        style="width: 100%; height: 46px; border-radius: 8px; font-weight: 800; font-size: 0.8rem; box-shadow: 0 4px 20px rgba(56, 189, 248, 0.2);">RUN
+                        AI REASONING</button>
+                </div>
             </div>
-            <p style="text-align: center; color: var(--text-dim); font-size: 0.7rem; margin-top: 20px;">
+            <p style="text-align: center; color: var(--warning); font-size: 0.65rem; margin-top: 16px; opacity: 0.8;">
                 ❗ No auto-run. System will freeze dataset at the specified timestamp (Strictly No Lookahead).
             </p>
         </div>
 
-        <!-- REASONING OUTPUT (Initially Hidden) -->
-        <div id="lab-results"
-            style="display: none; grid-template-columns: 1.5fr 1fr; gap: 40px; animation: fadeIn 0.5s ease;">
-            <div>
-                <h2 class="section-title">🧠 Reasoning Snapshot</h2>
-                <div
-                    style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); padding: 32px; border-radius: 12px;">
-                    <div style="margin-bottom: 32px;">
-                        <div
-                            style="font-size: 0.7rem; color: var(--accent); font-weight: 800; text-transform: uppercase;">
-                            Structure State</div>
-                        <div id="res-state" style="font-size: 1.5rem; font-weight: 800; color: var(--text-main);">...
+        <!-- BENTO GRID OUTPUT -->
+        <div id="lab-output-area" style="display: none;">
+            <div class="lab-bento-grid">
+                <!-- REASONING SNAPSHOT -->
+                <div>
+                    <div class="bento-header" style="color: #ff4785;">
+                        <span
+                            style="font-size: 12px; border-radius: 50%; background: #ff4785; width: 8px; height: 8px; display: inline-block;"></span>
+                        REASONING SNAPSHOT
+                    </div>
+                    <div class="reasoning-box">
+                        <div style="margin-bottom: 40px;">
+                            <div class="label-tiny">STRUCTURE STATE</div>
+                            <div id="res-state"
+                                style="font-size: 2rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.01em;">
+                                BULLISH_CONTINUATION</div>
+                        </div>
+
+                        <div style="margin-bottom: 40px;">
+                            <div class="label-tiny" style="margin-bottom: 16px;">DETECTED MARKET CONDITIONS (EVIDENCE)
+                            </div>
+                            <ul id="res-evidence"
+                                style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 16px;">
+                                <li style="display: flex; gap: 12px; color: var(--text-dim); font-size: 0.95rem;">
+                                    <span style="color: var(--highlight);">✔</span> Higher Low confirmed at reference
+                                    point
+                                </li>
+                                <li style="display: flex; gap: 12px; color: var(--text-dim); font-size: 0.95rem;">
+                                    <span style="color: var(--highlight);">✔</span> No structure break detected in
+                                    lookback period
+                                </li>
+                                <li style="display: flex; gap: 12px; color: var(--text-dim); font-size: 0.95rem;">
+                                    <span style="color: var(--highlight);">✔</span> Momentum aligned with Primary
+                                    structure
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <div class="label-tiny" style="color: #ef4444; margin-bottom: 12px;">INVALIDATION LOGIC
+                            </div>
+                            <div id="res-invalidation"
+                                style="color: var(--text-dim); font-size: 0.9rem; line-height: 1.6;">
+                                Reference snapshot becomes invalid if price breaks below <span
+                                    style="font-family: 'JetBrains Mono'; color: #ef4444; font-weight: 700;">1.16480</span>.
+                            </div>
                         </div>
                     </div>
-
-                    <div style="margin-bottom: 32px;">
-                        <div
-                            style="font-size: 0.7rem; color: var(--accent); font-weight: 800; text-transform: uppercase; margin-bottom: 8px;">
-                            Detected Market Conditions (Evidence)</div>
-                        <ul id="res-evidence"
-                            style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 12px;">
-                            <!-- Evidence items injected here -->
-                        </ul>
-                    </div>
-
-                    <div>
-                        <div
-                            style="font-size: 0.7rem; color: #ef4444; font-weight: 800; text-transform: uppercase; margin-bottom: 8px;">
-                            Invalidation Logic</div>
-                        <div id="res-invalidation" style="color: var(--text-dim); font-size: 0.9rem;">...</div>
-                    </div>
                 </div>
-            </div>
 
-            <div>
-                <h2 class="section-title">📋 Historical Reference</h2>
-                <div id="lab-card-container">
-                    <!-- Historical Reference Card injected here -->
+                <!-- HISTORICAL REFERENCE -->
+                <div>
+                    <div class="bento-header">
+                        <span style="font-size: 1rem;">📋</span> HISTORICAL REFERENCE
+                    </div>
+                    <div id="lab-card-container">
+                        <!-- Reference card injected here -->
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div style="margin-top: 80px; padding-top: 40px; border-top: 1px solid var(--border);">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+        <!-- INFO GRID -->
+        <div style="margin-top: 100px; padding-top: 60px; border-top: 1px solid var(--border);">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px;">
                 <div>
-                    <h3 style="color: var(--accent); font-size: 0.9rem; margin-bottom: 12px;">✅ What it IS</h3>
-                    <ul
-                        style="color: var(--text-dim); font-size: 0.8rem; list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px;">
-                        <li>• Explainable AI lab</li>
-                        <li>• Market reasoning explorer</li>
-                        <li>• Partner demo & audit tool</li>
-                    </ul>
+                    <h3
+                        style="color: var(--accent); font-size: 0.8rem; font-weight: 800; text-transform: uppercase; margin-bottom: 20px;">
+                        ✅ Quantix Lab Role</h3>
+                    <p style="color: var(--text-dim); font-size: 0.85rem; line-height: 1.8;">
+                        A transparent environment for auditing AI logic. It ensures that every structural bias is
+                        explainable and verifiable against historical tick data, without the noise of current market
+                        fluctuations.
+                    </p>
                 </div>
                 <div>
-                    <h3 style="color: #ef4444; font-size: 0.9rem; margin-bottom: 12px;">❌ What it is NOT</h3>
-                    <ul
-                        style="color: var(--text-dim); font-size: 0.8rem; list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px;">
-                        <li>• Signal service or trading bot</li>
-                        <li>• Backtest performance tracker</li>
-                        <li>• Financial recommendation engine</li>
-                    </ul>
+                    <h3
+                        style="color: #ef4444; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; margin-bottom: 20px;">
+                        ❌ Legal Boundaries</h3>
+                    <p style="color: var(--text-dim); font-size: 0.85rem; line-height: 1.8;">
+                        This is an explorer, not an advisor. Historical reasoning does not predict future performance.
+                        All snapshots are static and do not constitute financial recommendations.
+                    </p>
                 </div>
             </div>
-        </div>
-
-        <div class="disclaimer-box" style="margin-top: 60px; text-align: center; border-style: dashed;">
-            ⚠️ <strong>Disclaimer:</strong> For research and educational purposes only. Not trading advice. No
-            performance claims.
         </div>
     </main>
 
-    <footer class="app-footer">
-        <div class="disclaimer">Institutional Grade Reference Engine. Quantix Lab v1.0a</div>
+    <footer class="app-footer" style="margin-top: 120px;">
+        <div class="disclaimer">⚠️ Not financial advice. For research purposes only. Quantix Lab v1.0.4a</div>
     </footer>
 
     <script>
+        // Set default time to now for convenience (UTC)
+        window.onload = () => {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('lab-time').value = now.toISOString().slice(0, 16);
+        };
+
         async function runLabReasoning() {
             const asset = document.getElementById('lab-asset').value;
             const tf = document.getElementById('lab-tf').value;
             const time = document.getElementById('lab-time').value;
 
             if (!time) {
-                alert("Please select a Reference Point (Timestamp).");
+                alert("Please specify a timestamp.");
                 return;
             }
 
-            const results = document.getElementById('lab-results');
-            results.style.display = 'grid';
+            const output = document.getElementById('lab-output-area');
+            output.style.display = 'block';
 
-            // Mocking the behavior for Lab Explorer
-            document.getElementById('res-state').innerText = "CALCULATING...";
-
-            setTimeout(() => {
-                document.getElementById('res-state').innerText = "BULLISH_CONTINUATION";
-                document.getElementById('res-evidence').innerHTML = `
-                    <li style="display: flex; gap: 12px; color: var(--text-dim); font-size: 0.9rem;"><span style="color: var(--highlight);">✔</span> Higher Low confirmed at reference point</li>
-                    <li style="display: flex; gap: 12px; color: var(--text-dim); font-size: 0.9rem;"><span style="color: var(--highlight);">✔</span> No structure break detected in lookback period</li>
-                    <li style="display: flex; gap: 12px; color: var(--text-dim); font-size: 0.9rem;"><span style="color: var(--highlight);">✔</span> Momentum aligned with Primary structure</li>
-                `;
-                document.getElementById('res-invalidation').innerHTML = `Reference snapshot becomes invalid if price breaks below <span style="font-family: 'JetBrains Mono'; color: #ef4444;">1.16480</span>.`;
-
-                renderLabCard(asset, tf, time);
-            }, 800);
-        }
-
-        function renderLabCard(asset, tf, time) {
+            // Mocking logic
             const container = document.getElementById('lab-card-container');
             container.innerHTML = `
-                <div class="reference-card" style="border-color: var(--accent); animation: slideIn 0.3s ease;">
-                    <div style="position: absolute; top: 12px; left: 12px; display: flex; gap: 6px;">
-                        <span style="font-size: 0.5rem; background: rgba(56,189,248,0.1); color: var(--accent); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--accent);">HISTORICAL REFERENCE</span>
-                    </div>
-                    <div class="card-badge badge-bullish" style="top: 24px;">BUY</div>
-                    <div class="symbol-title" style="margin-top: 10px;">${asset.slice(0, 3)}/${asset.slice(3, 6)}</div>
-                    <span class="timeframe-label">⏳ ${tf} • Historical Snapshot</span>
+                <div class="reference-card-bento" style="animation: fadeInUp 0.5s ease forwards;">
+                    <div style="font-size: 1.25rem; font-weight: 800; margin-bottom: 4px; color: var(--text-main);">BUY</div>
+                    <div style="font-size: 1rem; color: var(--text-dim); margin-bottom: 4px;">${asset.slice(0, 3)}/${asset.slice(3, 6)}</div>
+                    <div style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 24px;">⏳ ${tf} • Historical Snapshot</div>
                     
-                    <div style="margin: 20px 0;">
+                    <div style="margin-bottom: 32px;">
                         <div style="font-size: 0.9rem; font-weight: 800; color: var(--highlight);">96% Confidence</div>
-                        <div class="confidence-meter" style="height: 4px; margin-top: 4px;">
+                        <div class="confidence-meter" style="height: 4px; margin-top: 8px;">
                             <div class="confidence-fill" style="width: 96%; background: var(--highlight)"></div>
                         </div>
                     </div>
                     
-                    <div class="level-grid" style="background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
-                        <div class="level-item" style="grid-column: 1 / -1; background: transparent; border: none; padding: 0; margin-bottom: 12px;">
-                            <div class="level-label">Entry Zone (Historical)</div>
-                            <div class="level-value">1.16710 — 1.16750</div>
+                    <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
+                        <div style="margin-bottom: 24px;">
+                            <div class="label-tiny">ENTRY ZONE (HISTORICAL)</div>
+                            <div style="font-family: 'JetBrains Mono'; font-size: 1.1rem; color: var(--text-main);">1.16710 — 1.16750</div>
                         </div>
-                        <div class="level-item" style="background: transparent; border: none; padding: 0;">
-                            <div class="level-label">TP Level</div>
-                            <div class="level-value" style="color: var(--highlight);">1.17080</div>
-                        </div>
-                        <div class="level-item" style="background: transparent; border: none; padding: 0; text-align: right;">
-                            <div class="level-label">SL Level</div>
-                            <div class="level-value" style="color: #ef4444;">1.16480</div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <div>
+                                <div class="label-tiny">TP LEVEL</div>
+                                <div style="font-family: 'JetBrains Mono'; color: var(--highlight); font-weight: 800;">1.17080</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="label-tiny">SL LEVEL</div>
+                                <div style="font-family: 'JetBrains Mono'; color: #ef4444; font-weight: 800;">1.16480</div>
+                            </div>
                         </div>
                     </div>
 
-                    <div style="margin-top: 20px; font-size: 0.6rem; color: var(--text-dim); font-family: 'JetBrains Mono';">
-                        SNAPSHOT POINT: ${time}<br>
+                    <div style="margin-top: 32px; font-size: 0.65rem; color: var(--text-dim); font-family: 'JetBrains Mono'; line-height: 1.6;">
+                        SNAPSHOT POINT: ${time.replace('T', ' ')}<br>
                         DATA SOURCE: DUKASCOPY (UTC)
                     </div>
                 </div>
             `;
+
+            window.scrollTo({
+                top: output.offsetTop - 100,
+                behavior: 'smooth'
+            });
         }
     </script>
     <script src="../static/js/ui_shared.js"></script>

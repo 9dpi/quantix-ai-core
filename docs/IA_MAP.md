@@ -1,38 +1,38 @@
 # 🗺️ QUANTIX AI CORE - INFORMATION ARCHITECTURE (IA)
 
 **Status:** ✅ IMPLEMENTED & FROZEN  
-**Target Architecture:** 4-Core Unified System
+**Target Architecture:** 5-Core Unified System
 
 ---
 
 ## 🏗️ **SITE MAP**
 
-### 1. `/` (About)
+### 1. `/` (Overview)
 - **Role:** Landing / Positioning / Marketing.
 - **Audience:** Investors, Partners, New Users.
 - **Content:** What Quantix is, High-level USPs (Deterministic, Audit-ready).
 
 ### 2. `/dashboard/` (Live System)
-- **Role:** THE SHOWCASE / MISSION CONTROL.
+- **Role:** MISSION CONTROL / TELEMETRY.
 - **Audience:** Real-time observers, Portfolio Managers.
-- **Integrated Sections:**
-    - 📊 **Market State Reasoning:** Live Engine Output (EURUSD, confidence, etc).
-    - 🛰️ **Infrastructure Health:** (Merged from old /status) Data ingestion, Gateway, DB node.
-    - 🚀 **Deployment Telemetry:** Railway status, Build hashes, Latency (ms).
-    - ⚖️ **Data Governance:** Dukascopy feed rules, OHLC integrity.
-    - 🧪 **Capabilities:** Supported timeframes and symbols.
+- **Content:** Infrastructure Health, Deployment Telemetry, Data Governance.
 
-### 3. `/reasoning/` (The "How")
-- **Role:** TRANSPARENCY / ANTI-BLACK-BOX.
+### 3. `/signals/` (Market Reference)
+- **Role:** ACTIONABLE STRUCTURAL REFERENCE.
+- **Audience:** Semi-pro Traders, Analysts.
+- **Content:** AI-derived market bias, price zones, and expiry rules. (Experimental Lab Engine).
+
+### 4. `/lab/` (Quantix Lab)
+- **Role:** HISTORICAL REASONING EXPLORER.
 - **Audience:** Technical Partners, Quants, Due Diligence.
-- **Content:** Primitive definitions, structure logic details, evidence scoring explanation.
+- **Content:** Interactive tool to inspect how the AI interpreted specific market moments.
 
-### 4. `/api/` (Developer Portal)
+### 5. `/api/` (Developer Portal)
 - **Role:** INTEGRATION / INFRASTRUCTURE.
 - **Audience:** Developers, Quantitative Researchers.
-- **Content:** Documentation, Rate limits, Authorization headers, Live Railway mapping.
+- **Content:** Documentation, Rate limits, Authorization headers.
 
-### 5. `/disclaimer/` (Legal)
+### 6. `/disclaimer/` (Legal)
 - **Role:** RISK SHIELD.
 - **Content:** Mandatory legal notice, No-financial-advice clause.
 
@@ -40,21 +40,13 @@
 
 ## 🧠 **DESIGN PRINCIPLES**
 
-1. **Unified Dashboard:** Status is NOT a separate concern; it is a core capability of a live system.
-2. **Deterministic UI:** No "buy/sell" buttons. Everything is "State" and "Evidence".
-3. **Transparency First:** Build hashes and Trace IDs are visible to prove accountability.
-4. **Latency Honesty:** Explicitly state data latency (5-10m) to manage expectations.
+1. **Unified Dashboard:** Infrastructure health is a core capability of a live system.
+2. **Deterministic UI:** Everything is "State" and "Evidence".
+3. **Transparency First:** Build hashes and Trace IDs are visible.
+4. **Lab Strategy:** Experimental features are clearly labeled with 🧪 LAB badges.
 
 ---
 
-## 🔄 **MIGRATION NOTES**
-
-- `status/index.html` is now a **Redirector** to `/dashboard/`.
-- All Global Nav Bars have been updated to the 4-core structure.
-- `dashboard.js` now handles both Analysis and Infrastructure telemetry.
-
----
-
-**Archived Version:** 1.4  
-**Last Update:** 2026-01-15 09:40 UTC  
+**Archived Version:** 1.6  
+**Last Update:** 2026-01-15 10:35 UTC  
 **By:** Antigravity AI

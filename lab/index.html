@@ -344,15 +344,12 @@
             async function runLabReasoning() {
                 const asset = document.getElementById('lab-asset').value;
                 const tf = document.getElementById('lab-tf').value;
-                let timeStr = document.getElementById('lab-time').value; // Local input time
+                let timeStr = document.getElementById('lab-time').value;
 
                 if (!timeStr) {
                     alert("Please specify a timestamp.");
                     return;
                 }
-
-                // Convert to strict ISO-8601 string for backend (append :00Z if needed, though backend just treats string as seed)
-                // Just assume input is intended as UTC for simplicity in this lab tool
 
                 const btn = document.querySelector('.btn-analyze');
                 const originalText = btn.innerText;
@@ -362,12 +359,27 @@
                 try {
                     const baseUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'https://quantixaicore-production.up.railway.app/api/v1';
 
-                    // Fetch from API with snap_time
-                    const response = await fetch(`${baseUrl}/lab/market-reference?symbol=${asset}&tf=${tf}&snap_time=${encodeURIComponent(timeStr)}&_=${Date.now()}`);
+                    // Timeout wrapper (8 seconds)
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-                    if (!response.ok) throw new Error("API Connection Failed");
+                    const response = await fetch(
+                        `${baseUrl}/lab/market-reference?symbol=${asset}&tf=${tf}&snap_time=${encodeURIComponent(timeStr)}&_=${Date.now()}`,
+                        { signal: controller.signal }
+                    );
+                    clearTimeout(timeoutId);
+
+                    if (!response.ok) {
+                        throw new Error(`API returned ${response.status}`);
+                    }
 
                     const data = await response.json();
+
+                    // Defensive validation
+                    if (!data || !data.asset) {
+                        throw new Error("Invalid response format");
+                    }
+
                     renderLabOutput(data);
 
                     document.getElementById('lab-output-area').style.display = 'block';
@@ -377,8 +389,15 @@
                     });
 
                 } catch (e) {
-                    console.error(e);
-                    alert("Lab Engine Offline or Error: " + e.message);
+                    console.error('Lab API Error:', e);
+
+                    if (e.name === 'AbortError') {
+                        alert("⏱️ Request timeout. The backend may be slow or offline. Please try again.");
+                    } else if (e.message.includes('Failed to fetch')) {
+                        alert("🔌 Network error. Check your connection or try again later.");
+                    } else {
+                        alert("❌ Lab Engine Error: " + e.message);
+                    }
                 } finally {
                     btn.innerText = originalText;
                     btn.disabled = false;

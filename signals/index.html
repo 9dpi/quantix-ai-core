@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Reference | Quantix AI Core</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/png" href="../static/img/favicon.png">
+    <style>
+        .signals-header {
+            padding: 60px 0 40px;
+            text-align: center;
+        }
+
+        .signals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 32px;
+            margin-top: 40px;
+        }
+
+        .reference-card {
+            background: var(--bg-sub);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .reference-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-bullish {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--highlight);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .badge-bearish {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .symbol-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .timeframe-label {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-bottom: 24px;
+            display: block;
+        }
+
+        .bias-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .confidence-meter {
+            flex-grow: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: var(--accent);
+        }
+
+        .level-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .level-item {
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .level-label {
+            font-size: 0.6rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .level-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .meta-footer {
+            border-top: 1px solid var(--border);
+            padding-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.65rem;
+            color: var(--text-dim);
+        }
+
+        .timer-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pulse-tiny {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--highlight);
+            animation: pulse 2s infinite;
+        }
+
+        .disclaimer-box {
+            margin-top: 60px;
+            padding: 24px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-align: center;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body class="scrollable-page">
+    <header class="app-header">
+        <div class="logo-area">
+            <div class="logo-icon"></div>
+            <span class="logo-text">QUANTIX AI CORE</span>
+        </div>
+        <div class="hamburger" id="menu-toggle">☰</div>
+        <nav class="main-nav" id="main-nav">
+            <a href="../" class="nav-link">About</a>
+            <a href="../dashboard/" class="nav-link">Dashboard</a>
+            <a href="../signals/" class="nav-link active">Signals</a>
+            <a href="../reasoning/" class="nav-link">Reasoning</a>
+            <a href="../api/" class="nav-link">API</a>
+            <a href="../disclaimer/" class="nav-link">Legal</a>
+        </nav>
+        <div class="status-tag hide-mobile"
+            style="width: 240px; display: flex; justify-content: flex-end; font-size: 0.7rem; color: var(--text-dim); align-items: center; gap: 8px;">
+            <div class="dot dot-online"></div> INTELLIGENCE_LIVE
+        </div>
+    </header>
+
+    <main class="content-container">
+        <div class="signals-header">
+            <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 12px;">Market Structure Reference</h1>
+            <p style="color: var(--text-dim); max-width: 600px; margin: 0 auto; line-height: 1.6;">
+                AI-generated structural bias and key interest zones. Deterministic analysis derived from Dukascopy
+                binary tick data.
+            </p>
+        </div>
+
+        <div id="signals-container" class="signals-grid">
+            <!-- Loading States or Cards will manifest here -->
+            <div style="grid-column: 1/-1; text-align: center; padding: 100px; color: var(--text-dim);">
+                <div class="pulse-small" style="margin: 0 auto 20px;"></div>
+                Synchronizing with Intelligence Engine...
+            </div>
+        </div>
+
+        <div class="disclaimer-box">
+            <strong>⚖️ LEGAL NOTICE:</strong> Quantix provides AI-generated market structure references for educational
+            and analytical purposes only.
+            This is not financial advice, a trade instruction, or a solicitation to buy/sell any financial instrument.
+            Past performance, even if backtested by AI, does not guarantee future results.
+            Use of this data is at your own risk.
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <div class="disclaimer">Institutional Grade Reference Engine. Mode: Public Alpha Alpha.</div>
+    </footer>
+
+    <script src="../static/js/api.js"></script>
+    <script src="../static/js/ui_shared.js"></script>
+    <script src="../static/js/signals.js"></script>
+</body>
+
+</html>

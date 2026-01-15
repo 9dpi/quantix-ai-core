@@ -9,7 +9,7 @@ import uvicorn
 import asyncio
 import os
 
-from quantix_core.api.routes import health, signals, ingestion, csv_ingestion, admin, features, structure, lab, public
+from quantix_core.api.routes import health, signals, ingestion, csv_ingestion, admin, features, structure, lab, public, reference
 from quantix_core.config.settings import settings
 from quantix_core.database.connection import db
 
@@ -39,6 +39,7 @@ app.include_router(csv_ingestion.router, prefix=f"{settings.API_PREFIX}/ingestio
 app.include_router(admin.router, prefix=settings.API_PREFIX, tags=["Admin"])
 app.include_router(lab.router, prefix=f"{settings.API_PREFIX}/lab", tags=["Learning Lab"])
 app.include_router(public.router, prefix=settings.API_PREFIX, tags=["Public API"])
+app.include_router(reference.router, prefix=settings.API_PREFIX, tags=["Public API"])
 
 @app.on_event("startup")
 async def startup_event():

@@ -154,15 +154,17 @@
         </div>
 
         <div class="signals-header" style="margin-bottom: 60px;">
-            <h1 style="font-size: 3rem; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.03em;">Quantix Lab
+            <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.03em;">
+                Quantix Lab – Market Reasoning Snapshot
             </h1>
             <p
                 style="color: var(--accent); font-weight: 700; font-size: 1.1rem; letter-spacing: 0.1em; text-transform: uppercase;">
-                Historical Market Reasoning</p>
+                Forensic Market Analysis Explorer</p>
         </div>
 
         <!-- SELECTOR BAR (BENTO STYLE) -->
         <div class="select-bar">
+            <!-- ... (inputs remain same) ... -->
             <div class="select-grid">
                 <div>
                     <label class="label-tiny">ASSET</label>
@@ -170,6 +172,7 @@
                         <option value="EURUSD">EUR/USD</option>
                         <option value="GBPUSD">GBP/USD</option>
                         <option value="USDJPY">USD/JPY</option>
+                        <option value="AUDUSD">AUD/USD</option>
                     </select>
                 </div>
                 <div>
@@ -186,12 +189,13 @@
                 </div>
                 <div class="btn-run-wrap">
                     <button onclick="runLabReasoning()" class="btn-analyze btn-bright"
-                        style="width: 100%; height: 46px; border-radius: 8px; font-weight: 800; font-size: 0.8rem; box-shadow: 0 4px 20px rgba(56, 189, 248, 0.2);">RUN
-                        AI REASONING</button>
+                        style="width: 100%; height: 46px; border-radius: 8px; font-weight: 800; font-size: 0.8rem; box-shadow: 0 4px 20px rgba(56, 189, 248, 0.2);">
+                        GENERATE SNAPSHOT
+                    </button>
                 </div>
             </div>
-            <p style="text-align: center; color: var(--warning); font-size: 0.65rem; margin-top: 16px; opacity: 0.8;">
-                ❗ No auto-run. System will freeze dataset at the specified timestamp (Strictly No Lookahead).
+            <p style="text-align: center; color: var(--text-dim); font-size: 0.65rem; margin-top: 16px; opacity: 0.8;">
+                ℹ️ System generates a deterministic snapshot for the specified timestamp.
             </p>
         </div>
 
@@ -203,33 +207,22 @@
                     <div class="bento-header" style="color: #ff4785;">
                         <span
                             style="font-size: 12px; border-radius: 50%; background: #ff4785; width: 8px; height: 8px; display: inline-block;"></span>
-                        REASONING SNAPSHOT
+                        REASONING OUTPUT
                     </div>
                     <div class="reasoning-box">
-                        <div style="margin-bottom: 40px;">
+                        <div style="margin-bottom: 32px;">
                             <div class="label-tiny">STRUCTURE STATE</div>
                             <div id="res-state"
-                                style="font-size: 2rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.01em;">
-                                BULLISH_CONTINUATION</div>
+                                style="font-size: 1.8rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.01em;">
+                                —
+                            </div>
                         </div>
 
-                        <div style="margin-bottom: 40px;">
-                            <div class="label-tiny" style="margin-bottom: 16px;">DETECTED MARKET CONDITIONS (EVIDENCE)
-                            </div>
+                        <div style="margin-bottom: 32px;">
+                            <div class="label-tiny" style="margin-bottom: 16px;">EVIDENCE</div>
                             <ul id="res-evidence"
-                                style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 16px;">
-                                <li style="display: flex; gap: 12px; color: var(--text-dim); font-size: 0.95rem;">
-                                    <span style="color: var(--highlight);">✔</span> Higher Low confirmed at reference
-                                    point
-                                </li>
-                                <li style="display: flex; gap: 12px; color: var(--text-dim); font-size: 0.95rem;">
-                                    <span style="color: var(--highlight);">✔</span> No structure break detected in
-                                    lookback period
-                                </li>
-                                <li style="display: flex; gap: 12px; color: var(--text-dim); font-size: 0.95rem;">
-                                    <span style="color: var(--highlight);">✔</span> Momentum aligned with Primary
-                                    structure
-                                </li>
+                                style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 12px;">
+                                <!-- Dynamic List -->
                             </ul>
                         </div>
 
@@ -237,123 +230,166 @@
                             <div class="label-tiny" style="color: #ef4444; margin-bottom: 12px;">INVALIDATION LOGIC
                             </div>
                             <div id="res-invalidation"
-                                style="color: var(--text-dim); font-size: 0.9rem; line-height: 1.6;">
-                                Reference snapshot becomes invalid if price breaks below <span
-                                    style="font-family: 'JetBrains Mono'; color: #ef4444; font-weight: 700;">1.16480</span>.
+                                style="color: var(--text-dim); font-size: 0.85rem; line-height: 1.5; border-left: 2px solid #ef4444; padding-left: 12px;">
+                                —
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- HISTORICAL REFERENCE -->
+                <!-- SNAPSHOT INFO PANEL -->
                 <div>
                     <div class="bento-header">
-                        <span style="font-size: 1rem;">📋</span> HISTORICAL REFERENCE
+                        <span style="font-size: 1rem;">🧾</span> SNAPSHOT INFO MODEL
                     </div>
-                    <div id="lab-card-container">
-                        <!-- Reference card injected here -->
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- INFO GRID -->
-        <div style="margin-top: 100px; padding-top: 60px; border-top: 1px solid var(--border);">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px;">
-                <div>
-                    <h3
-                        style="color: var(--accent); font-size: 0.8rem; font-weight: 800; text-transform: uppercase; margin-bottom: 20px;">
-                        ✅ Quantix Lab Role</h3>
-                    <p style="color: var(--text-dim); font-size: 0.85rem; line-height: 1.8;">
-                        A transparent environment for auditing AI logic. It ensures that every structural bias is
-                        explainable and verifiable against historical tick data, without the noise of current market
-                        fluctuations.
-                    </p>
-                </div>
-                <div>
-                    <h3
-                        style="color: #ef4444; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; margin-bottom: 20px;">
-                        ❌ Legal Boundaries</h3>
-                    <p style="color: var(--text-dim); font-size: 0.85rem; line-height: 1.8;">
-                        This is an explorer, not an advisor. Historical reasoning does not predict future performance.
-                        All snapshots are static and do not constitute financial recommendations.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <footer class="app-footer" style="margin-top: 120px;">
-        <div class="disclaimer">⚠️ Not financial advice. For research purposes only. Quantix Lab v1.0.4a</div>
-    </footer>
-
-    <script>
-        // Set default time to now for convenience (UTC)
-        window.onload = () => {
-            const now = new Date();
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            document.getElementById('lab-time').value = now.toISOString().slice(0, 16);
-        };
-
-        async function runLabReasoning() {
-            const asset = document.getElementById('lab-asset').value;
-            const tf = document.getElementById('lab-tf').value;
-            const time = document.getElementById('lab-time').value;
-
-            if (!time) {
-                alert("Please specify a timestamp.");
-                return;
-            }
-
-            const output = document.getElementById('lab-output-area');
-            output.style.display = 'block';
-
-            // Mocking logic
-            const container = document.getElementById('lab-card-container');
-            container.innerHTML = `
-                <div class="reference-card-bento" style="animation: fadeInUp 0.5s ease forwards;">
-                    <div style="font-size: 1.25rem; font-weight: 800; margin-bottom: 4px; color: var(--text-main);">BUY</div>
-                    <div style="font-size: 1rem; color: var(--text-dim); margin-bottom: 4px;">${asset.slice(0, 3)}/${asset.slice(3, 6)}</div>
-                    <div style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 24px;">⏳ ${tf} • Historical Snapshot</div>
-                    
-                    <div style="margin-bottom: 32px;">
-                        <div style="font-size: 0.9rem; font-weight: 800; color: var(--highlight);">96% Confidence</div>
-                        <div class="confidence-meter" style="height: 4px; margin-top: 8px;">
-                            <div class="confidence-fill" style="width: 96%; background: var(--highlight)"></div>
-                        </div>
-                    </div>
-                    
-                    <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
-                        <div style="margin-bottom: 24px;">
-                            <div class="label-tiny">ENTRY ZONE (HISTORICAL)</div>
-                            <div style="font-family: 'JetBrains Mono'; font-size: 1.1rem; color: var(--text-main);">1.16710 — 1.16750</div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
+                    <div class="reference-card-bento">
+                        <!-- Details Panel -->
+                        <div
+                            style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 0.8rem; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 24px;">
                             <div>
-                                <div class="label-tiny">TP LEVEL</div>
-                                <div style="font-family: 'JetBrains Mono'; color: var(--highlight); font-weight: 800;">1.17080</div>
+                                <div class="label-tiny">SYMBOL</div>
+                                <div id="info-symbol" style="color: var(--text-main); font-weight: 700;">—</div>
+                            </div>
+                            <div>
+                                <div class="label-tiny">TIMEFRAME</div>
+                                <div id="info-tf" style="color: var(--text-main); font-weight: 700;">—</div>
+                            </div>
+                            <div style="grid-column: 1/-1;">
+                                <div class="label-tiny">GENERATED AT (UTC)</div>
+                                <div id="info-generated"
+                                    style="color: var(--text-dim); font-family: 'JetBrains Mono'; letter-spacing: -0.05em;">
+                                    —</div>
+                            </div>
+                            <div>
+                                <div class="label-tiny">AGE</div>
+                                <div id="info-age" style="color: var(--accent);">—</div>
+                            </div>
+                            <div>
+                                <div class="label-tiny">PROVIDER</div>
+                                <div id="info-provider" style="color: var(--text-main);">DUKASCOPY</div>
+                            </div>
+                            <div style="grid-column: 1/-1;">
+                                <div class="label-tiny">TRACE ID</div>
+                                <div id="info-trace"
+                                    style="font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--text-dim); word-break: break-all;">
+                                    —</div>
+                            </div>
+                        </div>
+
+                        <!-- Confidence & Bias Small View -->
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div class="label-tiny">CONFIDENCE</div>
+                                <div id="info-confidence"
+                                    style="font-size: 1.2rem; font-weight: 800; color: var(--highlight);">—</div>
                             </div>
                             <div style="text-align: right;">
-                                <div class="label-tiny">SL LEVEL</div>
-                                <div style="font-family: 'JetBrains Mono'; color: #ef4444; font-weight: 800;">1.16480</div>
+                                <div class="label-tiny">BIAS</div>
+                                <div id="info-bias" style="font-size: 1rem; font-weight: 700; color: var(--text-main);">
+                                    —</div>
                             </div>
                         </div>
                     </div>
-
-                    <div style="margin-top: 32px; font-size: 0.65rem; color: var(--text-dim); font-family: 'JetBrains Mono'; line-height: 1.6;">
-                        SNAPSHOT POINT: ${time.replace('T', ' ')}<br>
-                        DATA SOURCE: DUKASCOPY (UTC)
-                    </div>
                 </div>
-            `;
+            </div>
+        </div>
 
-            window.scrollTo({
-                top: output.offsetTop - 100,
-                behavior: 'smooth'
-            });
-        }
-    </script>
-    <script src="../static/js/ui_shared.js"></script>
+        <script src="../static/js/api.js"></script> <!-- Ensure we have API Config -->
+        <script>
+            // Set default time to now for convenience (UTC)
+            window.onload = () => {
+                const now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                document.getElementById('lab-time').value = now.toISOString().slice(0, 16);
+            };
+
+            async function runLabReasoning() {
+                const asset = document.getElementById('lab-asset').value;
+                const tf = document.getElementById('lab-tf').value;
+                let timeStr = document.getElementById('lab-time').value; // Local input time
+
+                if (!timeStr) {
+                    alert("Please specify a timestamp.");
+                    return;
+                }
+
+                // Convert to strict ISO-8601 string for backend (append :00Z if needed, though backend just treats string as seed)
+                // Just assume input is intended as UTC for simplicity in this lab tool
+
+                const btn = document.querySelector('.btn-analyze');
+                const originalText = btn.innerText;
+                btn.innerText = "⏳ COMPUTING...";
+                btn.disabled = true;
+
+                try {
+                    const baseUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'https://quantixaicore-production.up.railway.app/api/v1';
+
+                    // Fetch from API with snap_time
+                    const response = await fetch(`${baseUrl}/lab/market-reference?symbol=${asset}&tf=${tf}&snap_time=${encodeURIComponent(timeStr)}&_=${Date.now()}`);
+
+                    if (!response.ok) throw new Error("API Connection Failed");
+
+                    const data = await response.json();
+                    renderLabOutput(data);
+
+                    document.getElementById('lab-output-area').style.display = 'block';
+                    window.scrollTo({
+                        top: document.getElementById('lab-output-area').offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+
+                } catch (e) {
+                    console.error(e);
+                    alert("Lab Engine Offline or Error: " + e.message);
+                } finally {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }
+            }
+
+            function renderLabOutput(data) {
+                // 1. Reasoning Output
+                const reasoning = data.reasoning || {};
+                document.getElementById('res-state').innerText = reasoning.state || "UNKNOWN";
+                document.getElementById('res-state').style.color = data.ui_color === 'red' || data.ui_color === 'fire' ? '#ef4444' : (data.ui_color === 'green' ? 'var(--highlight)' : 'var(--text-main)');
+
+                const evidenceList = document.getElementById('res-evidence');
+                evidenceList.innerHTML = '';
+                (reasoning.evidence || []).forEach(item => {
+                    const li = document.createElement('li');
+                    li.style.cssText = "display: flex; gap: 12px; color: var(--text-dim); font-size: 0.9rem;";
+                    li.innerHTML = `<span style="color: var(--highlight);">✔</span> ${item.replace('✔', '').trim()}`; // Clean double ticks if any
+                    evidenceList.appendChild(li);
+                });
+
+                document.getElementById('res-invalidation').innerHTML =
+                    `Reference snapshot is invalid if price breaks ${reasoning.invalidation_price ? 'beyond' : ''} <span style="font-family: 'JetBrains Mono'; color: #ef4444; font-weight: 700;">${reasoning.invalidation_price || 'N/A'}</span>`;
+
+                // 2. Snapshot Info Panel
+                document.getElementById('info-symbol').innerText = data.asset;
+                document.getElementById('info-tf').innerText = data.timeframe;
+                document.getElementById('info-generated').innerText = data.meta.generated_at;
+                document.getElementById('info-trace').innerText = reasoning.trace_id || "N/A";
+                document.getElementById('info-confidence').innerText = (data.confidence * 100).toFixed(0) + "% ⭐";
+                document.getElementById('info-bias').innerText = data.trade_bias;
+                document.getElementById('info-provider').innerText = reasoning.provider || "DUKASCOPY";
+
+                // Calculate Age
+                const genTime = new Date(data.meta.generated_at);
+                const now = new Date(); // Browser local time, but generated_at should be parsed correctly as UTC if format is ISO
+                // Assuming simplified diff for Lab demo
+                // In historical mode, "Age" might be "Historical"
+
+                if (data.meta.is_historical) {
+                    document.getElementById('info-age').innerText = "HISTORICAL ARCHIVE";
+                } else {
+                    const diffMins = Math.round((Date.now() - genTime.getTime()) / 60000);
+                    document.getElementById('info-age').innerText = `${diffMins} mins ago`;
+                }
+            }
+        </script>
+        <script src="../static/js/ui_shared.js"></script>
 </body>
 
 </html>

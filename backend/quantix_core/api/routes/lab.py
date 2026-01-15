@@ -7,7 +7,8 @@ from fastapi import APIRouter, HTTPException, Query, Body
 from quantix_core.config.settings import settings
 from quantix_core.engine.structure_engine_v1 import StructureEngineV1
 from quantix_core.learning_lab.advisor import LabAdvisor
-from quantix_core.ingestion.yahoo_fetcher import YahooFinanceFetcher
+# DISABLED: YahooFinanceFetcher module does not exist - Quantix uses Dukascopy
+# from quantix_core.ingestion.yahoo_fetcher import YahooFinanceFetcher
 from loguru import logger
 import pandas as pd
 import uuid

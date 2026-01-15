@@ -11,7 +11,8 @@ from datetime import datetime
 import uuid
 
 from quantix_core.engine.structure_engine_v1 import StructureEngineV1
-from quantix_core.ingestion.yahoo_fetcher import YahooFinanceFetcher
+# DISABLED: YahooFinanceFetcher module does not exist - Quantix uses Dukascopy
+# from quantix_core.ingestion.yahoo_fetcher import YahooFinanceFetcher
 from quantix_core.ingestion.data_validator import DataValidator, DataNotSufficientError
 from loguru import logger
 

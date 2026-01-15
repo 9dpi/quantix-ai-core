@@ -10,12 +10,14 @@ import uuid
 
 from quantix_core.schemas.feature_state import FeatureStateObject, TrendFeatureState, MomentumFeatureState, VolatilityFeatureState
 from quantix_core.learning.primitives.structure import StructurePrimitive
-from quantix_core.ingestion.yahoo_fetcher import YahooFinanceFetcher
+# DISABLED: YahooFinanceFetcher module does not exist - Quantix uses Dukascopy
+# from quantix_core.ingestion.yahoo_fetcher import YahooFinanceFetcher
 from quantix_core.ingestion.data_validator import DataValidator, DataNotSufficientError
 from loguru import logger
 
 router = APIRouter()
-fetcher = YahooFinanceFetcher()
+# DISABLED: YahooFinanceFetcher not available
+# fetcher = YahooFinanceFetcher()
 structure_calc = StructurePrimitive()
 validator = DataValidator
 

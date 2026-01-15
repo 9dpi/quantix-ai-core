@@ -29,157 +29,147 @@ async def get_lab_reference(
     """
     logger.info(f"🧪 LAB: Snapshot request for {symbol} @ {tf}")
     
-    import asyncio
+    # ✅ HOTFIX: Return deterministic mock snapshot based on seed
+    # Logic is purely CPU bound (math/random), so running it directly here is fastest & safest.
+    # No asyncio wrappers needed.
     
-    async def generate_mock_snapshot():
-        # ✅ HOTFIX: Return deterministic mock snapshot based on seed
-        import hashlib
-        import random
-        
-        # 1. Deterministic Seed via Caching Window
-        # We want the signal to be STABLE for the duration of the timeframe
-        now = datetime.utcnow()
-        
-        # TTL Mapping (Seconds)
-        ttl_map = {
-            "M15": 900,
-            "H1": 3600,
-            "H4": 14400,
-            "D1": 86400
-        }
-        ttl = ttl_map.get(tf, 3600) # Default 1h
-        
-        # Calculate current window start (e.g. current hour start)
-        window_timestamp = int(now.timestamp()) // ttl
-        
-        seed_str = f"{symbol}{tf}{window_timestamp}" 
-        seed = int(hashlib.md5(seed_str.encode()).hexdigest()[:8], 16)
-        random.seed(seed)
-        
-        # 2. Generate Base Metrics (Structure & Confidence)
-        # We simulate a chaotic market where high confidence is rare
-        raw_confidence = random.uniform(0.35, 0.92) 
-        structure_bias = random.choice(["BULLISH", "BEARISH"])
-        
-        # 3. APPLY OFFICIAL MAPPING LOGIC (The Spine)
-        confidence_pct = int(raw_confidence * 100)
-        
-        trade_bias = "NEUTRAL"
+    import hashlib
+    import random
+    
+    # 1. Deterministic Seed via Caching Window
+    # We want the signal to be STABLE for the duration of the timeframe
+    now = datetime.now(timezone.utc)
+    
+    # TTL Mapping (Seconds)
+    ttl_map = {
+        "M15": 900,
+        "H1": 3600,
+        "H4": 14400,
+        "D1": 86400
+    }
+    ttl = ttl_map.get(tf, 3600) # Default 1h
+    
+    # Calculate current window start
+    window_timestamp = int(now.timestamp()) // ttl
+    
+    seed_str = f"{symbol}{tf}{window_timestamp}" 
+    seed = int(hashlib.md5(seed_str.encode()).hexdigest()[:8], 16)
+    random.seed(seed)
+    
+    # 2. Generate Base Metrics (Structure & Confidence)
+    raw_confidence = random.uniform(0.35, 0.92) 
+    structure_bias = random.choice(["BULLISH", "BEARISH"])
+    
+    # 3. APPLY OFFICIAL MAPPING LOGIC (The Spine)
+    confidence_pct = int(raw_confidence * 100)
+    
+    trade_bias = "NEUTRAL"
+    strength_label = "Neutral"
+    trade_allowed = False
+    ui_color = "gray"
+    
+    if confidence_pct < 40:
+        trade_bias = "NO TRADE"
         strength_label = "Neutral"
-        trade_allowed = False
         ui_color = "gray"
+    elif confidence_pct < 55:
+        trade_bias = "WAIT"
+        strength_label = "Weak Bias"
+        ui_color = "gray"
+    elif confidence_pct < 65:
+        trade_bias = "BUY" if structure_bias == "BULLISH" else "SELL"
+        strength_label = "Cautious"
+        trade_allowed = True
+        ui_color = "yellow"
+    elif confidence_pct < 75:
+        trade_bias = "BUY" if structure_bias == "BULLISH" else "SELL"
+        strength_label = "Valid"
+        trade_allowed = True
+        ui_color = "green"
+    elif confidence_pct < 85:
+        trade_bias = "STRONG BUY" if structure_bias == "BULLISH" else "STRONG SELL"
+        strength_label = "Strong"
+        trade_allowed = True
+        ui_color = "blue"
+    else: # >= 85
+        trade_bias = "HIGH CONVICTION" if structure_bias == "BULLISH" else "HIGH CONVICTION"
+        strength_label = "High Confidence"
+        trade_allowed = True
+        ui_color = "fire"
         
-        if confidence_pct < 40:
-            trade_bias = "NO TRADE"
-            strength_label = "Neutral"
-            ui_color = "gray"
-        elif confidence_pct < 55:
-            trade_bias = "WAIT"
-            strength_label = "Weak Bias"
-            ui_color = "gray"
-        elif confidence_pct < 65:
-            trade_bias = "BUY" if structure_bias == "BULLISH" else "SELL"
-            strength_label = "Cautious"
-            trade_allowed = True
-            ui_color = "yellow"
-        elif confidence_pct < 75:
-            trade_bias = "BUY" if structure_bias == "BULLISH" else "SELL"
-            strength_label = "Valid"
-            trade_allowed = True
-            ui_color = "green"
-        elif confidence_pct < 85:
-            trade_bias = "STRONG BUY" if structure_bias == "BULLISH" else "STRONG SELL"
-            strength_label = "Strong"
-            trade_allowed = True
-            ui_color = "blue"
-        else: # >= 85
-            trade_bias = "HIGH CONVICTION" if structure_bias == "BULLISH" else "HIGH CONVICTION"
-            strength_label = "High Confidence"
-            trade_allowed = True
-            ui_color = "fire"
-            
-        # 4. Mock Price Levels (Only if trade allowed)
-        base_price = 1.0850 if "EUR" in symbol else (150.00 if "JPY" in symbol else 1.2500)
-        atr_mock = 0.0015 if "JPY" not in symbol else 0.15
-        
-        levels = {}
-        trade_details = {}
-        
-        if trade_allowed and "BUY" in trade_bias:
-            entry = base_price
-            tp = base_price + (atr_mock * 2.0)
-            sl = base_price - (atr_mock * 1.0)
-            levels = {
-                "entry_zone": [round(entry - (atr_mock*0.1), 5), round(entry, 5)],
-                "take_profit": round(tp, 5),
-                "stop_loss": round(sl, 5)
-            }
-            trade_details = {
-                "target_pips": round(abs(tp - entry) * (100 if "JPY" in symbol else 10000), 1),
-                "risk_reward": 2.0,
-                "type": "Trend Follow"
-            }
-        elif trade_allowed and "SELL" in trade_bias:
-            entry = base_price
-            tp = base_price - (atr_mock * 2.0)
-            sl = base_price + (atr_mock * 1.0)
-            levels = {
-                "entry_zone": [round(entry, 5), round(entry + (atr_mock*0.1), 5)],
-                "take_profit": round(tp, 5),
-                "stop_loss": round(sl, 5)
-            }
-            trade_details = {
-                "target_pips": round(abs(entry - tp) * (100 if "JPY" in symbol else 10000), 1),
-                "risk_reward": 2.0,
-                "type": "Trend Follow"
-            }
-        else:
-            levels = {"entry_zone": [0,0], "take_profit": 0, "stop_loss": 0}
-            trade_details = {"target_pips": 0, "risk_reward": 0, "type": "N/A"}
-
-        # Calculate Expires At
-        next_update_ts = (window_timestamp + 1) * ttl
-        expires_at = datetime.fromtimestamp(next_update_ts, tz=timezone.utc)
-        
-        # 🛡️ HTTP CACHING HEADERS (Crucial for cost control)
-        # CDN/Browser will cache this until the next window
-        # Max-age is remaining time in current window
-        seconds_left = max(0, int(next_update_ts - now.timestamp()))
-        response.headers["Cache-Control"] = f"public, max-age={seconds_left}, stale-while-revalidate=60"
-        response.headers["X-Quantix-TTL"] = str(seconds_left)
-        response.headers["X-Quantix-Next-Update"] = expires_at.isoformat()
-
-        # 5. Construct Response
-        return {
-            "asset": symbol,
-            "trade_bias": trade_bias,         # "STRONG BUY", "WAIT"
-            "bias_strength": strength_label,  # "Strong", "Weak Bias"
-            "confidence": round(raw_confidence, 2),
-            "structure_bias": structure_bias, # "BULLISH", "BEARISH"
-            "ui_color": ui_color,
-            "timeframe": tf,
-            "session": "NY Session",
-            "price_levels": levels,
-            "trade_details": trade_details,
-            "expiry": {
-                "expires_at": expires_at.isoformat(),
-                "ttl_seconds": seconds_left
-            },
-            "meta": {
-                "generated_at": datetime.now(timezone.utc).isoformat(),
-                "engine": "Signal Engine Lab (MOCK)",
-                "mapping_version": "1.0-official",
-                "cache_status": "optimized"
-            },
-            "disclaimer": "Confidence indicates statistical quality, not profit guarantee."
+    # 4. Mock Price Levels (Only if trade allowed)
+    base_price = 1.0850 if "EUR" in symbol else (150.00 if "JPY" in symbol else 1.2500)
+    atr_mock = 0.0015 if "JPY" not in symbol else 0.15
+    
+    levels = {}
+    trade_details = {}
+    
+    if trade_allowed and "BUY" in trade_bias:
+        entry = base_price
+        tp = base_price + (atr_mock * 2.0)
+        sl = base_price - (atr_mock * 1.0)
+        levels = {
+            "entry_zone": [round(entry - (atr_mock*0.1), 5), round(entry, 5)],
+            "take_profit": round(tp, 5),
+            "stop_loss": round(sl, 5)
         }
+        trade_details = {
+            "target_pips": round(abs(tp - entry) * (100 if "JPY" in symbol else 10000), 1),
+            "risk_reward": 2.0,
+            "type": "Trend Follow"
+        }
+    elif trade_allowed and "SELL" in trade_bias:
+        entry = base_price
+        tp = base_price - (atr_mock * 2.0)
+        sl = base_price + (atr_mock * 1.0)
+        levels = {
+            "entry_zone": [round(entry, 5), round(entry + (atr_mock*0.1), 5)],
+            "take_profit": round(tp, 5),
+            "stop_loss": round(sl, 5)
+        }
+        trade_details = {
+            "target_pips": round(abs(entry - tp) * (100 if "JPY" in symbol else 10000), 1),
+            "risk_reward": 2.0,
+            "type": "Trend Follow"
+        }
+    else:
+        levels = {"entry_zone": [0,0], "take_profit": 0, "stop_loss": 0}
+        trade_details = {"target_pips": 0, "risk_reward": 0, "type": "N/A"}
 
-    try:
-        # 🛡️ HARD TIMEOUT PROTECTION: 
-        # Even mock generation is guarded by 2s timeout.
-        # Future real engine calls naturally fit here.
-        return await asyncio.wait_for(generate_mock_snapshot(), timeout=2.0)
+    # Calculate Expires At
+    next_update_ts = (window_timestamp + 1) * ttl
+    expires_at = datetime.fromtimestamp(next_update_ts, tz=timezone.utc)
+    
+    # 🛡️ HTTP CACHING HEADERS (Crucial for cost control)
+    # CDN/Browser will cache this until the next window
+    # Max-age is remaining time in current window
+    seconds_left = max(0, int(next_update_ts - now.timestamp()))
+    response.headers["Cache-Control"] = f"public, max-age={seconds_left}, stale-while-revalidate=60"
+    response.headers["X-Quantix-TTL"] = str(seconds_left)
+    response.headers["X-Quantix-Next-Update"] = expires_at.isoformat()
+
+    # 5. Construct Response
+    return {
+        "asset": symbol,
+        "trade_bias": trade_bias,         # "STRONG BUY", "WAIT"
+        "bias_strength": strength_label,  # "Strong", "Weak Bias"
+        "confidence": round(raw_confidence, 2),
+        "structure_bias": structure_bias, # "BULLISH", "BEARISH"
+        "ui_color": ui_color,
+        "timeframe": tf,
+        "session": "NY Session",
+        "price_levels": levels,
+        "trade_details": trade_details,
+        "expiry": {
+            "expires_at": expires_at.isoformat(),
+            "ttl_seconds": seconds_left
+        },
+        "meta": {
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "engine": "Signal Engine Lab (MOCK)",
+            "mapping_version": "1.0-official",
+            "cache_status": "optimized"
+        },
+        "disclaimer": "Confidence indicates statistical quality, not profit guarantee."
+    }
         
-    except Exception as e:
-        logger.error(f"❌ Lab snapshot failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))

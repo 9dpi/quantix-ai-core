@@ -88,8 +88,10 @@ const SIGNALS = {
                 const timeDiff = Math.round((Date.now() - parsed.timestamp) / 60000); // Minutes
 
                 container.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; padding: 12px; margin-bottom: 20px; background: rgba(255, 165, 0, 0.1); border: 1px solid var(--warning); border-radius: 8px; color: var(--warning); font-size: 0.8rem;">
-                        ⚠️ Network Unavailable. Showing Cached Snapshot from ${timeDiff} mins ago.
+                    <div style="grid-column: 1/-1; text-align: center; padding: 16px; margin-bottom: 24px; background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 12px; color: var(--text-main); font-size: 0.85rem; line-height: 1.5;">
+                        <strong style="color: var(--accent); display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em;">ℹ️ Snapshot Reference Mode</strong>
+                        Market references are generated from Quantix Lab deterministic logic.<br>
+                        <span style="color: var(--text-dim); font-size: 0.75rem;">For evaluation & research only. Not real-time trading signals.</span>
                     </div>
                 `;
 
@@ -183,6 +185,7 @@ const SIGNALS = {
         const expiresAt = data.expiry?.expires_at ? new Date(data.expiry.expires_at) : null;
         const timeString = expiresAt ? expiresAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Unknown';
         const ttlMinutes = data.expiry?.ttl_seconds ? Math.ceil(data.expiry.ttl_seconds / 60) : 0;
+        const genTime = data.meta?.generated_at ? new Date(data.meta.generated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now';
 
         let footerStatus = `⏳ Next Snapshot: ${timeString} (${ttlMinutes}m)`;
         if (ttlMinutes <= 0) footerStatus = `🔄 Update Available`;
@@ -232,7 +235,7 @@ const SIGNALS = {
             </div>
             
             <div class="meta-footer" style="margin-top: 10px; font-size: 0.6rem; display: flex; justify-content: space-between;">
-                <div>Generating Engine: v1.4</div>
+                <div style="opacity: 0.7;">Gen: ${genTime} UTC</div>
                 <div style="font-weight: 700; color: var(--accent);">${footerStatus}</div>
             </div>
         `;

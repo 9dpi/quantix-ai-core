@@ -8,7 +8,7 @@ Principle: Better to miss a trade than take a fake breakout
 import pandas as pd
 from typing import List
 
-from quantix_core.learning.primitives.structure_events import StructureEvent
+from quantix_core.engine.primitives.structure_events import StructureEvent
 
 
 class FakeBreakoutFilter:

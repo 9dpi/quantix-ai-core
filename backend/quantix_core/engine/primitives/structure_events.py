@@ -9,7 +9,7 @@ from typing import List, Optional, Tuple
 from dataclasses import dataclass
 import pandas as pd
 
-from quantix_core.learning.primitives.swing_detector import SwingPoint
+from quantix_core.engine.primitives.swing_detector import SwingPoint
 
 
 @dataclass

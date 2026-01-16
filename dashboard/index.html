@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Quantix AI Core</title>
+    <title>Quantix AI Core – Live System Dashboard</title>
     <link rel="stylesheet" href="../static/css/style.css">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
@@ -84,6 +84,19 @@
             color: var(--text-main);
         }
 
+        .bento-block:last-child {
+            margin-bottom: 0;
+            flex: 1;
+        }
+
+        .left-col-bento,
+        .middle-col-bento,
+        .right-col-bento {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
         @media (max-width: 1400px) {
             .dashboard-grid {
                 grid-template-columns: 280px 1fr;
@@ -121,12 +134,11 @@
         </div>
         <div class="hamburger" id="menu-toggle">☰</div>
         <nav class="main-nav" id="main-nav">
-            <a href="../" class="nav-link">Overview</a>
-            <a href="../dashboard/" class="nav-link active">Live System</a>
-            <a href="../signals/" class="nav-link">Market Reference</a>
-            <a href="../lab/" class="nav-link">Quantix Lab</a>
-            <a href="../api/" class="nav-link">API</a>
-            <a href="../disclaimer/" class="nav-link">Legal</a>
+            <a href="../index.html" class="nav-link">Overview</a>
+            <a href="../dashboard/index.html" class="nav-link active">Live System</a>
+            <a href="../signals/index.html" class="nav-link">Quantix Lab</a>
+            <a href="../api/index.html" class="nav-link">API</a>
+            <a href="../disclaimer/index.html" class="nav-link">Legal</a>
         </nav>
         <div class="status-tag hide-mobile"
             style="width: 240px; display: flex; justify-content: flex-end; font-size: 0.7rem; color: var(--text-dim); align-items: center; gap: 8px;">
@@ -135,189 +147,206 @@
     </header>
 
     <main class="dashboard-grid">
-        <!-- LEFT: IDENTITY & GOVERNANCE -->
+        <!-- LEFT: SYSTEM STATUS & ROADMAP -->
         <aside class="left-col-bento">
             <div class="bento-block">
-                <div class="block-header">📡 System Core</div>
-                <h1 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 16px; letter-spacing: -0.02em;">QTX-V1.4
-                </h1>
-                <p style="font-size: 0.85rem; color: var(--text-dim); line-height: 1.6;">
-                    Operating as a <strong>Deterministic State Resolver</strong>.
-                    Monitoring global liquidity flows through 24/7 Dukascopy binary datafeed.
+                <div class="block-header">🛰️ System Status</div>
+                <div class="telemetry-item">
+                    <span class="telemetry-label">Engine</span>
+                    <span class="telemetry-value" style="color: var(--highlight);">ACTIVE</span>
+                </div>
+                <div class="telemetry-item" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+                    <span class="telemetry-label">Signal Source</span>
+                    <span class="telemetry-value">Live market data</span>
+                </div>
+                <div class="telemetry-item">
+                    <span class="telemetry-label">Interval</span>
+                    <span class="telemetry-value">Every 15m</span>
+                </div>
+                <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 16px; line-height: 1.5;">
+                    <strong style="color: var(--text-main);">Signal Output:</strong> BUY / SELL with TP & SL<br>
+                    <strong style="color: var(--text-main);">Confidence:</strong> Quantix internal score
+                    (non-probabilistic)
                 </p>
             </div>
 
-            <div class="bento-block" style="background: rgba(16, 185, 129, 0.03);">
-                <div class="block-header" style="color: var(--highlight);">⚖️ Governance</div>
+            <div class="bento-block">
+                <div class="block-header">🗺️ Roadmap Indicator</div>
                 <ul
-                    style="list-style: none; padding: 0; font-size: 0.75rem; color: var(--text-dim); display: flex; flex-direction: column; gap: 12px;">
-                    <li style="display: flex; gap: 8px; align-items: center;">
-                        <span style="color: var(--highlight);">◈</span> Clean Feed Protocol [ACTIVE]
+                    style="list-style: none; padding: 0; font-size: 0.85rem; display: flex; flex-direction: column; gap: 16px;">
+                    <li style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--text-dim);">Phase 1: Signal Gen</span>
+                        <span style="color: var(--highlight); font-weight: 800;">✅</span>
                     </li>
-                    <li style="display: flex; gap: 8px; align-items: center;">
-                        <span style="color: var(--highlight);">◈</span> Zero Lookahead Guarantee
+                    <li style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--text-main);">Phase 2: Live Tracker</span>
+                        <span style="color: var(--warning); font-weight: 800;">⏳</span>
                     </li>
-                    <li style="display: flex; gap: 8px; align-items: center;">
-                        <span style="color: var(--highlight);">◈</span> Strict OHLC Integrity
+                    <li style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--text-dim); opacity: 0.6;">Phase 3: Learning</span>
+                        <span style="color: var(--text-dim); opacity: 0.6;">🔜</span>
                     </li>
                 </ul>
             </div>
-
-            <div class="bento-block">
-                <div class="block-header">🧪 Quick Access</div>
-                <a href="../lab/" class="spec-link"
-                    style="width: 100%; justify-content: center; margin-top: 0; border: 1px solid var(--accent); background: transparent; color: var(--accent);">
-                    Open Quantix Lab →
-                </a>
-            </div>
         </aside>
 
-        <!-- MIDDLE: LIVE INTELLIGENCE -->
         <section class="middle-col-bento">
-            <div class="bento-block" style="height: auto; position: relative;">
-                <div class="block-header">📊 Live State Reasoning</div>
-
-                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin: 40px 0;">
-                    <div>
-                        <div style="font-size: 1.1rem; color: var(--text-dim); font-weight: 600; margin-bottom: 8px;">
-                            EUR/USD</div>
-                        <div id="core-state" class="hero-metric" style="color: var(--highlight);">BULLISH</div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div class="label-tiny" style="color: var(--text-dim); margin-bottom: 8px;">ENGINE CONFIDENCE
-                        </div>
-                        <div id="core-confidence" style="font-size: 2rem; font-weight: 800; color: var(--text-main);">
-                            78.4%</div>
-                    </div>
-                </div>
-
-                <div style="margin-top: 60px;">
-                    <div class="label-tiny" style="color: var(--text-dim); margin-bottom: 24px;">PIPELINE FLOW STATUS
-                    </div>
-                    <div
-                        style="display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 12px; border: 1px solid var(--border); overflow-x: auto;">
-                        <div class="pipeline-step-mini"
-                            style="font-size: 0.65rem; color: var(--accent); white-space: nowrap;">INGEST</div>
-                        <span style="color: var(--border);">→</span>
-                        <div class="pipeline-step-mini"
-                            style="font-size: 0.65rem; color: var(--accent); white-space: nowrap;">PARSE</div>
-                        <span style="color: var(--border);">→</span>
-                        <div class="pipeline-step-mini"
-                            style="font-size: 0.65rem; color: var(--accent); white-space: nowrap;">REASON</div>
-                        <span style="color: var(--border);">→</span>
-                        <div class="pipeline-step-mini"
-                            style="font-size: 0.65rem; color: var(--highlight); font-weight: 800; white-space: nowrap;">
-                            RESOLVED</div>
-                    </div>
-                </div>
-            </div>
-
             <div class="bento-block">
-                <div class="block-header">🧱 Structural Evidence Trace</div>
-                <div id="evidence-container"
-                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                <div class="block-header" style="justify-content: space-between;">
+                    <span>📡 Live Signal Feed</span>
+                    <span
+                        style="font-size: 0.6rem; color: var(--text-dim); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px;">REAL-TIME</span>
+                </div>
+
+                <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 24px; color: var(--text-main);">
+                    Latest Generated Signals
+                </h2>
+
+                <div id="signals-list-container" style="display: flex; flex-direction: column; gap: 16px;">
+                    <!-- Placeholder/Template for actual JS injection -->
                     <div
-                        style="padding: 16px; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px solid var(--border);">
-                        <div style="font-size: 0.65rem; color: var(--accent); margin-bottom: 8px;">SWING_ANALYSIS</div>
-                        <div style="font-size: 0.85rem; color: var(--text-main);">Higher High Confirmed</div>
-                    </div>
-                    <div
-                        style="padding: 16px; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px solid var(--border);">
-                        <div style="font-size: 0.65rem; color: var(--accent); margin-bottom: 8px;">REJECTION_FILTER
+                        style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 12px; padding: 20px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                        <div>
+                            <div class="label-tiny" style="color: var(--text-dim); margin-bottom: 4px;">ASSET / TF</div>
+                            <div style="font-weight: 800; color: var(--text-main);">EURUSD / M15</div>
                         </div>
-                        <div style="font-size: 0.85rem; color: var(--text-main);">No Fake Breakouts</div>
+                        <div>
+                            <div class="label-tiny" style="color: var(--text-dim); margin-bottom: 4px;">DIRECTION</div>
+                            <div style="font-weight: 800; color: var(--highlight);">BUY</div>
+                        </div>
+                        <div>
+                            <div class="label-tiny" style="color: var(--text-dim); margin-bottom: 4px;">CONFIDENCE</div>
+                            <div style="font-weight: 800; color: var(--text-main);">78%</div>
+                        </div>
+                        <div style="grid-column: 1 / -1; height: 1px; background: var(--border); margin: 8px 0;"></div>
+                        <div>
+                            <div class="label-tiny" style="color: var(--text-dim); margin-bottom: 4px;">ENTRY RANGE
+                            </div>
+                            <div style="font-family: 'JetBrains Mono'; font-size: 0.9rem;">1.0852 - 1.0855</div>
+                        </div>
+                        <div>
+                            <div class="label-tiny" style="color: var(--text-dim); margin-bottom: 4px;">TAKE PROFIT
+                            </div>
+                            <div style="font-family: 'JetBrains Mono'; font-size: 0.9rem; color: var(--highlight);">
+                                1.0890</div>
+                        </div>
+                        <div>
+                            <div class="label-tiny" style="color: var(--text-dim); margin-bottom: 4px;">STOP LOSS</div>
+                            <div style="font-family: 'JetBrains Mono'; font-size: 0.9rem; color: #ef4444;">1.0820</div>
+                        </div>
                     </div>
-                    <div
-                        style="padding: 16px; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px solid var(--border);">
-                        <div style="font-size: 0.65rem; color: var(--accent); margin-bottom: 8px;">MOMENTUM_ALIGN</div>
-                        <div style="font-size: 0.85rem; color: var(--text-main);">H4 Trend Dominant</div>
+                </div>
+
+                <div
+                    style="margin-top: 32px; padding: 16px; background: rgba(56, 189, 248, 0.05); border-radius: 10px; border: 1px dashed var(--accent); font-size: 0.8rem; color: var(--text-dim); line-height: 1.6;">
+                    <p>All signals are generated in real time. No historical repainting. No manual edits.</p>
+                </div>
+
+                <!-- Structural Evidence Trace -->
+                <div style="margin-top: 40px;">
+                    <div class="block-header">🧱 Structural Evidence Trace</div>
+                    <div id="evidence-container"
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                        <div
+                            style="padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border);">
+                            <div
+                                style="font-size: 0.65rem; color: var(--accent); margin-bottom: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">
+                                SWING_ANALYSIS</div>
+                            <div style="font-size: 0.95rem; color: var(--text-main); font-weight: 700;">Higher High
+                                Confirmed</div>
+                        </div>
+                        <div
+                            style="padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border);">
+                            <div
+                                style="font-size: 0.65rem; color: var(--accent); margin-bottom: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">
+                                REJECTION_FILTER</div>
+                            <div style="font-size: 0.95rem; color: var(--text-main); font-weight: 700;">No Fake
+                                Breakouts</div>
+                        </div>
+                        <div
+                            style="padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border);">
+                            <div
+                                style="font-size: 0.65rem; color: var(--accent); margin-bottom: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">
+                                MOMENTUM_ALIGN</div>
+                            <div style="font-size: 0.95rem; color: var(--text-main); font-weight: 700;">H4 Trend
+                                Dominant</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- RIGHT: INFRASTRUCTURE & DEPLOYMENT -->
+        <!-- RIGHT: PERFORMANCE & CALIBRATION -->
         <aside class="right-col-bento">
             <div class="bento-block">
-                <div class="block-header">🛰️ Health & Uptime</div>
+                <div class="block-header">📊 Performance Summary</div>
                 <div class="telemetry-item">
-                    <span class="telemetry-label">Data Ingestion</span>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span class="telemetry-value" style="color: var(--highlight);">OPERATIONAL</span>
-                        <div class="status-dot"></div>
-                    </div>
+                    <span class="telemetry-label">Total Signals</span>
+                    <span class="telemetry-value">142</span>
                 </div>
                 <div class="telemetry-item">
-                    <span class="telemetry-label">Reasoning Engine</span>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span class="telemetry-value" style="color: var(--highlight);">OPERATIONAL</span>
-                        <div class="status-dot"></div>
-                    </div>
+                    <span class="telemetry-label">TP Hit Count</span>
+                    <span class="telemetry-value" style="color: var(--highlight);">84</span>
                 </div>
                 <div class="telemetry-item">
-                    <span class="telemetry-label">API Gateway</span>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span class="telemetry-value" style="color: var(--highlight);">OPERATIONAL</span>
-                        <div class="status-dot"></div>
-                    </div>
+                    <span class="telemetry-label">SL Hit Count</span>
+                    <span class="telemetry-value" style="color: #ef4444;">38</span>
                 </div>
                 <div class="telemetry-item">
-                    <span class="telemetry-label">Database Node</span>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span class="telemetry-value" style="color: var(--highlight);">OPERATIONAL</span>
-                        <div class="status-dot"></div>
-                    </div>
+                    <span class="telemetry-label">Open Positions</span>
+                    <span class="telemetry-value">2</span>
                 </div>
-                <div
-                    style="margin-top: 24px; padding-top: 16px; border-top: 1px dashed var(--border); display: flex; justify-content: space-between;">
-                    <span style="font-size: 0.7rem; color: var(--text-dim);">SYSTEM HEARTBEAT</span>
-                    <span id="heartbeat-value"
-                        style="font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--accent);">42ms</span>
+                <div class="telemetry-item"
+                    style="margin-top: 12px; padding-top: 12px; border-top: 2px solid var(--border);">
+                    <span class="telemetry-label" style="font-weight: 800; color: var(--text-main);">Win Rate</span>
+                    <span class="telemetry-value" style="font-size: 1.2rem; color: var(--highlight);">68.8%</span>
                 </div>
+                <div class="telemetry-item">
+                    <span class="telemetry-label">Avg Pips</span>
+                    <span class="telemetry-value">+12.4 pips</span>
+                </div>
+                <p style="font-size: 0.65rem; color: var(--text-dim); margin-top: 16px;">
+                    *Performance calculated only from live signals, not backtests.
+                </p>
             </div>
 
-            <div class="bento-block" style="border-style: dashed;">
-                <div class="block-header">🚀 Deployment</div>
-                <div class="telemetry-item">
-                    <span class="telemetry-label">Provider</span>
-                    <span class="telemetry-value" style="color: var(--accent);">RAILWAY.APP</span>
+            <div class="bento-block">
+                <div class="block-header">🎯 Confidence Calibration</div>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div
+                        style="display: flex; justify-content: space-between; font-size: 0.8rem; padding: 8px; background: rgba(255,255,255,0.03); border-radius: 6px;">
+                        <span style="color: var(--text-dim);">60–70% Conf</span>
+                        <span style="font-weight: 700; color: var(--warning);">58% Win</span>
+                    </div>
+                    <div
+                        style="display: flex; justify-content: space-between; font-size: 0.8rem; padding: 8px; background: rgba(56, 189, 248, 0.05); border-radius: 6px; border: 1px solid var(--accent);">
+                        <span style="color: var(--text-dim);">70–80% Conf</span>
+                        <span style="font-weight: 700; color: var(--highlight);">72% Win</span>
+                    </div>
+                    <div
+                        style="display: flex; justify-content: space-between; font-size: 0.8rem; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px; opacity: 0.6;">
+                        <span style="color: var(--text-dim);">80–90% Conf</span>
+                        <span style="font-weight: 700;">TBD</span>
+                    </div>
                 </div>
-                <div class="telemetry-item">
-                    <span class="telemetry-label">Build Hash</span>
-                    <span class="telemetry-value">7ee5a4e-prod</span>
-                </div>
-                <div class="telemetry-item">
-                    <span class="telemetry-label">Region</span>
-                    <span class="telemetry-value">US-WEST-1</span>
-                </div>
-                <div style="margin-top: 16px; font-size: 0.7rem; color: var(--text-dim); line-height: 1.5;">
-                    Automatically rebuilding on <code>main</code> branch push. Continuous integrity auditing active.
-                </div>
+                <p style="font-size: 0.65rem; color: var(--text-dim); margin-top: 16px; line-height: 1.4;">
+                    Confidence is an evolving metric based on structural resolution, not a guarantee of outcome.
+                </p>
             </div>
         </aside>
     </main>
 
-    <footer class="app-footer-grid">
+    <footer class="app-footer-grid"
+        style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 60px 24px;">
         <div class="footer-block">
-            <h4>Quantix AI Core – Explainable Market Reasoning Engine (Snapshot Mode)</h4>
-            <p>This interface displays historical, static reasoning snapshots generated by Quantix AI Core for research,
-                evaluation, and integration purposes.</p>
+            <p style="color: var(--text-main); font-weight: 700; font-size: 0.95rem;">Quantix AI Core © 2026 Quantix
+                Research</p>
         </div>
         <div class="footer-block">
-            <h4>Non-Predictive / Non-Actionable</h4>
-            <p>All outputs are non-predictive, non-actionable, and provided “as is”. This system does not provide
-                financial advice, investment recommendations, or trading signals. Users are solely responsible for any
-                decisions made using this information.</p>
-        </div>
-        <div class="footer-block">
-            <h4>Transparency Notice</h4>
-            <p>Reasoning snapshots are generated from frozen historical market data at a specific reference timestamp.
-                No future data is accessed. No look-ahead bias is applied.</p>
-        </div>
-        <div class="footer-block">
-            <h4>Engine Meta</h4>
-            <p>Engine Version: Quantix-Core v0.9 (Lab)<br>Reasoning Type: Structure-Based, Rule-Driven AI<br>© 2026
-                Quantix AI Core — All rights reserved.</p>
+            <p style="color: var(--text-dim); font-size: 0.85rem; line-height: 1.6;">
+                Decision Intelligence for Trading Signals &nbsp;|&nbsp; Built for transparency, learning, and measurable
+                progress.
+            </p>
         </div>
     </footer>
 

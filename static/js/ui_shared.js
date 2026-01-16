@@ -13,14 +13,17 @@ const UI_MANAGER = {
 
     setActiveLink() {
         const path = window.location.pathname;
+        const page = path.split('/').pop() || 'index.html';
         const navLinks = document.querySelectorAll('.nav-link');
 
         navLinks.forEach(link => {
             const href = link.getAttribute('href');
-            // Check if current path includes the href or is root
-            if ((href === './' || href === '../') && (path === '/' || path.endsWith('/quantix-ai-core/') || path.endsWith('/index.html'))) {
+            const linkPage = href.split('/').pop();
+
+            // Check if current page matches the link's target page
+            if (page === linkPage) {
                 link.classList.add('active');
-            } else if (href !== './' && href !== '../' && path.includes(href)) {
+            } else if (page === 'index.html' && (href === './' || href === 'index.html')) {
                 link.classList.add('active');
             } else {
                 link.classList.remove('active');

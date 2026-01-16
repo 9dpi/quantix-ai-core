@@ -89,12 +89,11 @@
         </div>
         <div class="hamburger" id="menu-toggle">☰</div>
         <nav class="main-nav" id="main-nav">
-            <a href="./" class="nav-link active">Overview</a>
-            <a href="dashboard/" class="nav-link">Live System</a>
-            <a href="signals/" class="nav-link">Market Reference</a>
-            <a href="lab/" class="nav-link">Quantix Lab</a>
-            <a href="api/" class="nav-link">API</a>
-            <a href="disclaimer/" class="nav-link">Legal</a>
+            <a href="index.html" class="nav-link active">Overview</a>
+            <a href="dashboard/index.html" class="nav-link">Live System</a>
+            <a href="signals/index.html" class="nav-link">Quantix Lab</a>
+            <a href="api/index.html" class="nav-link">API</a>
+            <a href="disclaimer/index.html" class="nav-link">Legal</a>
         </nav>
         <div class="status-tag hide-mobile"
             style="width: 240px; display: flex; justify-content: flex-end; font-size: 0.7rem; color: var(--text-dim); align-items: center; gap: 8px;">
@@ -104,72 +103,150 @@
 
     <main class="content-container">
         <div class="hero-section">
-            <div class="hero-subtitle">Institutional Grade AI</div>
-            <h1 class="hero-title">Market State Analysis.<br>Not Prediction.</h1>
+            <div class="hero-subtitle">Decision Intelligence for Live Trading Signals</div>
+            <h1 class="hero-title">Quantix AI Core</h1>
             <p
-                style="color: var(--text-dim); max-width: 600px; margin: 32px auto; font-size: 1.1rem; line-height: 1.6;">
-                Deterministic structure resolution for institutional partners.
-                Built on verifiable tick data, not black-box hallucinations.
+                style="color: var(--text-dim); max-width: 700px; margin: 32px auto; font-size: 1.1rem; line-height: 1.6;">
+                Quantix AI Core is a market decision intelligence engine designed to generate, track, and learn from
+                live trading signals using real market data.
             </p>
+
+            <div
+                style="margin-bottom: 48px; color: var(--accent); font-weight: 600; font-size: 0.95rem; text-align: center;">
+                🚫 Not a trading bot &nbsp;|&nbsp; Not a promise of profit
+            </div>
+
             <div style="margin-top: 48px; display: flex; gap: 24px; justify-content: center;">
-                <a href="dashboard/" class="btn-bright"
+                <a href="dashboard/index.html" class="btn-bright"
                     style="text-decoration: none; padding: 14px 40px; border-radius: 100px; font-weight: 800;">
                     LIVE SYSTEM →
                 </a>
-                <a href="lab/" class="btn-analyze"
+                <a href="signals/index.html" class="btn-analyze"
                     style="background: transparent; border: 1px solid var(--accent); color: var(--accent); text-decoration: none; padding: 14px 40px; border-radius: 100px;">
                     QUANTIX LAB
                 </a>
             </div>
         </div>
 
+        <!-- What Quantix Does Section -->
+        <div style="margin-top: 80px;">
+            <div style="text-align: center; margin-bottom: 48px;">
+                <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 16px;">What Quantix Does</h2>
+                <p style="color: var(--text-dim); max-width: 600px; margin: 0 auto; line-height: 1.6;">
+                    Quantix AI Core transforms raw market data into structured trading signals and continuously
+                    evaluates their real-world performance.
+                </p>
+            </div>
+
+            <!-- Pipeline Flow -->
+            <div
+                style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 24px; padding: 40px;">
+                <h3
+                    style="font-size: 0.75rem; text-transform: uppercase; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 32px; text-align: center;">
+                    Operational Pipeline</h3>
+                <div
+                    style="display: flex; flex-direction: row; gap: 8px; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; flex-wrap: wrap;">
+                    <div
+                        style="padding: 8px 12px; background: rgba(56, 189, 248, 0.1); border: 1px solid var(--accent); border-radius: 6px; text-align: center; white-space: nowrap;">
+                        Live Market Data</div>
+                    <div style="color: var(--accent);">→</div>
+                    <div
+                        style="padding: 8px 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); border-radius: 6px; text-align: center; white-space: nowrap;">
+                        Intelligence Engine</div>
+                    <div style="color: var(--accent);">→</div>
+                    <div
+                        style="padding: 8px 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); border-radius: 6px; text-align: center; white-space: nowrap;">
+                        Signal JSON</div>
+                    <div style="color: var(--accent);">→</div>
+                    <div
+                        style="padding: 8px 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); border-radius: 6px; text-align: center; white-space: nowrap;">
+                        Distribution</div>
+                    <div style="color: var(--accent);">→</div>
+                    <div
+                        style="padding: 8px 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); border-radius: 6px; text-align: center; white-space: nowrap;">
+                        Tracking</div>
+                    <div style="color: var(--accent);">→</div>
+                    <div
+                        style="padding: 8px 12px; background: rgba(56, 189, 248, 0.05); border: 1px dashed var(--accent); border-radius: 6px; text-align: center; color: var(--accent); white-space: nowrap;">
+                        Learning</div>
+                </div>
+            </div>
+        </div>
+
         <div class="bento-landing">
+            <!-- Differentiation -->
             <div class="bento-card">
-                <div class="card-header">📡 Deterministic Intelligence</div>
-                <p style="color: var(--text-dim); line-height: 1.8;">
-                    Quantix resolves market structure based on immutable binary tick data.
-                    Every state resolution is 100% explainable, deterministic, and auditable for institutional
-                    compliance.
-                </p>
+                <div class="card-header">🚀 What Makes Quantix Different</div>
+                <ul
+                    style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 16px; color: var(--text-dim); font-size: 0.95rem;">
+                    <li><span style="color: var(--highlight);">✔</span> Live signals only (no hindsight backtests)</li>
+                    <li><span style="color: var(--highlight);">✔</span> Real-time TP/SL outcome tracking</li>
+                    <li><span style="color: var(--highlight);">✔</span> Transparent confidence scoring</li>
+                    <li><span style="color: var(--highlight);">✔</span> Public roadmap toward adaptive learning</li>
+                    <li><span style="color: var(--highlight);">✔</span> Designed for traders, not hype</li>
+                </ul>
             </div>
+
+            <!-- Current Status -->
             <div class="bento-card">
-                <div class="card-header">🛡️ Zero Lookahead Compliance</div>
-                <p style="color: var(--text-dim); line-height: 1.8;">
-                    Engineered to prevent lookahead bias at the hardware abstraction layer.
-                    Our analysis represents the precise structural reality at the time of ingest.
-                </p>
+                <div class="card-header">📊 Current Status</div>
+                <div style="display: flex; flex-direction: column; gap: 16px; font-size: 0.9rem;">
+                    <div>
+                        <div
+                            style="color: var(--accent); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 4px;">
+                            Engine Mode</div>
+                        <div style="color: var(--text-main);">Rule-based Decision Intelligence</div>
+                    </div>
+                    <div>
+                        <div
+                            style="color: var(--accent); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 4px;">
+                            Learning Mode</div>
+                        <div style="color: var(--text-dim);">In preparation</div>
+                    </div>
+                    <div>
+                        <div
+                            style="color: var(--accent); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 4px;">
+                            Market Data</div>
+                        <div style="color: var(--text-main);">Live (TwelveData)</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <div
+                                style="color: var(--accent); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 4px;">
+                                Signal Frequency</div>
+                            <div style="color: var(--text-main);">M15</div>
+                        </div>
+                        <div>
+                            <div
+                                style="color: var(--accent); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 4px;">
+                                Supported Asset</div>
+                            <div style="color: var(--text-main);">EUR/USD (initial)</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="bento-card" style="grid-column: 1 / -1; background: rgba(56, 189, 248, 0.03);">
-                <div class="card-header">🤝 Strategic Partnership</div>
-                <p style="color: var(--text-dim); line-height: 1.8;">
-                    Quantix AI Core is a tool for institutional research. We provide raw structural intelligence,
-                    leaving execution and risk management to the human operator. No financial advice. No trade signals.
+
+            <!-- Closing Statement -->
+            <div class="bento-card"
+                style="grid-column: 1 / -1; background: rgba(56, 189, 248, 0.03); text-align: center; padding: 32px;">
+                <p style="font-size: 1.2rem; font-weight: 700; color: var(--text-main); margin: 0;">
+                    ➡️ Quantix evolves step-by-step with measurable proof.
                 </p>
             </div>
         </div>
     </main>
 
-    <footer class="app-footer-grid">
+    <footer class="app-footer-grid"
+        style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 60px 24px;">
         <div class="footer-block">
-            <h4>Quantix AI Core – Explainable Market Reasoning Engine (Snapshot Mode)</h4>
-            <p>This interface displays historical, static reasoning snapshots generated by Quantix AI Core for research,
-                evaluation, and integration purposes.</p>
+            <p style="color: var(--text-main); font-weight: 700; font-size: 0.95rem;">Quantix AI Core © 2026 Quantix
+                Research</p>
         </div>
         <div class="footer-block">
-            <h4>Non-Predictive / Non-Actionable</h4>
-            <p>All outputs are non-predictive, non-actionable, and provided “as is”. This system does not provide
-                financial advice, investment recommendations, or trading signals. Users are solely responsible for any
-                decisions made using this information.</p>
-        </div>
-        <div class="footer-block">
-            <h4>Transparency Notice</h4>
-            <p>Reasoning snapshots are generated from frozen historical market data at a specific reference timestamp.
-                No future data is accessed. No look-ahead bias is applied.</p>
-        </div>
-        <div class="footer-block">
-            <h4>Engine Meta</h4>
-            <p>Engine Version: Quantix-Core v0.9 (Lab)<br>Reasoning Type: Structure-Based, Rule-Driven AI<br>© 2026
-                Quantix AI Core — All rights reserved.</p>
+            <p style="color: var(--text-dim); font-size: 0.85rem; line-height: 1.6;">
+                Decision Intelligence for Trading Signals &nbsp;|&nbsp; Built for transparency, learning, and measurable
+                progress.
+            </p>
         </div>
     </footer>
     <script src="static/js/ui_shared.js"></script>

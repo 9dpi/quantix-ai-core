@@ -1,13 +1,17 @@
 const API_CONFIG = {
-    // FORCE PRODUCTION ENVIRONMENT
+    // AUTOMATIC LOCAL/PROD DETECTION
     getBaseUrl: () => {
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         const productionUrl = 'https://quantixaicore-production.up.railway.app';
-        // Add cache buster to the URL for every fetch to prevent stale 502s
-        const buster = `?t=${Date.now()}`;
-        return `${productionUrl}/api/v1`;
+        const localUrl = 'http://127.0.0.1:8001';
+
+        const baseUrl = isLocal ? localUrl : productionUrl;
+        return `${baseUrl}/api/v1`;
     },
     // For direct string usage
-    BASE_URL: 'https://quantixaicore-production.up.railway.app/api/v1',
+    get BASE_URL() {
+        return this.getBaseUrl();
+    },
     // Helper for cache busting query params
     getBuster: () => `_=${Date.now()}`
 };

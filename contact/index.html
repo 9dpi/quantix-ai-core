@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact & Collaboration | Quantix AI Core</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="../static/img/favicon.svg">
+    <style>
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 40px;
+        }
+
+        .contact-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            transition: all 0.3s ease;
+        }
+
+        .contact-card:hover {
+            border-color: rgba(56, 189, 248, 0.3);
+            background: rgba(255, 255, 255, 0.04);
+            transform: translateY(-4px);
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .card-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 24px 0;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .card-list li {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-list li::before {
+            content: "•";
+            color: var(--accent);
+        }
+
+        .email-box {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px dashed var(--border);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--highlight);
+            word-break: break-all;
+        }
+
+        .label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+    </style>
+</head>
+
+<body class="scrollable-page">
+    <header class="app-header">
+        <div class="logo-area">
+            <div class="logo-icon"></div>
+            <span class="logo-text">QUANTIX AI CORE</span>
+        </div>
+        <div class="hamburger" id="menu-toggle">☰</div>
+        <nav class="main-nav" id="main-nav">
+            <a href="../index.html" class="nav-link">Overview</a>
+            <a href="../dashboard/index.html" class="nav-link">Live System</a>
+            <a href="../signals/index.html" class="nav-link">Quantix Lab</a>
+            <a href="../api/index.html" class="nav-link">API</a>
+            <a href="../contact/index.html" class="nav-link active">Contact</a>
+            <a href="../disclaimer/index.html" class="nav-link">Legal</a>
+        </nav>
+        <div class="status-tag hide-mobile"
+            style="width: 240px; display: flex; justify-content: flex-end; font-size: 0.7rem; color: var(--text-dim); align-items: center; gap: 8px;">
+            <div class="dot dot-online"></div> SYSTEM_READY
+        </div>
+    </header>
+
+    <main class="content-container">
+        <div style="text-align: center; margin-bottom: 60px;">
+            <h1 style="font-size: 3rem; font-weight: 800; margin-bottom: 16px; letter-spacing: -0.02em;">
+                Contact & Collaboration
+            </h1>
+            <p style="color: var(--text-dim); max-width: 600px; margin: 0 auto; line-height: 1.6; font-size: 1.05rem;">
+                Quantix AI Core is an experimental market intelligence system.<br>
+                We welcome collaboration, research discussion, and product feedback.
+            </p>
+        </div>
+
+        <div class="contact-grid">
+            <!-- PRODUCT & RESEARCH -->
+            <div class="contact-card">
+                <div class="card-icon">🧪</div>
+                <div class="card-title">Product & Research</div>
+                <ul class="card-list">
+                    <li>Research collaboration</li>
+                    <li>Signal evaluation feedback</li>
+                    <li>Data & methodology discussion</li>
+                </ul>
+            </div>
+
+            <!-- INTEGRATION / API -->
+            <div class="contact-card">
+                <div class="card-icon">🔌</div>
+                <div class="card-title">Integration / API</div>
+                <ul class="card-list">
+                    <li>API usage inquiries</li>
+                    <li>Integration questions</li>
+                    <li>Technical discussion</li>
+                </ul>
+            </div>
+
+            <!-- LEGAL / COMPLIANCE -->
+            <div class="contact-card">
+                <div class="card-icon">⚖️</div>
+                <div class="card-title">Legal / Compliance</div>
+                <ul class="card-list">
+                    <li>Disclaimer questions</li>
+                    <li>Content clarification</li>
+                    <li>Policy inquiries</li>
+                </ul>
+            </div>
+        </div>
+
+        <div
+            style="margin-top: 60px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--text-dim);">
+            <span>Email: <a href="mailto:vuquangcuong@gmail.com"
+                    style="color: var(--text-main); font-weight: 700; text-decoration: none;">vuquangcuong@gmail.com</a></span>
+            <span style="opacity: 0.3; margin: 0 12px;">|</span>
+            <a href="https://www.linkedin.com/in/cuongvq" target="_blank"
+                style="color: var(--accent); text-decoration: none; font-weight: 700;">linkedin.com/in/cuongvq</a>
+        </div>
+    </main>
+
+    <footer class="app-footer-grid"
+        style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 60px 24px;">
+        <div class="footer-block">
+            <p style="color: var(--text-main); font-weight: 700; font-size: 0.95rem;">Quantix AI Core © 2026 Quantix
+                Research</p>
+        </div>
+        <div class="footer-block">
+            <p style="color: var(--text-dim); font-size: 0.85rem; line-height: 1.6;">
+                Decision Intelligence for Trading Signals &nbsp;|&nbsp; Built for transparency, learning, and measurable
+                progress.
+            </p>
+        </div>
+    </footer>
+    <script src="../static/js/ui_shared.js"></script>
+</body>
+
+</html>

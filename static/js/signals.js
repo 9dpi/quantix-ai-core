@@ -30,7 +30,7 @@ const SIGNALS = {
 
         const container = document.getElementById('signals-container');
         const syncLabel = document.getElementById('last-sync-time');
-        const symbols = ["EURUSD", "GBPUSD", "USDJPY", "AUDUSD"];
+        const symbols = ["EURUSD", "GBPUSD", "USDJPY"];
 
         // Set Loading State (Reset View)
         container.innerHTML = `

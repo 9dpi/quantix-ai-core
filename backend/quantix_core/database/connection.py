@@ -65,36 +65,44 @@ class SupabaseConnection:
         return None
 
     async def fetch(self, query: str, *args):
-        # shim for global stats in csv_ingestion router
-        if "SELECT SUM(tradable_count)" in query:
-            res = self.client.table('ingestion_audit_log').select('tradable_count,total_rows,avg_learning_weight').execute()
-            if not res.data:
+        try:
+            if not self.client:
                 return []
+
+            # 1. Shim for signals
+            if "FROM fx_signals" in query:
+                q = self.client.table('fx_signals').select('*')
+                if "ORDER BY generated_at DESC" in query:
+                    q = q.order('generated_at', desc=True)
+                if "LIMIT" in query:
+                    try:
+                        limit_part = query.split("LIMIT")[-1].strip()
+                        limit = int(limit_part)
+                        q = q.limit(limit)
+                    except:
+                        q = q.limit(5)
+                if "WHERE status = 'ACTIVE'" in query:
+                    q = q.eq("status", "ACTIVE")
+                    
+                res = q.execute()
+                return res.data if res.data else []
+
+            # 2. Shim for global stats 
+            if "SELECT SUM(tradable_count)" in query:
+                res = self.client.table('ingestion_audit_log').select('tradable_count,total_rows,avg_learning_weight').execute()
+                if not res.data: return []
+                import pandas as pd
+                df = pd.DataFrame(res.data)
+                return [{
+                    "total_learning": int(df['tradable_count'].sum()),
+                    "total_ingested": int(df['total_rows'].sum()),
+                    "avg_weight": float(df['avg_learning_weight'].mean())
+                }]
             
-            import pandas as pd
-            df = pd.DataFrame(res.data)
-            return [{
-                "total_learning": int(df['tradable_count'].sum()),
-                "total_ingested": int(df['total_rows'].sum()),
-                "avg_weight": float(df['avg_learning_weight'].mean())
-            }]
-        
-        # shim for signals
-        if "FROM fx_signals" in query:
-            # Simple parser for ORDER and LIMIT
-            q = self.client.table('fx_signals').select('*')
-            if "ORDER BY generated_at DESC" in query:
-                q = q.order('generated_at', desc=True)
-            if "LIMIT" in query:
-                limit = int(query.split("LIMIT")[-1].strip())
-                q = q.limit(limit)
-            if "WHERE status = 'ACTIVE'" in query:
-                q = q.eq("status", "ACTIVE")
-                
-            res = q.execute()
-            return res.data
-            
-        return []
+            return []
+        except Exception as e:
+            logger.error(f"Database fetch error: {e}")
+            return []
 
 db = SupabaseConnection()
 

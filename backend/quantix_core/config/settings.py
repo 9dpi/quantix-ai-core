@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     TWELVE_DATA_API_KEY: Optional[str] = None
     
     # Heartbeat [T0+Δ]
-    MONITOR_INTERVAL_SECONDS: int = 15  # "few seconds" as per spec
+    MONITOR_INTERVAL_SECONDS: int = 120  # Optimized for 800 req/day quota (1 req/120s)
     
     # Supabase Database
     SUPABASE_URL: Optional[str] = None

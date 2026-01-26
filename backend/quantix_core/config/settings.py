@@ -66,7 +66,7 @@ class Settings(BaseSettings):
     
     # Feature Flags
     QUANTIX_MODE: str = "INTERNAL"
-    ENABLE_LIVE_SIGNAL: bool = False
+    ENABLE_LIVE_SIGNAL: bool = True
     ENABLE_BACKTEST: bool = True
     ENABLE_LEARNING: bool = True
     ENABLE_LAB_SIGNALS: bool = True

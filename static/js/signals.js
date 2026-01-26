@@ -144,10 +144,10 @@ const SIGNALS = {
 
     renderEmptyState(container) {
         container.innerHTML = `
-            <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: var(--text-dim);">
-                <h3>💤 No Signals Generated</h3>
-                <p>The signal engine is online but returned no data. Try again shortly.</p>
-                <button onclick="SIGNALS.loadReferences()" class="btn-primary" style="margin-top: 16px;">Refresh</button>
+            <div style="grid-column: 1/-1; text-align: center; padding: 100px; color: var(--text-dim);">
+                <div class="pulse-small" style="margin: 0 auto 20px; opacity: 0.5;"></div>
+                <h3 style="color: var(--text-main); font-weight: 800; margin-bottom: 8px;">Quantix Engine: Scanning Market...</h3>
+                <p style="font-size: 0.85rem; max-width: 400px; margin: 0 auto;">Establishing connection to [T0] Live Data Feed. Recent candidates will appear here as they are analyzed.</p>
             </div>
         `;
     }

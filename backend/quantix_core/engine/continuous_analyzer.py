@@ -82,35 +82,44 @@ class ContinuousAnalyzer:
             # 2. Market Analysis
             state = self.engine.analyze(df, symbol="EURUSD", timeframe="M15", source="twelve_data")
             
-            # 3. Detect Highest Confidence Moment
-            # Ngưỡng tối thiểu để tạo signal là 75%
-            if state.confidence >= 0.75:
+            # 3. Prepare Common Data
+            price = float(df.iloc[-1]["close"])
+            direction = state.state.upper() if state.state in ["bullish", "bearish"] else "BUY"
+            
+            signal_base = {
+                "asset": "EURUSD",
+                "direction": direction,
+                "timeframe": "M15",
+                "entry_low": price,
+                "entry_high": price + 0.0002,
+                "tp": price + 0.0020 if state.state == "bullish" else price - 0.0020,
+                "sl": price - 0.0015 if state.state == "bullish" else price + 0.0015,
+                "ai_confidence": state.confidence,
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "strategy": "Structure Alpha v1.0",
+            }
+
+            # 4. Logic Branching: LOCK (ACTIVE) or CANDIDATE
+            if state.confidence >= 0.75 and not self.has_traded_today():
                 logger.info(f"🎯 High Confidence Moment Detected: {state.confidence*100:.1f}%")
-                
-                # 4. Frequency Rule: Max 1/day
-                if not self.has_traded_today():
-                    # CREATE signal
-                    price = float(df.iloc[-1]["close"])
-                    signal = {
-                        "asset": "EURUSD",
-                        "direction": state.state.upper() if state.state in ["bullish", "bearish"] else "BUY",
-                        "timeframe": "M15",
-                        "entry_low": price,
-                        "entry_high": price + 0.0002,
-                        "tp": price + 0.0020 if state.state == "bullish" else price - 0.0020,
-                        "sl": price - 0.0015 if state.state == "bullish" else price + 0.0015,
-                        "ai_confidence": state.confidence,
-                        "generated_at": datetime.now(timezone.utc).isoformat(),
-                        "strategy": "Structure Alpha v1.0",
-                        "status": "ACTIVE"
-                    }
-                    
-                    # 5. LOCK signal [T1]
-                    self.lock_signal(signal)
-                else:
-                    logger.info("⏭️ Signal creation skipped: Daily cap [1/day] reached.")
+                signal_base["status"] = "ACTIVE"
+                self.lock_signal(signal_base)
             else:
-                logger.debug(f"⚖️ Evaluating... Confidence: {state.confidence*100:.1f}%")
+                # Save as CANDIDATE for Quantix Lab [T0] visibility
+                logger.debug(f"⚖️ Saving Candidate... Confidence: {state.confidence*100:.1f}%")
+                signal_base["status"] = "CANDIDATE"
+                try:
+                    db.client.table(settings.TABLE_SIGNALS).insert(signal_base).execute()
+                    # 🧹 Cleanup: Keep only last 10 candidates to avoid DB bloat
+                    # (Simple approach: delete candidates older than 1 hour)
+                    expiry = (datetime.now(timezone.utc) - pd.Timedelta(hours=1)).isoformat()
+                    db.client.table(settings.TABLE_SIGNALS)\
+                        .delete()\
+                        .eq("status", "CANDIDATE")\
+                        .lt("generated_at", expiry)\
+                        .execute()
+                except Exception as e:
+                    logger.warning(f"Failed to save candidate: {e}")
 
         except Exception as e:
             logger.error(f"Heartbeat cycle failed: {e}")

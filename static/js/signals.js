@@ -89,13 +89,23 @@ const SIGNALS = {
                 row.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
 
                 const time = new Date(hb.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                const statusColor = hb.status === 'SYSTEM_STARTUP' ? 'var(--warning)' : 'var(--highlight)';
+
+                let displayStatus = hb.status;
+                let statusColor = 'var(--highlight)';
+
+                if (hb.status === 'SYSTEM_STARTUP') {
+                    displayStatus = 'Live';
+                    statusColor = 'var(--highlight)'; // Green/Cyan
+                } else if (hb.status === 'ANALYZED') {
+                    displayStatus = 'ANALYZED';
+                    statusColor = 'var(--text-dim)';
+                }
 
                 row.innerHTML = `
                     <td style="padding: 12px; font-family: 'JetBrains Mono'; color: var(--text-dim);">${time}</td>
                     <td style="padding: 12px; color: var(--text-main); font-weight: 700;">${hb.asset || 'SYSTEM'}</td>
                     <td style="padding: 12px; font-size: 0.8rem;">${hb.price ? 'Price: ' + hb.price.toFixed(5) + ' | Conf: ' + (hb.confidence * 100).toFixed(0) + '%' : hb.message}</td>
-                    <td style="padding: 12px;"><span style="color: ${statusColor}; font-weight: 800; font-size: 0.7rem;">${hb.status}</span></td>
+                    <td style="padding: 12px;"><span style="color: ${statusColor}; font-weight: 800; font-size: 0.7rem; text-transform: uppercase;">${displayStatus}</span></td>
                 `;
                 tbody.appendChild(row);
             } catch (e) { }

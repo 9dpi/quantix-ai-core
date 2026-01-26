@@ -152,7 +152,21 @@ class ContinuousAnalyzer:
         """Start the continuous evaluation loop"""
         interval = settings.MONITOR_INTERVAL_SECONDS
         logger.info(f"💓 Continuous analyzer started with {interval}s interval")
+        
+        # Immediate Startup Proof
+        try:
+            with open("heartbeat_audit.jsonl", "a") as f:
+                import json
+                f.write(json.dumps({
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "status": "SYSTEM_STARTUP",
+                    "message": "Quantix AI Core Heartbeat Thread Initialized"
+                }) + "\n")
+        except Exception as e:
+            logger.error(f"Startup log failed: {e}")
+
         while True:
+            logger.info("🎬 Starting new analysis cycle...")
             self.run_cycle()
             time.sleep(interval)
 

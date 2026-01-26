@@ -92,3 +92,17 @@ async def get_active_signals():
     except Exception as e:
         logger.error(f"Failed to fetch signals: {e}")
         return []
+
+@router.get("/latest-lab", response_model=List[SignalOutput])
+async def get_latest_lab_signals():
+    """
+    Fetch the 3 most recent signals (candidates or locked) for the Laboratory
+    """
+    try:
+        # Fetching top 3 regardless of status to show 'latest' activity
+        query = "SELECT * FROM fx_signals ORDER BY generated_at DESC LIMIT 3"
+        results = await db.fetch(query)
+        return results
+    except Exception as e:
+        logger.error(f"Failed to fetch lab signals: {e}")
+        return []

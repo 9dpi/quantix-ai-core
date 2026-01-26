@@ -23,6 +23,28 @@ async def health():
         "time": datetime.utcnow().isoformat() + "Z"
     }
 
+@router.get("/health/audit")
+async def get_audit_log():
+    """
+    Returns the latest 20 heartbeat logs as proof of 24/7 operation.
+    """
+    try:
+        import os
+        if not os.path.exists("heartbeat_audit.jsonl"):
+            return {"status": "running", "audit": []}
+            
+        with open("heartbeat_audit.jsonl", "r") as f:
+            lines = f.readlines()
+            # Return last 20 heartbeats
+            log_entries = [line.strip() for line in lines[-20:]]
+            return {
+                "status": "online",
+                "total_cycles": len(lines),
+                "latest_heartbeats": log_entries
+            }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
 @router.get("/health/ping")
 async def ping():
     """Lightweight ping endpoint for quick availability checks"""

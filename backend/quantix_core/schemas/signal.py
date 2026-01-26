@@ -18,33 +18,30 @@ class ExplainabilityTrace(BaseModel):
 class SignalOutput(BaseModel):
     id: Optional[str] = None
     asset: str
-    direction: Literal["BUY", "SELL"]
+    direction: str
     timeframe: str
     
     # Entry Zone
-    entry_low: Decimal
-    entry_high: Decimal
-    tp: Decimal
-    sl: Decimal
-    reward_risk_ratio: Decimal
+    entry_low: float
+    entry_high: float
+    tp: float
+    sl: float
+    reward_risk_ratio: Optional[float] = 2.0
     
     # AI Intelligence
     confidence: float = Field(..., alias="ai_confidence")
-    data_window: str = Field(default="last_500_candles")
-    learning_version: str = Field(default="v1.0.0_outcome")
-    
-    # Structural Context
-    context: Optional[SignalContext] = None
-    pattern_hash: Optional[str] = None
-    
-    # Explainability (The "Why")
-    explainability: Optional[ExplainabilityTrace] = None
+    strategy: Optional[str] = Field(default="Quantix Alpha", alias="learning_version")
+    status: Optional[str] = "CANDIDATE"
     
     # Expiry
     generated_at: datetime = Field(default_factory=datetime.utcnow)
     expires_at: Optional[datetime] = None
     
     disclaimer: str = Field(default="Internal research signal. Not financial advice.")
+
+    class Config:
+        populate_by_name = True
+        extra = "ignore"
 
 class TradeOutcome(BaseModel):
     signal_id: str

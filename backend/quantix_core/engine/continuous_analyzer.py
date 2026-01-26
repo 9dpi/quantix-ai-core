@@ -77,6 +77,7 @@ class ContinuousAnalyzer:
             df = self.convert_to_df(raw_data)
             
             if df.empty:
+                logger.warning("Empty data from TwelveData")
                 return
 
             # 2. Market Analysis
@@ -86,32 +87,55 @@ class ContinuousAnalyzer:
             price = float(df.iloc[-1]["close"])
             direction = state.state.upper() if state.state in ["bullish", "bearish"] else "BUY"
             
+            # RRR Calculation
+            tp = price + 0.0020 if state.state == "bullish" else price - 0.0020
+            sl = price - 0.0015 if state.state == "bullish" else price + 0.0015
+            rrr = round(abs(tp - price) / abs(price - sl), 2) if abs(price - sl) > 0 else 2.0
+
             signal_base = {
                 "asset": "EURUSD",
                 "direction": direction,
                 "timeframe": "M15",
                 "entry_low": price,
                 "entry_high": price + 0.0002,
-                "tp": price + 0.0020 if state.state == "bullish" else price - 0.0020,
-                "sl": price - 0.0015 if state.state == "bullish" else price + 0.0015,
+                "tp": tp,
+                "sl": sl,
+                "reward_risk_ratio": rrr,
                 "ai_confidence": state.confidence,
                 "generated_at": datetime.now(timezone.utc).isoformat(),
                 "strategy": "Structure Alpha v1.0",
             }
 
-            # 4. Logic Branching: LOCK (ACTIVE) or CANDIDATE
+            # 4. Local Audit Log (JSONL) - Proof of 24/7 Operation
+            try:
+                with open("heartbeat_audit.jsonl", "a") as f:
+                    import json
+                    f.write(json.dumps({
+                        "timestamp": signal_base["generated_at"],
+                        "asset": "EURUSD",
+                        "price": price,
+                        "confidence": state.confidence,
+                        "status": "ANALYZED"
+                    }) + "\n")
+            except Exception as e:
+                logger.error(f"Failed to write heartheat log: {e}")
+
+            # 5. Logic Branching: LOCK (ACTIVE) or CANDIDATE
+            if not db.client:
+                logger.warning("DB Client offline - cannot save signals")
+                return
+
             if state.confidence >= 0.75 and not self.has_traded_today():
                 logger.info(f"🎯 High Confidence Moment Detected: {state.confidence*100:.1f}%")
                 signal_base["status"] = "ACTIVE"
                 self.lock_signal(signal_base)
             else:
                 # Save as CANDIDATE for Quantix Lab [T0] visibility
-                logger.debug(f"⚖️ Saving Candidate... Confidence: {state.confidence*100:.1f}%")
                 signal_base["status"] = "CANDIDATE"
                 try:
                     db.client.table(settings.TABLE_SIGNALS).insert(signal_base).execute()
-                    # 🧹 Cleanup: Keep only last 10 candidates to avoid DB bloat
-                    # (Simple approach: delete candidates older than 1 hour)
+                    
+                    # 🧹 Cleanup OLD candidates (older than 1 hour)
                     expiry = (datetime.now(timezone.utc) - pd.Timedelta(hours=1)).isoformat()
                     db.client.table(settings.TABLE_SIGNALS)\
                         .delete()\
@@ -119,7 +143,7 @@ class ContinuousAnalyzer:
                         .lt("generated_at", expiry)\
                         .execute()
                 except Exception as e:
-                    logger.warning(f"Failed to save candidate: {e}")
+                    logger.debug(f"Candidate not saved: {e}")
 
         except Exception as e:
             logger.error(f"Heartbeat cycle failed: {e}")
@@ -127,6 +151,7 @@ class ContinuousAnalyzer:
     def start(self):
         """Start the continuous evaluation loop"""
         interval = settings.MONITOR_INTERVAL_SECONDS
+        logger.info(f"💓 Continuous analyzer started with {interval}s interval")
         while True:
             self.run_cycle()
             time.sleep(interval)

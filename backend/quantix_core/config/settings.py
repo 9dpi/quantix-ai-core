@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     API_HOST: str = "0.0.0.0"
     API_PORT: int = 8000
     API_PREFIX: str = "/api/v1"
+    TWELVE_DATA_API_KEY: Optional[str] = None
+    
+    # Heartbeat [T0+Δ]
+    MONITOR_INTERVAL_SECONDS: int = 15  # "few seconds" as per spec
     
     # Supabase Database
     SUPABASE_URL: Optional[str] = None

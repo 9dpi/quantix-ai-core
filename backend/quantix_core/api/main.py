@@ -13,6 +13,7 @@ from datetime import datetime
 from quantix_core.api.routes import health, signals, ingestion, csv_ingestion, admin, features, structure, lab, public, reference, lab_reference
 from quantix_core.config.settings import settings
 from quantix_core.database.connection import db
+from quantix_core.engine.continuous_analyzer import ContinuousAnalyzer
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -68,6 +69,12 @@ async def background_startup_tasks():
         # 🛡️ ARCHITECTURE ENFORCEMENT
         logger.info("🛡️ DATA LAYER: READ ONLY MODE ACTIVE")
         logger.info("🚫 INGESTION BLOCKED in API Layer - Workers Only")
+
+        # 💓 START HEARTBEAT [T0 + Δ]
+        if settings.ENABLE_LIVE_SIGNAL:
+            logger.info("💓 Starting Continuous Market Heartbeat...")
+            analyzer = ContinuousAnalyzer()
+            asyncio.create_task(asyncio.to_thread(analyzer.start))
             
     except Exception as e:
         logger.error(f"⚠️ Background task failed (non-critical): {e}")

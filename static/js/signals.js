@@ -59,7 +59,7 @@ const SIGNALS = {
                     try {
                         const hb = JSON.parse(hbStr);
                         if (hb.status === 'ANALYZED') {
-                            this.renderHeartbeatCard(container, hb);
+                            this.renderLabCard(container, hb, true);
                         }
                     } catch (e) { }
                 });
@@ -102,106 +102,69 @@ const SIGNALS = {
         });
     },
 
-    renderHeartbeatCard(container, hb) {
-        const card = document.createElement('div');
-        card.className = 'reference-card';
-        card.style.borderStyle = 'dashed';
-        card.style.opacity = '0.9';
-
-        const genTime = new Date(hb.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-        card.innerHTML = `
-            <div style="position: absolute; top: 12px; left: 12px; display: flex; gap: 6px;">
-                 <span style="font-size: 0.5rem; background: rgba(56, 189, 248, 0.1); color: var(--accent); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--accent);">24/7_HEARTBEAT</span>
-            </div>
-            
-            <div class="symbol-title" style="margin-top: 30px;">${hb.asset}</div>
-            <span class="timeframe-label">⏳ M15 • Live Monitoring</span>
-            
-            <div style="margin: 20px 0;">
-                <div style="font-size: 0.9rem; font-weight: 800; color: var(--accent); margin-bottom: 4px;">
-                    👁️ Pulse Detected
-                </div>
-                <div style="font-family: 'JetBrains Mono'; font-size: 1.2rem; color: var(--text-main); margin-top: 8px;">
-                    ${hb.price.toFixed(5)}
-                </div>
-            </div>
-            
-            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; font-size: 0.75rem; color: var(--text-dim);">
-                AI is currently verifying structural integrity. No entry conditions met yet.
-            </div>
-
-            <div class="meta-footer" style="margin-top: 20px; font-size: 0.6rem; display: flex; justify-content: space-between; color: var(--text-dim); border-top: 1px solid var(--border); padding-top: 10px;">
-                <div>LOGGED: ${genTime} UTC</div>
-                <div style="color: var(--highlight); font-weight: 800;">STATUS: ${hb.status}</div>
-            </div>
-        `;
-        container.appendChild(card);
-    },
-
-    renderLabCard(container, data) {
-        const bias = data.direction || "WAIT";
-        const confidence = data.ai_confidence || 0;
+    renderLabCard(container, data, isHeartbeat = false) {
+        const bias = data.direction || (isHeartbeat ? "WAIT" : "WAIT");
+        const confidence = data.ai_confidence || (isHeartbeat ? data.confidence : 0);
         const asset = data.asset || "EURUSD";
         const timeframe = data.timeframe || "M15";
 
         const card = document.createElement('div');
         card.className = 'reference-card';
+        if (isHeartbeat) card.style.opacity = '0.85';
 
-        // Dynamic Styling
+        // Dynamic Styling (Signal Genius Style)
         const isBuy = bias === 'BUY';
-        const accentColor = isBuy ? 'var(--highlight)' : (bias === 'SELL' ? '#ef4444' : 'var(--text-dim)');
-        const icon = isBuy ? "🟢" : (bias === 'SELL' ? "🔴" : "✋");
+        const isSell = bias === 'SELL';
+        const accentColor = isBuy ? 'var(--highlight)' : (isSell ? '#ef4444' : 'var(--text-dim)');
+        const icon = isBuy ? "🟢" : (isSell ? "🔴" : "✋");
 
-        const entryLow = parseFloat(data.entry_low || 0).toFixed(5);
-        const entryHigh = parseFloat(data.entry_high || data.entry_low || 0).toFixed(5);
+        const entryLow = parseFloat(data.entry_low || data.price || 0).toFixed(5);
+        const entryHigh = parseFloat(data.entry_high || (data.price ? data.price + 0.0002 : 0)).toFixed(5);
         const tp = parseFloat(data.tp || 0).toFixed(5);
         const sl = parseFloat(data.sl || 0).toFixed(5);
 
-        const genTime = data.generated_at ? new Date(data.generated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now';
+        const timestamp = data.generated_at || data.timestamp;
+        const genTime = timestamp ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'Now';
 
         card.innerHTML = `
             <div style="position: absolute; top: 12px; left: 12px; display: flex; gap: 6px;">
-                 <span style="font-size: 0.5rem; background: rgba(255,255,255,0.05); color: var(--text-dim); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);">LAB_CANDIDATE</span>
+                 <span style="font-size: 0.5rem; background: rgba(0,0,0,0.3); color: var(--accent); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--accent); letter-spacing: 0.1em; font-weight: 800;">UNVERIFIED CANDIDATE</span>
             </div>
 
-            <div class="card-badge" style="background: rgba(0,0,0,0.3); border: 1px solid ${accentColor}; color: ${accentColor}; top: 24px;">
+            <div class="card-badge" style="background: rgba(0,0,0,0.5); border: 1px solid ${accentColor}; color: ${accentColor}; top: 24px; font-weight: 900;">
                 ${bias}
             </div>
             
-            <div class="symbol-title" style="margin-top: 10px;">${asset}</div>
-            <span class="timeframe-label">⏳ ${timeframe} • Live Analysis</span>
+            <div class="symbol-title" style="margin-top: 15px; font-size: 1.8rem;">${asset}</div>
+            <span class="timeframe-label" style="font-size: 0.7rem;">⏳ ${timeframe} • Live Reasoning Stream</span>
             
-            <div style="margin: 20px 0;">
-                <div style="font-size: 0.9rem; font-weight: 800; color: ${accentColor}; margin-bottom: 4px;">
-                    ${icon} AI Bias: ${confidence > 0.75 ? 'Strong' : 'Evaluating'}
+            <div style="margin: 25px 0;">
+                <div style="font-size: 0.9rem; font-weight: 800; color: ${accentColor}; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                    ${icon} AI Confidence: ${(confidence * 100).toFixed(0)}%
                 </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <div class="confidence-meter" style="height: 4px; background: rgba(255,255,255,0.1);">
-                        <div class="confidence-fill" style="width: ${Math.min(confidence * 100, 100)}%; height: 100%; background: ${accentColor}; border-radius: 100px;"></div>
-                    </div>
-                    <span style="font-size: 0.7rem; font-weight: 700;">${(confidence * 100).toFixed(0)}%</span>
+                <div class="confidence-meter" style="height: 6px; background: rgba(255,255,255,0.05); border-radius: 100px;">
+                    <div class="confidence-fill" style="width: ${Math.min(confidence * 100, 100)}%; height: 100%; background: ${accentColor}; border-radius: 100px; box-shadow: 0 0 15px ${accentColor}44;"></div>
                 </div>
             </div>
             
-            <div class="level-grid" style="background: rgba(0,0,0,0.2); padding: 16px; border-radius: 12px; border: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                <div style="grid-column: 1 / -1; margin-bottom: 12px;">
-                    <div class="level-label" style="font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase;">💰 Entry Zone</div>
-                    <div class="level-value" style="font-family: 'JetBrains Mono'; font-size: 1rem; color: var(--text-main);">${entryLow} — ${entryHigh}</div>
+            <div class="level-grid" style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 16px; border: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div style="grid-column: 1 / -1; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px;">
+                    <div class="level-label" style="font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">💰 Entry Range</div>
+                    <div class="level-value" style="font-family: 'JetBrains Mono'; font-size: 1.1rem; color: var(--text-main); font-weight: 800;">${entryLow} — ${entryHigh}</div>
                 </div>
                 <div>
-                    <div class="level-label" style="font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase;">🎯 Target (TP)</div>
-                    <div class="level-value" style="font-family: 'JetBrains Mono'; color: var(--highlight);">${tp}</div>
+                    <div class="level-label" style="font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">🎯 Take Profit</div>
+                    <div class="level-value" style="font-family: 'JetBrains Mono'; color: var(--highlight); font-weight: 800;">${tp > 0 ? tp : '—'}</div>
                 </div>
                 <div style="text-align: right;">
-                    <div class="level-label" style="font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase;">🛑 Protect (SL)</div>
-                    <div class="level-value" style="font-family: 'JetBrains Mono'; color: #ef4444;">${sl}</div>
+                    <div class="level-label" style="font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">🛑 Stop Loss</div>
+                    <div class="level-value" style="font-family: 'JetBrains Mono'; color: #ef4444; font-weight: 800;">${sl > 0 ? sl : '—'}</div>
                 </div>
             </div>
 
-            <div class="meta-footer" style="margin-top: 20px; font-size: 0.6rem; display: flex; justify-content: space-between; color: var(--text-dim); border-top: 1px solid var(--border); padding-top: 10px;">
-                <div>T0 CANDIDATE | Gen: ${genTime} UTC</div>
-                <div style="font-weight: 700; color: var(--accent);">STRETEGY: V1 ALPHA</div>
+            <div class="meta-footer" style="margin-top: 20px; font-size: 0.65rem; display: flex; justify-content: space-between; color: var(--text-dim); border-top: 1px solid var(--border); padding-top: 12px;">
+                <div style="font-family: 'JetBrains Mono';">GEN: ${genTime} UTC</div>
+                <div style="font-weight: 800; color: var(--accent); letter-spacing: 0.05em;">NON-VERIFIED</div>
             </div>
         `;
 

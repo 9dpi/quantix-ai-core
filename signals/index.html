@@ -185,26 +185,12 @@
             </p>
         </div>
 
-        <!-- SNAPSHOT REFERENCE MODE -->
-        <div
-            style="background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 20px; padding: 32px; text-align: center; margin-bottom: 40px;">
-            <div
-                style="display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--accent); font-weight: 800; letter-spacing: 0.05em; margin-bottom: 8px;">
-                <span>ℹ️</span> SNAPSHOT REFERENCE MODE
-            </div>
-            <p style="color: var(--text-main); font-weight: 600; margin-bottom: 4px;">Market references are generated
-                from Quantix Lab deterministic logic.</p>
-            <p style="color: var(--text-dim); font-size: 0.85rem;">For evaluation & research only. Not real-time trading
-                signals.</p>
-
-            <div style="margin-top: 24px; display: flex; flex-direction: column; align-items: center; gap: 12px;">
-                <button onclick="SIGNALS.loadReferences()" class="btn-analyze"
-                    style="padding: 10px 24px; border-radius: 100px; cursor: pointer; background: rgba(56, 189, 248, 0.1); border: 1px solid var(--accent); color: var(--accent); font-weight: 700; font-size: 0.8rem;">
-                    🔄 REFRESH SNAPSHOTS
-                </button>
-                <div id="last-sync-time" style="font-size: 0.65rem; color: var(--text-dim); opacity: 0.6;">Last updated:
-                    --</div>
-            </div>
+        <!-- RESEARCH STREAM -->
+        <div style="text-align: center; margin-bottom: 40px;">
+            <h2 style="font-size: 1.5rem; color: var(--text-main); font-weight: 800; letter-spacing: -0.02em;">Live
+                Reasoning Stream</h2>
+            <div id="last-sync-time" style="font-size: 0.7rem; color: var(--accent); opacity: 0.8; margin-top: 4px;">
+                Connecting to Intelligence Core...</div>
         </div>
 
         <!-- SIGNALS GRID -->

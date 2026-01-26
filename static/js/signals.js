@@ -28,7 +28,7 @@ const SIGNALS = {
         this.isLoading = true;
 
         const container = document.getElementById('signals-container');
-        const archiveBody = document.getElementById('archive-tbody');
+        const archiveBody = document.getElementById('archive-tbody-main');
         const syncLabel = document.getElementById('last-sync-time');
 
         container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 100px; color: var(--text-dim);"><div class="pulse-small" style="margin: 0 auto 20px;"></div><div style="font-size: 0.9rem;">Connecting to Quantix Lab Engine...</div></div>`;

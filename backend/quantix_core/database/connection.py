@@ -79,9 +79,19 @@ class SupabaseConnection:
                 "avg_weight": float(df['avg_learning_weight'].mean())
             }]
         
-        # shim for audit log
-        if "SELECT * from quantix_core.ingestion_audit_log" in query:
-            res = self.client.table('ingestion_audit_log').select('*').order('ingested_at', desc=True).limit(args[0]).execute()
+        # shim for signals
+        if "FROM fx_signals" in query:
+            # Simple parser for ORDER and LIMIT
+            q = self.client.table('fx_signals').select('*')
+            if "ORDER BY generated_at DESC" in query:
+                q = q.order('generated_at', desc=True)
+            if "LIMIT" in query:
+                limit = int(query.split("LIMIT")[-1].strip())
+                q = q.limit(limit)
+            if "WHERE status = 'ACTIVE'" in query:
+                q = q.eq("status", "ACTIVE")
+                
+            res = q.execute()
             return res.data
             
         return []

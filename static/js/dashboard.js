@@ -71,6 +71,14 @@ const DASHBOARD = {
         const updateDate = new Date(data.last_updated);
         document.getElementById('learn-last-update').innerText = updateDate.toLocaleTimeString();
 
+        // Performance Summary Update
+        if (data.performance) {
+            document.getElementById('perf-total').innerText = data.performance.total_signals || 0;
+            document.getElementById('perf-wins').innerText = data.performance.wins || 0;
+            document.getElementById('perf-losses').innerText = data.performance.losses || 0;
+            document.getElementById('perf-winrate').innerText = `${data.performance.win_rate}%`;
+        }
+
         // Mini Chart
         const chart = document.getElementById('learning-chart');
         if (chart && data.recent_history) {

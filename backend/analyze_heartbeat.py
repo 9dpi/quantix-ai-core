@@ -20,27 +20,45 @@ def analyze_heartbeat():
                     try:
                         data = json.loads(line)
                         if data.get("status") == "ANALYZED":
-                            history.append({
-                                "timestamp": data["timestamp"],
-                                "confidence": data["confidence"]
-                            })
+                            history.append(data)
                     except:
                         continue
     except Exception as e:
         print(f"❌ Error reading audit file: {e}")
         return
 
-    if not history:
-        print("ℹ️ No analysis data found in log.")
+    if len(history) < 10:
+        print("ℹ️ Not enough data to calculate performance.")
         return
 
-    # Statistics
+    # 1. Basic Stats
     confidences = [h["confidence"] for h in history]
     avg_conf = statistics.mean(confidences)
     max_conf = max(confidences)
-    recent = history[-24:] # Last 2 hours approx at 5m interval, or more at 2m
     
-    # Trend calculation (last 5 points)
+    # 2. Virtual Performance Simulation (Self-Learning)
+    # Rules: If confidence > 0.70, simulate a BUY. 
+    # Check outcome after 10 samples (approx 20 mins)
+    wins = 0
+    losses = 0
+    total_trades = 0
+    
+    for i in range(len(history) - 10):
+        point = history[i]
+        if point["confidence"] >= 0.25:
+            total_trades += 1
+            entry_price = point["price"]
+            # Look ahead 10 samples (approx 20-30 mins)
+            future_price = history[i+10]["price"]
+            
+            if future_price > entry_price:
+                wins += 1
+            else:
+                losses += 1
+
+    win_rate = (wins / total_trades * 100) if total_trades > 0 else 0
+    
+    # 3. Trend
     trend = "STABLE"
     if len(confidences) >= 5:
         last_5 = confidences[-5:]
@@ -55,9 +73,15 @@ def analyze_heartbeat():
         "avg_confidence": round(avg_conf, 4),
         "peak_confidence": round(max_conf, 4),
         "current_trend": trend,
+        "performance": {
+            "total_signals": total_trades,
+            "wins": wins,
+            "losses": losses,
+            "win_rate": round(win_rate, 1)
+        },
         "recent_history": [
             {"t": h["timestamp"], "v": round(h["confidence"] * 100, 1)} 
-            for h in recent
+            for h in history[-24:]
         ]
     }
 
@@ -65,7 +89,7 @@ def analyze_heartbeat():
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
         with open(output_file, 'w') as f:
             json.dump(learning_telemetry, f, indent=2)
-        print(f"✅ Learning data exported to {output_file}")
+        print(f"✅ Performance learning updated: {total_trades} signals analyzed.")
     except Exception as e:
         print(f"❌ Failed to export: {e}")
 

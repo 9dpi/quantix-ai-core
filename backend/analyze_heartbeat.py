@@ -36,29 +36,44 @@ def analyze_heartbeat():
     avg_conf = statistics.mean(confidences)
     max_conf = max(confidences)
     
-    # 2. Virtual Performance Simulation (Self-Learning)
-    # Rules: If confidence > 0.70, simulate a BUY. 
-    # Check outcome after 10 samples (approx 20 mins)
-    wins = 0
-    losses = 0
-    total_trades = 0
+    # 2. Virtual Performance Simulation (Three-State Learning: BUY, SELL, HOLD)
+    stats = {
+        "BUY": {"total": 0, "wins": 0},
+        "SELL": {"total": 0, "wins": 0},
+        "HOLD": {"total": 0, "wins": 0}
+    }
+    
+    threshold = 0.25 # Current learning threshold
+    flat_threshold = 0.00010 # 1 pip for HOLD validation
     
     for i in range(len(history) - 10):
         point = history[i]
-        if point["confidence"] >= 0.25:
-            total_trades += 1
-            entry_price = point["price"]
-            # Look ahead 10 samples (approx 20-30 mins)
-            future_price = history[i+10]["price"]
-            
-            if future_price > entry_price:
-                wins += 1
-            else:
-                losses += 1
+        entry_price = point["price"]
+        future_price = history[i+10]["price"]
+        direction = point.get("direction", "BUY") # Default for old logs
+        
+        if point["confidence"] >= threshold:
+            # Trade State: BUY or SELL
+            if direction == "BUY":
+                stats["BUY"]["total"] += 1
+                if future_price > entry_price + 0.00005: # Minimal profit
+                    stats["BUY"]["wins"] += 1
+            else: # SELL
+                stats["SELL"]["total"] += 1
+                if future_price < entry_price - 0.00005:
+                    stats["SELL"]["wins"] += 1
+        else:
+            # Neutral State: HOLD
+            stats["HOLD"]["total"] += 1
+            # Correct HOLD if market stayed flat (range-bound)
+            if abs(future_price - entry_price) <= flat_threshold:
+                stats["HOLD"]["wins"] += 1
 
-    win_rate = (wins / total_trades * 100) if total_trades > 0 else 0
+    total_trades = stats["BUY"]["total"] + stats["SELL"]["total"] + stats["HOLD"]["total"]
+    total_wins = stats["BUY"]["wins"] + stats["SELL"]["wins"] + stats["HOLD"]["wins"]
+    win_rate = (total_wins / total_trades * 100) if total_trades > 0 else 0
     
-    # 3. Trend
+    # 3. Trend Logic (unchanged)
     trend = "STABLE"
     if len(confidences) >= 5:
         last_5 = confidences[-5:]
@@ -75,9 +90,9 @@ def analyze_heartbeat():
         "current_trend": trend,
         "performance": {
             "total_signals": total_trades,
-            "wins": wins,
-            "losses": losses,
-            "win_rate": round(win_rate, 1)
+            "wins": total_wins,
+            "win_rate": round(win_rate, 1),
+            "details": stats
         },
         "recent_history": [
             {"t": h["timestamp"], "v": round(h["confidence"] * 100, 1)} 

@@ -114,6 +114,7 @@ class ContinuousAnalyzer:
                         "timestamp": signal_base["generated_at"],
                         "asset": "EURUSD",
                         "price": price,
+                        "direction": direction,
                         "confidence": state.confidence,
                         "status": "ANALYZED"
                     }) + "\n")

@@ -1,19 +1,118 @@
 """
 Supabase database connection and client management
 """
-from supabase import create_client, Client
+try:
+    from supabase import create_client, Client
+except ImportError:
+    create_client = None
+    Client = None
 from quantix_core.config.settings import settings
 from loguru import logger
 from typing import Optional, List, Dict, Any, Union
 import asyncio
 from contextlib import asynccontextmanager
+import requests
+import json
+
+# Fallback Class
+class SupabaseLite:
+    def __init__(self, url, key):
+        self.url = url
+        self.key = key
+        self.headers = {
+            "apikey": key,
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json",
+            "Prefer": "return=representation"
+        }
+        
+    def table(self, name):
+        # Force refresh of cache?
+        return SupabaseQueryBuilder(self, name)
+
+class SupabaseQueryBuilder:
+    def __init__(self, client, table):
+        self.client = client
+        self.table = table
+        self.params = {}
+        self.method = "GET"
+        self.payload = None
+        self.filters = []
+
+    def select(self, columns="*"):
+        self.method = "GET"
+        self.params["select"] = columns
+        return self
+
+    def insert(self, data):
+        self.method = "POST"
+        self.payload = data
+        return self
+
+    def delete(self):
+        self.method = "DELETE"
+        return self
+
+    def eq(self, column, value):
+        self.filters.append(f"{column}=eq.{value}")
+        return self
+    
+    def lt(self, column, value):
+        self.filters.append(f"{column}=lt.{value}")
+        return self
+        
+    def gte(self, column, value):
+        self.filters.append(f"{column}=gte.{value}")
+        return self
+
+    def limit(self, count):
+        self.params["limit"] = count
+        return self
+
+    def order(self, column, desc=False):
+        self.params["order"] = f"{column}.{'desc' if desc else 'asc'}"
+        return self
+
+    def execute(self):
+        url = f"{self.client.url}/rest/v1/{self.table}"
+        
+        # Apply filters to params
+        params = self.params.copy()
+        for f in self.filters:
+            k, v = f.split('=', 1)
+            params[k] = v
+
+        try:
+            if self.method == "GET":
+                resp = requests.get(url, headers=self.client.headers, params=params)
+            elif self.method == "POST":
+                resp = requests.post(url, headers=self.client.headers, json=self.payload)
+            elif self.method == "DELETE":
+                resp = requests.delete(url, headers=self.client.headers, params=params)
+            else:
+                return MockResponse(None, "Unsupported method")
+
+            if resp.status_code >= 400:
+                logger.error(f"SupabaseLite Error {resp.status_code}: {resp.text}")
+                return MockResponse(None, resp.text)
+                
+            return MockResponse(resp.json())
+        except Exception as e:
+            logger.error(f"SupabaseLite Request Failed: {e}")
+            return MockResponse(None, str(e))
+
+class MockResponse:
+    def __init__(self, data, error=None):
+        self.data = data
 
 class SupabaseConnection:
     _instance: Optional["SupabaseConnection"] = None
     _client: Optional[Client] = None
 
     def __new__(cls):
+        print("DEBUG: Calling SupabaseConnection.__new__")
         if cls._instance is None:
+            print("DEBUG: Creating new instance")
             cls._instance = super().__new__(cls)
         return cls._instance
 
@@ -23,19 +122,34 @@ class SupabaseConnection:
 
     def _initialize_client(self):
         try:
-            if not settings.SUPABASE_URL or not settings.SUPABASE_KEY:
-                logger.warning("⚠️ SUPABASE_URL or SUPABASE_KEY is missing!")
+            url = settings.SUPABASE_URL
+            # Prefer Service Role Key for Backend/Miner
+            key = settings.SUPABASE_SERVICE_ROLE_KEY or settings.SUPABASE_KEY
+            
+            if not url or not key:
+                logger.warning("⚠️ SUPABASE_URL or Key is missing!")
                 return
+            
+            try:
+                from supabase import create_client
+                self._client = create_client(
+                    supabase_url=url,
+                    supabase_key=key
+                )
+                logger.info("✅ Supabase client initialized (Official SDK)")
+            except ImportError:
+                logger.warning("⚠️ Supabase SDK not found. Using SupabaseLite (Requests fallback)")
+                self._client = SupabaseLite(url, key)
+            except Exception as e:
+                logger.error(f"❌ Official Supabase client init failed: {e}. Falling back to Lite.")
+                self._client = SupabaseLite(url, key)
                 
-            self._client = create_client(
-                supabase_url=settings.SUPABASE_URL,
-                supabase_key=settings.SUPABASE_KEY
-            )
-            logger.info("✅ Supabase client initialized")
         except Exception as e:
             logger.error(f"❌ Failed to initialize Supabase client: {e}")
-            # Do not raise - allow app to start so we can debug via API
             self._client = None
+
+
+
 
     @property
     def client(self) -> Client:

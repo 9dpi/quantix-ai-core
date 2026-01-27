@@ -73,9 +73,13 @@ const DASHBOARD = {
 
         // Performance Summary Update
         if (data.performance) {
-            document.getElementById('perf-total').innerText = data.performance.total_signals || 0;
-            document.getElementById('perf-wins').innerText = data.performance.wins || 0;
-            document.getElementById('perf-losses').innerText = data.performance.losses || 0;
+            const total = data.performance.total_signals || 0;
+            const wins = data.performance.wins || 0;
+            const losses = data.performance.losses !== undefined ? data.performance.losses : (total - wins);
+
+            document.getElementById('perf-total').innerText = total;
+            document.getElementById('perf-wins').innerText = wins;
+            document.getElementById('perf-losses').innerText = losses;
             document.getElementById('perf-winrate').innerText = `${data.performance.win_rate}%`;
 
             if (data.performance.details) {

@@ -127,39 +127,69 @@ const DASHBOARD = {
             return;
         }
 
-        container.innerHTML = signals.map(sig => `
-            <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 12px; padding: 20px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
-                <div>
-                    <div class="label-tiny" style="color: var(--text-dim); margin-bottom: 4px;">ASSET / TF</div>
-                    <div style="font-weight: 800; color: var(--text-main);">${sig.asset} / ${sig.timeframe}</div>
+        container.innerHTML = signals.map(sig => {
+            const entry = parseFloat(sig.entry_low);
+            const tp = parseFloat(sig.tp);
+            const sl = parseFloat(sig.sl);
+
+            // Calculate Pip Distance (for EURUSD 1 pip = 0.0001)
+            const tpPips = Math.round(Math.abs(tp - entry) * 10000 * 10) / 10;
+            const slPips = Math.round(Math.abs(entry - sl) * 10000 * 10) / 10;
+            const rr = sig.reward_risk_ratio || (tpPips / slPips).toFixed(2);
+
+            return `
+            <div style="background: rgba(13, 17, 23, 0.6); border: 1px solid var(--border); border-radius: 12px; padding: 24px; display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 20px; position: relative; overflow: hidden;">
+                <!-- Side highlight based on direction -->
+                <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: ${sig.direction === 'BUY' ? 'var(--highlight)' : '#ef4444'};"></div>
+                
+                <div style="grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                     <div>
+                        <span style="font-weight: 800; color: var(--text-main); font-size: 1.2rem;">${sig.asset}</span>
+                        <span style="color: var(--text-dim); font-size: 0.8rem; margin-left: 8px;">${sig.timeframe}</span>
+                     </div>
+                     <div style="background: ${sig.direction === 'BUY' ? 'rgba(56, 189, 248, 0.1)' : 'rgba(239, 68, 68, 0.1)'}; color: ${sig.direction === 'BUY' ? 'var(--highlight)' : '#ef4444'}; padding: 4px 12px; border-radius: 6px; font-weight: 800; font-size: 0.75rem; border: 1px solid ${sig.direction === 'BUY' ? 'rgba(56, 189, 248, 0.2)' : 'rgba(239, 68, 68, 0.2)'};">
+                        ${sig.direction}
+                     </div>
                 </div>
+
                 <div>
-                    <div class="label-tiny" style="color: var(--text-dim); margin-bottom: 4px;">DIRECTION</div>
-                    <div style="font-weight: 800; color: ${sig.direction === 'BUY' ? 'var(--highlight)' : '#ef4444'};">${sig.direction}</div>
+                    <div class="label-tiny" style="color: var(--text-dim); margin-bottom: 6px; letter-spacing: 0.05em;">ENTRY PRICE</div>
+                    <div style="font-family: 'JetBrains Mono'; font-weight: 700; color: var(--text-main); font-size: 1.1rem;">
+                        ${entry.toFixed(5)}
+                    </div>
+                    <div style="font-size: 0.65rem; color: var(--text-dim); margin-top: 4px;">Confidence: ${Math.round(sig.ai_confidence * 100)}%</div>
                 </div>
+
                 <div>
-                    <div class="label-tiny" style="color: var(--text-dim); margin-bottom: 4px;">CONFIDENCE</div>
-                    <div style="font-weight: 800; color: var(--text-main);">${Math.round(sig.ai_confidence * 100)}%</div>
+                    <div class="label-tiny" style="color: var(--text-dim); margin-bottom: 6px; letter-spacing: 0.05em;">PROFIT TARGET</div>
+                    <div style="font-family: 'JetBrains Mono'; font-weight: 700; color: var(--highlight); font-size: 1.1rem;">
+                        ${tp.toFixed(5)}
+                    </div>
+                    <div style="font-size: 0.65rem; color: var(--highlight); margin-top: 4px; opacity: 0.8;">+${tpPips} pips</div>
                 </div>
-                <div style="grid-column: 1 / -1; height: 1px; background: var(--border); margin: 8px 0;"></div>
+
                 <div>
-                    <div class="label-tiny" style="color: var(--text-dim); margin-bottom: 4px;">ENTRY RANGE</div>
-                    <div style="font-family: 'JetBrains Mono'; font-size: 0.9rem;">${parseFloat(sig.entry_low).toFixed(5)} - ${parseFloat(sig.entry_high || sig.entry_low).toFixed(5)}</div>
+                    <div class="label-tiny" style="color: var(--text-dim); margin-bottom: 6px; letter-spacing: 0.05em;">STOP LOSS</div>
+                    <div style="font-family: 'JetBrains Mono'; font-weight: 700; color: #ef4444; font-size: 1.1rem;">
+                        ${sl.toFixed(5)}
+                    </div>
+                    <div style="font-size: 0.65rem; color: #ef4444; margin-top: 4px; opacity: 0.8;">-${slPips} pips</div>
                 </div>
-                <div>
-                    <div class="label-tiny" style="color: var(--text-dim); margin-bottom: 4px;">TAKE PROFIT</div>
-                    <div style="font-family: 'JetBrains Mono'; font-size: 0.9rem; color: var(--highlight);">${parseFloat(sig.tp).toFixed(5)}</div>
-                </div>
-                <div>
-                    <div class="label-tiny" style="color: var(--text-dim).7px; margin-bottom: 4px;">STOP LOSS</div>
-                    <div style="font-family: 'JetBrains Mono'; font-size: 0.9rem; color: #ef4444;">${parseFloat(sig.sl).toFixed(5)}</div>
-                </div>
-                <div style="grid-column: 1 / -1; display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-dim); margin-top: 8px;">
-                    <span>MODE: ${sig.strategy || 'Quantix Engine'}</span>
-                    <span>GENERATED: ${new Date(sig.generated_at).toLocaleTimeString()}</span>
+
+                <div style="grid-column: 1 / -1; height: 1px; background: var(--border); margin: 0;"></div>
+
+                <div style="grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem;">
+                    <div style="display: flex; gap: 16px; color: var(--text-dim);">
+                        <span>RR: <strong style="color: var(--text-main);">${rr}</strong></span>
+                        <span>Strategy: <strong style="color: var(--text-main);">${sig.strategy || 'Alpha v1'}</strong></span>
+                    </div>
+                    <div style="color: var(--text-dim);">
+                        Generated: ${new Date(sig.generated_at).toLocaleTimeString()}
+                    </div>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
     },
 
     async fetchCore(symbol, tf) {

@@ -280,6 +280,33 @@
         <!-- RIGHT: PERFORMANCE & CALIBRATION -->
         <aside class="right-col-bento">
             <div class="bento-block">
+                <div class="block-header">🧠 AI Learning Telemetry</div>
+                <div class="telemetry-item">
+                    <span class="telemetry-label">Samples Collected</span>
+                    <span id="learn-samples" class="telemetry-value">0</span>
+                </div>
+                <div class="telemetry-item">
+                    <span class="telemetry-label">Avg Confidence</span>
+                    <span id="learn-avg-conf" class="telemetry-value">0%</span>
+                </div>
+                <div class="telemetry-item">
+                    <span class="telemetry-label">Peak Confidence</span>
+                    <span id="learn-peak-conf" class="telemetry-value">0%</span>
+                </div>
+                <div class="telemetry-item">
+                    <span class="telemetry-label">Current Trend</span>
+                    <span id="learn-trend" class="telemetry-value" style="color: var(--highlight);">STABLE</span>
+                </div>
+                <div id="learning-chart"
+                    style="margin-top: 16px; height: 60px; display: flex; align-items: flex-end; gap: 2px;">
+                    <!-- Simple bar chart via JS -->
+                </div>
+                <p style="font-size: 0.65rem; color: var(--text-dim); margin-top: 12px;">
+                    History data from <strong id="learn-last-update">...</strong>
+                </p>
+            </div>
+
+            <div class="bento-block">
                 <div class="block-header">📊 Performance Summary</div>
                 <div class="telemetry-item">
                     <span class="telemetry-label">Total Signals</span>

@@ -38,8 +38,45 @@ const DASHBOARD = {
             if (labData) {
                 this.updateLabUI(labData);
             }
+            // Layer 4: AI Learning Telemetry (Local Audit Log)
+            const learnData = await this.fetchLearning();
+            if (learnData) {
+                this.updateLearningUI(learnData);
+            }
         } catch (error) {
             console.error('❌ Dashboard sync failed:', error);
+        }
+    },
+
+    async fetchLearning() {
+        try {
+            // Fetch the local JSON export from the audit log
+            const response = await fetch(`./learning_data.json?t=${Date.now()}`);
+            if (!response.ok) return null;
+            return await response.json();
+        } catch (e) {
+            return null;
+        }
+    },
+
+    updateLearningUI(data) {
+        document.getElementById('learn-samples').innerText = data.total_samples || 0;
+        document.getElementById('learn-avg-conf').innerText = `${(data.avg_confidence * 100).toFixed(1)}%`;
+        document.getElementById('learn-peak-conf').innerText = `${(data.peak_confidence * 100).toFixed(1)}%`;
+
+        const trendEl = document.getElementById('learn-trend');
+        trendEl.innerText = data.current_trend;
+        trendEl.style.color = data.current_trend === 'RISING' ? 'var(--highlight)' : (data.current_trend === 'FALLING' ? '#ef4444' : 'var(--text-dim)');
+
+        const updateDate = new Date(data.last_updated);
+        document.getElementById('learn-last-update').innerText = updateDate.toLocaleTimeString();
+
+        // Mini Chart
+        const chart = document.getElementById('learning-chart');
+        if (chart && data.recent_history) {
+            chart.innerHTML = data.recent_history.map(h => `
+                <div style="flex: 1; background: var(--accent); height: ${h.v}%; opacity: ${h.v / 100 + 0.2}; border-radius: 2px;" title="${h.v}% at ${new Date(h.t).toLocaleTimeString()}"></div>
+            `).join('');
         }
     },
 

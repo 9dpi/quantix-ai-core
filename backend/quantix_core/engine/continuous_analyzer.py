@@ -17,7 +17,7 @@ class ContinuousAnalyzer:
     """
     
     def __init__(self):
-        self.td_client = TwelveDataClient()
+        self.td_client = TwelveDataClient(api_key=settings.TWELVE_DATA_API_KEY)
         self.engine = StructureEngineV1(sensitivity=2)
         self.last_execution_date = None
         logger.info("💓 Quantix Heartbeat [T0+Δ] Initialized")
@@ -144,6 +144,13 @@ class ContinuousAnalyzer:
                         .execute()
                 except Exception as e:
                     logger.debug(f"Candidate not saved: {e}")
+
+            # 6. Dashboard Telemetry Update (Learning Lab Preview)
+            try:
+                from analyze_heartbeat import analyze_heartbeat
+                analyze_heartbeat()
+            except Exception as e:
+                logger.error(f"Failed to update dashboard learning data: {e}")
 
         except Exception as e:
             logger.error(f"Heartbeat cycle failed: {e}")

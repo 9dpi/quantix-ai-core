@@ -85,8 +85,8 @@ const DASHBOARD = {
         const timeoutId = setTimeout(() => controller.abort(), 10000);
 
         try {
-            const baseUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'https://quantixaicore-production.up.railway.app/api/v1';
-            const response = await fetch(`${baseUrl}/active?${API_CONFIG.getBuster()}`, {
+            const baseUrl = 'https://signalgeniusai-production.up.railway.app/api/v1';
+            const response = await fetch(`${baseUrl}/active?t=${Date.now()}`, {
                 signal: controller.signal
             });
             clearTimeout(timeoutId);

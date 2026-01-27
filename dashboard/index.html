@@ -243,69 +243,40 @@
                     <p>All signals are generated in real time. No historical repainting. No manual edits.</p>
                 </div>
 
-                <!-- Structural Evidence Trace -->
-                <div style="margin-top: 40px;">
-                    <div class="block-header">🧱 Structural Evidence Trace</div>
-                    <div id="evidence-container"
-                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                        <div
-                            style="padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border);">
-                            <div
-                                style="font-size: 0.65rem; color: var(--accent); margin-bottom: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">
-                                SWING_ANALYSIS</div>
-                            <div style="font-size: 0.95rem; color: var(--text-main); font-weight: 700;">Higher High
-                                Confirmed</div>
+                <!-- Moved from Right Column to Middle Column -->
+                <div class="bento-block" style="margin-top: 40px;">
+                    <div class="block-header">🧠 AI Learning Telemetry</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                        <div class="telemetry-item"
+                            style="border: 1px solid var(--border); padding: 16px; border-radius: 12px; flex-direction: column; align-items: flex-start;">
+                            <span class="telemetry-label">Samples Collected</span>
+                            <span id="learn-samples" class="telemetry-value" style="font-size: 1.5rem;">0</span>
                         </div>
-                        <div
-                            style="padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border);">
-                            <div
-                                style="font-size: 0.65rem; color: var(--accent); margin-bottom: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">
-                                REJECTION_FILTER</div>
-                            <div style="font-size: 0.95rem; color: var(--text-main); font-weight: 700;">No Fake
-                                Breakouts</div>
+                        <div class="telemetry-item"
+                            style="border: 1px solid var(--border); padding: 16px; border-radius: 12px; flex-direction: column; align-items: flex-start;">
+                            <span class="telemetry-label">Avg Confidence</span>
+                            <span id="learn-avg-conf" class="telemetry-value" style="font-size: 1.5rem;">0%</span>
                         </div>
-                        <div
-                            style="padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border);">
-                            <div
-                                style="font-size: 0.65rem; color: var(--accent); margin-bottom: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">
-                                MOMENTUM_ALIGN</div>
-                            <div style="font-size: 0.95rem; color: var(--text-main); font-weight: 700;">H4 Trend
-                                Dominant</div>
+                        <div class="telemetry-item"
+                            style="border: 1px solid var(--border); padding: 16px; border-radius: 12px; flex-direction: column; align-items: flex-start;">
+                            <span class="telemetry-label">Current Trend</span>
+                            <span id="learn-trend" class="telemetry-value"
+                                style="font-size: 1.5rem; color: var(--highlight);">STABLE</span>
                         </div>
                     </div>
+                    <div id="learning-chart"
+                        style="margin-top: 24px; height: 100px; display: flex; align-items: flex-end; gap: 4px; background: rgba(0,0,0,0.1); padding: 10px; border-radius: 12px;">
+                        <!-- Simple bar chart via JS -->
+                    </div>
+                    <p style="font-size: 0.65rem; color: var(--text-dim); margin-top: 12px;">
+                        Intelligence history data from <strong id="learn-last-update">...</strong>
+                    </p>
                 </div>
             </div>
         </section>
 
         <!-- RIGHT: PERFORMANCE & CALIBRATION -->
         <aside class="right-col-bento">
-            <div class="bento-block">
-                <div class="block-header">🧠 AI Learning Telemetry</div>
-                <div class="telemetry-item">
-                    <span class="telemetry-label">Samples Collected</span>
-                    <span id="learn-samples" class="telemetry-value">0</span>
-                </div>
-                <div class="telemetry-item">
-                    <span class="telemetry-label">Avg Confidence</span>
-                    <span id="learn-avg-conf" class="telemetry-value">0%</span>
-                </div>
-                <div class="telemetry-item">
-                    <span class="telemetry-label">Peak Confidence</span>
-                    <span id="learn-peak-conf" class="telemetry-value">0%</span>
-                </div>
-                <div class="telemetry-item">
-                    <span class="telemetry-label">Current Trend</span>
-                    <span id="learn-trend" class="telemetry-value" style="color: var(--highlight);">STABLE</span>
-                </div>
-                <div id="learning-chart"
-                    style="margin-top: 16px; height: 60px; display: flex; align-items: flex-end; gap: 2px;">
-                    <!-- Simple bar chart via JS -->
-                </div>
-                <p style="font-size: 0.65rem; color: var(--text-dim); margin-top: 12px;">
-                    History data from <strong id="learn-last-update">...</strong>
-                </p>
-            </div>
-
             <div class="bento-block">
                 <div class="block-header">📊 Performance Summary</div>
                 <div class="telemetry-item">

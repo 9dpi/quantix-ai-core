@@ -8,8 +8,8 @@ const DASHBOARD = {
         console.log('🏛️ Quantix Public Dashboard Initializing...');
         await this.refreshContent();
 
-        // Refresh every 5 minutes in production mode
-        // setInterval(() => this.refreshContent(), 300000);
+        // Refresh every 2 minutes to match Miner cycle
+        setInterval(() => this.refreshContent(), 120000);
     },
 
     async refreshContent() {
@@ -77,6 +77,13 @@ const DASHBOARD = {
             document.getElementById('perf-wins').innerText = data.performance.wins || 0;
             document.getElementById('perf-losses').innerText = data.performance.losses || 0;
             document.getElementById('perf-winrate').innerText = `${data.performance.win_rate}%`;
+
+            if (data.performance.details) {
+                const d = data.performance.details;
+                document.getElementById('breakdown-buy').innerText = `${d.BUY.wins}/${d.BUY.total}`;
+                document.getElementById('breakdown-sell').innerText = `${d.SELL.wins}/${d.SELL.total}`;
+                document.getElementById('breakdown-hold').innerText = `${d.HOLD.wins}/${d.HOLD.total}`;
+            }
         }
 
         // Mini Chart

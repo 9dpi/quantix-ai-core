@@ -139,3 +139,15 @@
 {"timestamp": "2026-01-28T00:27:52.622818+00:00", "asset": "EURUSD", "price": 1.20136, "direction": "BULLISH", "confidence": 1.0, "status": "ANALYZED"}
 {"timestamp": "2026-01-28T00:29:05.425114+00:00", "asset": "EURUSD", "price": 1.20135, "direction": "BULLISH", "confidence": 1.0, "status": "ANALYZED"}
 {"timestamp": "2026-01-28T00:29:54.887818+00:00", "asset": "EURUSD", "price": 1.20118, "direction": "BULLISH", "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-28T00:31:08.175897+00:00", "asset": "EURUSD", "price": 1.20116, "direction": "BULLISH", "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-28T00:33:10.820604+00:00", "asset": "EURUSD", "price": 1.20154, "direction": "BULLISH", "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-28T00:35:13.406000+00:00", "asset": "EURUSD", "price": 1.20179, "direction": "BULLISH", "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-28T00:37:16.137650+00:00", "asset": "EURUSD", "price": 1.20218, "direction": "BULLISH", "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-28T00:39:18.572867+00:00", "asset": "EURUSD", "price": 1.20199, "direction": "BULLISH", "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-28T00:41:20.880361+00:00", "asset": "EURUSD", "price": 1.20221, "direction": "BULLISH", "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-28T00:43:23.431717+00:00", "asset": "EURUSD", "price": 1.20198, "direction": "BULLISH", "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-28T00:45:25.902153+00:00", "asset": "EURUSD", "price": 1.20172, "direction": "BULLISH", "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-28T00:47:28.328313+00:00", "asset": "EURUSD", "price": 1.20162, "direction": "BULLISH", "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-28T00:49:30.993538+00:00", "asset": "EURUSD", "price": 1.20163, "direction": "BULLISH", "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-28T00:51:33.701505+00:00", "asset": "EURUSD", "price": 1.20156, "direction": "BULLISH", "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-28T00:53:36.227195+00:00", "asset": "EURUSD", "price": 1.20149, "direction": "BULLISH", "confidence": 1.0, "status": "ANALYZED"}

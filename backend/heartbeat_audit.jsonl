@@ -131,3 +131,11 @@
 {"timestamp": "2026-01-27T15:42:06.565959+00:00", "asset": "EURUSD", "price": 1.19538, "confidence": 0.7141477842610504, "status": "ANALYZED"}
 {"timestamp": "2026-01-27T15:44:09.728597+00:00", "asset": "EURUSD", "price": 1.19505, "confidence": 0.7143019919646568, "status": "ANALYZED"}
 {"timestamp": "2026-01-27T15:46:11.925688+00:00", "asset": "EURUSD", "price": 1.19513, "confidence": 0.7134957998846185, "status": "ANALYZED"}
+{"timestamp": "2026-01-28T00:24:59.957432+00:00", "status": "SYSTEM_STARTUP", "message": "Quantix AI Core Heartbeat Thread Initialized"}
+{"timestamp": "2026-01-28T00:25:00.717061+00:00", "asset": "EURUSD", "price": 1.20162, "direction": "BULLISH", "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-28T00:25:49.775418+00:00", "status": "SYSTEM_STARTUP", "message": "Quantix AI Core Heartbeat Thread Initialized"}
+{"timestamp": "2026-01-28T00:25:50.460720+00:00", "asset": "EURUSD", "price": 1.20152, "direction": "BULLISH", "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-28T00:27:02.969015+00:00", "asset": "EURUSD", "price": 1.20145, "direction": "BULLISH", "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-28T00:27:52.622818+00:00", "asset": "EURUSD", "price": 1.20136, "direction": "BULLISH", "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-28T00:29:05.425114+00:00", "asset": "EURUSD", "price": 1.20135, "direction": "BULLISH", "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-28T00:29:54.887818+00:00", "asset": "EURUSD", "price": 1.20118, "direction": "BULLISH", "confidence": 1.0, "status": "ANALYZED"}

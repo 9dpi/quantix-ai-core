@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     SUPABASE_KEY: Optional[str] = None
     SUPABASE_SERVICE_ROLE_KEY: Optional[str] = None
     
+    # Telegram [T1]
+    TELEGRAM_BOT_TOKEN: Optional[str] = None
+    TELEGRAM_CHAT_ID: Optional[str] = None
+    
     # Database Tables
     TABLE_SIGNALS: str = "fx_signals"
     TABLE_VALIDATION: str = "fx_signal_validation"

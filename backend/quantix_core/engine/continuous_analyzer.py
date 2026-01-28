@@ -1,4 +1,5 @@
 import time
+import requests
 import pandas as pd
 from datetime import datetime, timezone
 from loguru import logger
@@ -20,7 +21,15 @@ class ContinuousAnalyzer:
         self.td_client = TwelveDataClient(api_key=settings.TWELVE_DATA_API_KEY)
         self.engine = StructureEngineV1(sensitivity=2)
         self.last_execution_date = None
-        logger.info("💓 Quantix Heartbeat [T0+Δ] Initialized")
+        self.cycle_count = 0
+        self.last_pushed_at = None # For Telegram Cooldown
+        
+        # Absolute path to prevent "reset to 0" issues on machine restart
+        import os
+        self.base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+        self.audit_log_path = os.path.join(self.base_dir, "backend", "heartbeat_audit.jsonl")
+        
+        logger.info(f"💓 Quantix Heartbeat [T0+Δ] Initialized (Log: {self.audit_log_path})")
 
     def convert_to_df(self, td_data: dict) -> pd.DataFrame:
         """Convert TwelveData series to StructureEngine compatible DataFrame"""
@@ -72,6 +81,7 @@ class ContinuousAnalyzer:
     def run_cycle(self):
         """One analysis cycle [T0 + Δ]"""
         try:
+            self.cycle_count += 1
             # 1. Continuous Feed [T0]
             raw_data = self.td_client.get_time_series(symbol="EUR/USD", interval="15min", outputsize=100)
             df = self.convert_to_df(raw_data)
@@ -106,9 +116,9 @@ class ContinuousAnalyzer:
                 "strategy": "Structure Alpha v1.0",
             }
 
-            # 4. Local Audit Log (JSONL) - Proof of 24/7 Operation
+            # 4. Local Audit Log (JSONL) - Robust Absolute Path
             try:
-                with open("heartbeat_audit.jsonl", "a") as f:
+                with open(self.audit_log_path, "a") as f:
                     import json
                     f.write(json.dumps({
                         "timestamp": signal_base["generated_at"],
@@ -119,17 +129,25 @@ class ContinuousAnalyzer:
                         "status": "ANALYZED"
                     }) + "\n")
             except Exception as e:
-                logger.error(f"Failed to write heartheat log: {e}")
+                logger.error(f"Failed to write heartbeat log: {e}")
 
-            # 5. Logic Branching: LOCK (ACTIVE) or CANDIDATE
+            # 5. Logic Branching: ULTRA (>95%), LOCK (ACTIVE), or CANDIDATE
             if not db.client:
                 logger.warning("DB Client offline - cannot save signals")
                 return
 
-            if state.confidence >= 0.75 and not self.has_traded_today():
+            # AUTO-PUSH Logic based on Confidence
+            if state.confidence >= 0.95:
+                logger.info(f"🚀 ULTRA High Confidence Detected: {state.confidence*100:.1f}%")
+                signal_base["status"] = "ACTIVE"
+                # ULTRA ignores daily cap for visibility, but respects telegram cooldown
+                self.lock_signal(signal_base)
+                self.push_to_telegram(signal_base)
+            elif state.confidence >= 0.75 and not self.has_traded_today():
                 logger.info(f"🎯 High Confidence Moment Detected: {state.confidence*100:.1f}%")
                 signal_base["status"] = "ACTIVE"
                 self.lock_signal(signal_base)
+                self.push_to_telegram(signal_base)
             else:
                 # Save as CANDIDATE for Quantix Lab [T0] visibility
                 signal_base["status"] = "CANDIDATE"
@@ -149,21 +167,68 @@ class ContinuousAnalyzer:
             # 6. Dashboard Telemetry Update (Learning Lab Preview)
             try:
                 from analyze_heartbeat import analyze_heartbeat
-                analyze_heartbeat()
+                # Auto-sync with GitHub every 15 cycles (30 mins)
+                should_push = (self.cycle_count % 15 == 0)
+                analyze_heartbeat(push_to_git=should_push)
             except Exception as e:
                 logger.error(f"Failed to update dashboard learning data: {e}")
 
         except Exception as e:
             logger.error(f"Heartbeat cycle failed: {e}")
 
+    def push_to_telegram(self, signal: dict):
+        """Proactive Broadcast for High Confidence Signals"""
+        # 🛡️ Cooldown Check (1 push per 60 minutes)
+        now = datetime.now(timezone.utc)
+        if self.last_pushed_at and (now - self.last_pushed_at) < pd.Timedelta(minutes=60):
+            logger.debug("Telegram push on cooldown")
+            return
+
+        token = settings.TELEGRAM_BOT_TOKEN
+        chat_id = settings.TELEGRAM_CHAT_ID
+
+        if not token or not chat_id:
+            logger.warning("Telegram pushing skipped: Missing TOKEN or CHAT_ID")
+            return
+
+        try:
+            # Simple format for immediate visibility
+            dir_emoji = "🟢" if signal["direction"] == "BUY" else "🔴"
+            msg = (
+                f"⚡️ *QUANTIX HIGH-CONFIDENCE SIGNAL*\n\n"
+                f"Asset: {signal['asset']}\n"
+                f"Direction: {dir_emoji} {signal['direction']}\n"
+                f"Confidence: {round(signal['ai_confidence'] * 100, 1)}%\n\n"
+                f"🎯 Entry: {signal['entry_low']}\n"
+                f"💰 TP: {signal['tp']}\n"
+                f"🛑 SL: {signal['sl']}\n\n"
+                f"🔗 [View Live Dashboard](https://9dpi.github.io/quantix-ai-core/dashboard/)"
+            )
+
+            url = f"https://api.telegram.org/bot{token}/sendMessage"
+            res = requests.post(url, json={
+                "chat_id": chat_id,
+                "text": msg,
+                "parse_mode": "Markdown"
+            }, timeout=10)
+            
+            if res.ok:
+                logger.info("🚀 Signal pushed to Telegram successfully")
+                self.last_pushed_at = now
+            else:
+                logger.error(f"Telegram push failed: {res.text}")
+
+        except Exception as e:
+            logger.error(f"Telegram push error: {e}")
+
     def start(self):
         """Start the continuous evaluation loop"""
         interval = settings.MONITOR_INTERVAL_SECONDS
         logger.info(f"💓 Continuous analyzer started with {interval}s interval")
         
-        # Immediate Startup Proof
+        # Immediate Startup Proof using absolute path
         try:
-            with open("heartbeat_audit.jsonl", "a") as f:
+            with open(self.audit_log_path, "a") as f:
                 import json
                 f.write(json.dumps({
                     "timestamp": datetime.now(timezone.utc).isoformat(),

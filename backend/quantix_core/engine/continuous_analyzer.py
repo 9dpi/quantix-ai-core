@@ -56,6 +56,7 @@ class ContinuousAnalyzer:
         try:
             res = db.client.table(settings.TABLE_SIGNALS)\
                 .select("id")\
+                .eq("status", "ACTIVE")\
                 .gte("generated_at", today.isoformat())\
                 .limit(1)\
                 .execute()
@@ -113,7 +114,7 @@ class ContinuousAnalyzer:
                 "reward_risk_ratio": rrr,
                 "ai_confidence": state.confidence,
                 "generated_at": datetime.now(timezone.utc).isoformat(),
-                "strategy": "Structure Alpha v1.0",
+                "explainability": "Structure Alpha v1.0",
             }
 
             # 4. Local Audit Log (JSONL) - Robust Absolute Path

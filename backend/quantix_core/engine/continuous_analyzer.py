@@ -96,16 +96,26 @@ class ContinuousAnalyzer:
             
             # 3. Prepare Common Data
             price = float(df.iloc[-1]["close"])
-            direction = state.state.upper() if state.state in ["bullish", "bearish"] else "BUY"
+            
+            # Map market state to standard trading actions
+            direction_map = {
+                "bullish": "BUY",
+                "bearish": "SELL"
+            }
+            direction = direction_map.get(state.state, "BUY") # Default to BUY if structure is ambiguous
             
             # RRR Calculation
             tp = price + 0.0020 if state.state == "bullish" else price - 0.0020
             sl = price - 0.0015 if state.state == "bullish" else price + 0.0015
             rrr = round(abs(tp - price) / abs(price - sl), 2) if abs(price - sl) > 0 else 2.0
 
+            # Determine strength label
+            strength = "ULTRA" if state.confidence >= 0.95 else "HIGH" if state.confidence >= 0.85 else "ACTIVE"
+            
             signal_base = {
                 "asset": "EURUSD",
                 "direction": direction,
+                "strength": strength,
                 "timeframe": "M15",
                 "entry_low": price,
                 "entry_high": price + 0.0002,
@@ -123,6 +133,7 @@ class ContinuousAnalyzer:
                 "asset": "EURUSD",
                 "price": price,
                 "direction": direction,
+                "strength": strength,
                 "confidence": state.confidence,
                 "status": "ANALYZED"
             }

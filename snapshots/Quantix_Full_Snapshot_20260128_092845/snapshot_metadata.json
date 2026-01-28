@@ -1,0 +1,16 @@
+{
+    "version": "1.0.0",
+    "timestamp": "2026-01-28T09:28:45.933715",
+    "type": "FULL_RESTORE_POINT",
+    "files": [
+        "backend/.env",
+        "backend/heartbeat_audit.jsonl",
+        "backend/quantix_core",
+        "backend/analyze_heartbeat.py",
+        "dashboard/learning_data.json",
+        "dashboard/index.html",
+        "static",
+        "START_QUANTIX.bat",
+        "PORTABILITY_GUIDE.md"
+    ]
+}

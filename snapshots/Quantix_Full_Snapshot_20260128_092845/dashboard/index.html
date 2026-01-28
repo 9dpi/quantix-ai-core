@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantix AI Core – Live System Dashboard</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="../static/img/favicon.svg">
+    <style>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr 320px;
+            gap: 32px;
+            padding: 40px 24px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .bento-block {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 32px;
+            transition: border-color 0.3s ease;
+        }
+
+        .bento-block:hover {
+            border-color: rgba(56, 189, 248, 0.2);
+        }
+
+        .block-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .hero-metric {
+            font-size: 3.5rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--highlight);
+            box-shadow: 0 0 12px var(--highlight);
+        }
+
+        .telemetry-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+
+        .telemetry-item:last-child {
+            border-bottom: none;
+        }
+
+        .telemetry-label {
+            color: var(--text-dim);
+        }
+
+        .telemetry-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .bento-block:last-child {
+            margin-bottom: 0;
+            flex: 1;
+        }
+
+        .left-col-bento,
+        .middle-col-bento,
+        .right-col-bento {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        @media (max-width: 1400px) {
+            .dashboard-grid {
+                grid-template-columns: 280px 1fr;
+            }
+
+            .right-col-bento {
+                grid-column: 1 / -1;
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 32px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-metric {
+                font-size: 2.5rem;
+            }
+
+            .bento-block {
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body class="scrollable-page">
+    <header class="app-header">
+        <div class="logo-area">
+            <div class="logo-icon"></div>
+            <span class="logo-text">QUANTIX AI CORE</span>
+        </div>
+        <div class="hamburger" id="menu-toggle">☰</div>
+        <nav class="main-nav" id="main-nav">
+            <a href="../index.html" class="nav-link">Overview</a>
+            <a href="../dashboard/index.html" class="nav-link active">Live System</a>
+            <a href="../signals/index.html" class="nav-link">Quantix Lab</a>
+            <a href="../api/index.html" class="nav-link">API</a>
+            <a href="../contact/index.html" class="nav-link">Contact</a>
+            <a href="../disclaimer/index.html" class="nav-link">Legal</a>
+        </nav>
+        <div class="status-tag hide-mobile"
+            style="width: 240px; display: flex; justify-content: flex-end; font-size: 0.7rem; color: var(--text-dim); align-items: center; gap: 8px;">
+            <div class="dot dot-online"></div> SYSTEM_OF_RECORD
+        </div>
+    </header>
+
+    <main class="dashboard-grid">
+        <!-- LEFT: SYSTEM STATUS & ROADMAP -->
+        <aside class="left-col-bento">
+            <div class="bento-block">
+                <div class="block-header">🛰️ System Status</div>
+                <div class="telemetry-item">
+                    <span class="telemetry-label">Engine</span>
+                    <span class="telemetry-value" style="color: var(--highlight);">ACTIVE</span>
+                </div>
+                <div class="telemetry-item" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+                    <span class="telemetry-label">Signal Source</span>
+                    <span class="telemetry-value">Live market data</span>
+                </div>
+                <div class="telemetry-item">
+                    <span class="telemetry-label">Interval</span>
+                    <span class="telemetry-value">Every 15m</span>
+                </div>
+                <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 16px; line-height: 1.5;">
+                    <strong style="color: var(--text-main);">Signal Output:</strong> BUY / SELL with TP & SL<br>
+                    <strong style="color: var(--text-main);">Confidence:</strong> Quantix internal score
+                    (non-probabilistic)
+                </p>
+            </div>
+
+            <div class="bento-block">
+                <div class="block-header">🗺️ Roadmap Indicator</div>
+                <ul
+                    style="list-style: none; padding: 0; font-size: 0.85rem; display: flex; flex-direction: column; gap: 16px;">
+                    <li style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--text-dim);">Phase 1: Signal Gen</span>
+                        <span style="color: var(--highlight); font-weight: 800;">✅</span>
+                    </li>
+                    <li style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--text-dim);">Phase 2: Live Tracker</span>
+                        <span style="color: var(--highlight); font-weight: 800;">✅</span>
+                    </li>
+                    <li style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--text-main);">Phase 3: Learning</span>
+                        <span style="color: var(--warning); font-weight: 800;">⏳</span>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+        <section class="middle-col-bento">
+            <div class="bento-block">
+                <div class="block-header" style="justify-content: space-between;">
+                    <span>📡 Live Signal Feed</span>
+                    <span
+                        style="font-size: 0.6rem; color: var(--text-dim); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px;">REAL-TIME</span>
+                </div>
+
+                <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 24px; color: var(--text-main);">
+                    Latest Generated Signals
+                </h2>
+
+                <div id="signals-list-container" style="display: flex; flex-direction: column; gap: 16px;">
+                    <!-- Placeholder/Template for actual JS injection -->
+                    <div
+                        style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 12px; padding: 20px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                        <div>
+                            <div class="label-tiny" style="color: var(--text-dim); margin-bottom: 4px;">ASSET / TF</div>
+                            <div style="font-weight: 800; color: var(--text-main);">EURUSD / M15</div>
+                        </div>
+                        <div>
+                            <div class="label-tiny" style="color: var(--text-dim); margin-bottom: 4px;">DIRECTION</div>
+                            <div style="font-weight: 800; color: var(--highlight);">BUY</div>
+                        </div>
+                        <div>
+                            <div class="label-tiny" style="color: var(--text-dim); margin-bottom: 4px;">CONFIDENCE</div>
+                            <div style="font-weight: 800; color: var(--text-main);">78%</div>
+                        </div>
+                        <div style="grid-column: 1 / -1; height: 1px; background: var(--border); margin: 8px 0;"></div>
+                        <div>
+                            <div class="label-tiny" style="color: var(--text-dim); margin-bottom: 4px;">ENTRY RANGE
+                            </div>
+                            <div style="font-family: 'JetBrains Mono'; font-size: 0.9rem;">1.0852 - 1.0855</div>
+                        </div>
+                        <div>
+                            <div class="label-tiny" style="color: var(--text-dim); margin-bottom: 4px;">TAKE PROFIT
+                            </div>
+                            <div style="font-family: 'JetBrains Mono'; font-size: 0.9rem; color: var(--highlight);">
+                                1.0890</div>
+                        </div>
+                        <div>
+                            <div class="label-tiny" style="color: var(--text-dim); margin-bottom: 4px;">STOP LOSS</div>
+                            <div style="font-family: 'JetBrains Mono'; font-size: 0.9rem; color: #ef4444;">1.0820</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    style="margin-top: 32px; padding: 16px; background: rgba(56, 189, 248, 0.05); border-radius: 10px; border: 1px dashed var(--accent); font-size: 0.8rem; color: var(--text-dim); line-height: 1.6;">
+                    <p>Autonomous Intelligence Active: Every signal is calculated in real-time and validated across 3
+                        market states (BUY/SELL/HOLD) for continuous self-learning. Zero repainting. Zero manual edits.
+                    </p>
+                </div>
+
+                <!-- Moved from Right Column to Middle Column -->
+                <div class="bento-block" style="margin-top: 40px;">
+                    <div class="block-header">🧠 AI Learning Telemetry</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                        <div class="telemetry-item"
+                            style="border: 1px solid var(--border); padding: 16px; border-radius: 12px; flex-direction: column; align-items: flex-start;">
+                            <span class="telemetry-label">Real Evidence Data</span>
+                            <span id="learn-samples" class="telemetry-value" style="font-size: 1.5rem;">0</span>
+                        </div>
+                        <div class="telemetry-item"
+                            style="border: 1px solid var(--border); padding: 16px; border-radius: 12px; flex-direction: column; align-items: flex-start;">
+                            <span class="telemetry-label">Avg Confidence</span>
+                            <span id="learn-avg-conf" class="telemetry-value" style="font-size: 1.5rem;">0%</span>
+                        </div>
+                        <div class="telemetry-item"
+                            style="border: 1px solid var(--border); padding: 16px; border-radius: 12px; flex-direction: column; align-items: flex-start;">
+                            <span class="telemetry-label">Current Trend</span>
+                            <span id="learn-trend" class="telemetry-value"
+                                style="font-size: 1.5rem; color: var(--highlight);">STABLE</span>
+                        </div>
+                    </div>
+                    <div id="learning-chart"
+                        style="margin-top: 24px; height: 100px; display: flex; align-items: flex-end; gap: 4px; background: rgba(0,0,0,0.1); padding: 10px; border-radius: 12px;">
+                        <!-- Simple bar chart via JS -->
+                    </div>
+                    <p style="font-size: 0.65rem; color: var(--text-dim); margin-top: 12px;">
+                        Intelligence history data from <strong id="learn-last-update">...</strong>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT: PERFORMANCE & CALIBRATION -->
+        <aside class="right-col-bento">
+            <div class="bento-block">
+                <div class="block-header">📊 Performance Summary</div>
+                <div class="telemetry-item">
+                    <span class="telemetry-label">Total Learned Signals</span>
+                    <span id="perf-total" class="telemetry-value">0</span>
+                </div>
+                <div class="telemetry-item">
+                    <span class="telemetry-label">Virtual Wins</span>
+                    <span id="perf-wins" class="telemetry-value" style="color: var(--highlight);">0</span>
+                </div>
+                <div class="telemetry-item">
+                    <span class="telemetry-label">Virtual Losses</span>
+                    <span id="perf-losses" class="telemetry-value" style="color: #ef4444;">0</span>
+                </div>
+                <div class="telemetry-item"
+                    style="margin-top: 12px; padding-top: 12px; border-top: 2px solid var(--border);">
+                    <span class="telemetry-label" style="font-weight: 800; color: var(--text-main);">Learning Win
+                        Rate</span>
+                    <span id="perf-winrate" class="telemetry-value"
+                        style="font-size: 1.5rem; color: var(--highlight);">0%</span>
+                </div>
+                <div id="perf-breakdown"
+                    style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 12px;">
+                    <div style="text-align: center; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px;">
+                        <div style="font-size: 0.6rem; color: var(--text-dim);">BUY</div>
+                        <div id="breakdown-buy"
+                            style="font-family: 'JetBrains Mono'; font-weight: 700; font-size: 0.8rem; color: var(--highlight);">
+                            0/0</div>
+                    </div>
+                    <div style="text-align: center; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px;">
+                        <div style="font-size: 0.6rem; color: var(--text-dim);">SELL</div>
+                        <div id="breakdown-sell"
+                            style="font-family: 'JetBrains Mono'; font-weight: 700; font-size: 0.8rem; color: #ef4444;">
+                            0/0</div>
+                    </div>
+                    <div style="text-align: center; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px;">
+                        <div style="font-size: 0.6rem; color: var(--text-dim);">HOLD</div>
+                        <div id="breakdown-hold"
+                            style="font-family: 'JetBrains Mono'; font-weight: 700; font-size: 0.8rem; color: var(--text-dim);">
+                            0/0</div>
+                    </div>
+                </div>
+                <p style="font-size: 0.65rem; color: var(--text-dim); margin-top: 16px;">
+                    *Win/Loss results generated by self-learning Virtual Advisor based on heartbeat logs.
+                </p>
+            </div>
+
+            <div class="bento-block">
+                <div class="block-header">🎯 Confidence Calibration</div>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div
+                        style="display: flex; justify-content: space-between; font-size: 0.8rem; padding: 8px; background: rgba(255,255,255,0.03); border-radius: 6px;">
+                        <span style="color: var(--text-dim);">60–70% Conf</span>
+                        <span style="font-weight: 700; color: var(--warning);">58% Win</span>
+                    </div>
+                    <div
+                        style="display: flex; justify-content: space-between; font-size: 0.8rem; padding: 8px; background: rgba(56, 189, 248, 0.05); border-radius: 6px; border: 1px solid var(--accent);">
+                        <span style="color: var(--text-dim);">70–80% Conf</span>
+                        <span style="font-weight: 700; color: var(--highlight);">72% Win</span>
+                    </div>
+                    <div
+                        style="display: flex; justify-content: space-between; font-size: 0.8rem; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px; opacity: 0.6;">
+                        <span style="color: var(--text-dim);">80–90% Conf</span>
+                        <span style="font-weight: 700;">TBD</span>
+                    </div>
+                </div>
+                <p style="font-size: 0.65rem; color: var(--text-dim); margin-top: 16px; line-height: 1.4;">
+                    Confidence is an evolving metric based on structural resolution, not a guarantee of outcome.
+                </p>
+            </div>
+        </aside>
+    </main>
+
+    <footer class="app-footer-grid"
+        style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 60px 24px;">
+        <div class="footer-block">
+            <p style="color: var(--text-main); font-weight: 700; font-size: 0.95rem;">Quantix AI Core © 2026 Quantix
+                Research</p>
+        </div>
+        <div class="footer-block">
+            <p style="color: var(--text-dim); font-size: 0.85rem; line-height: 1.6;">
+                Decision Intelligence for Trading Signals &nbsp;|&nbsp; Built for transparency, learning, and measurable
+                progress.
+            </p>
+        </div>
+    </footer>
+
+    <script src="../static/js/api.js"></script>
+    <script src="../static/js/ui_shared.js"></script>
+    <script src="../static/js/dashboard.js"></script>
+</body>
+
+</html>

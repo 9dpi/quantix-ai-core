@@ -60,16 +60,25 @@ const DASHBOARD = {
     },
 
     updateLearningUI(data) {
-        document.getElementById('learn-samples').innerText = data.total_samples || 0;
-        document.getElementById('learn-avg-conf').innerText = `${(data.avg_confidence * 100).toFixed(1)}%`;
-        document.getElementById('learn-peak-conf').innerText = `${(data.peak_confidence * 100).toFixed(1)}%`;
+        const setTxt = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.innerText = val;
+        };
+
+        setTxt('learn-samples', data.total_samples || 0);
+        setTxt('learn-avg-conf', `${(data.avg_confidence * 100).toFixed(1)}%`);
+        setTxt('learn-peak-conf', `${(data.peak_confidence * 100).toFixed(1)}%`);
 
         const trendEl = document.getElementById('learn-trend');
-        trendEl.innerText = data.current_trend;
-        trendEl.style.color = data.current_trend === 'RISING' ? 'var(--highlight)' : (data.current_trend === 'FALLING' ? '#ef4444' : 'var(--text-dim)');
+        if (trendEl) {
+            trendEl.innerText = data.current_trend;
+            trendEl.style.color = data.current_trend === 'RISING' ? 'var(--highlight)' : (data.current_trend === 'FALLING' ? '#ef4444' : 'var(--text-dim)');
+        }
 
-        const updateDate = new Date(data.last_updated);
-        document.getElementById('learn-last-update').innerText = updateDate.toLocaleTimeString();
+        if (data.last_updated) {
+            const updateDate = new Date(data.last_updated);
+            setTxt('learn-last-update', updateDate.toLocaleTimeString());
+        }
 
         // Performance Summary Update
         if (data.performance) {
@@ -77,16 +86,16 @@ const DASHBOARD = {
             const wins = data.performance.wins || 0;
             const losses = data.performance.losses !== undefined ? data.performance.losses : (total - wins);
 
-            document.getElementById('perf-total').innerText = total;
-            document.getElementById('perf-wins').innerText = wins;
-            document.getElementById('perf-losses').innerText = losses;
-            document.getElementById('perf-winrate').innerText = `${data.performance.win_rate}%`;
+            setTxt('perf-total', total);
+            setTxt('perf-wins', wins);
+            setTxt('perf-losses', losses);
+            setTxt('perf-winrate', `${data.performance.win_rate}%`);
 
             if (data.performance.details) {
                 const d = data.performance.details;
-                document.getElementById('breakdown-buy').innerText = `${d.BUY.wins}/${d.BUY.total}`;
-                document.getElementById('breakdown-sell').innerText = `${d.SELL.wins}/${d.SELL.total}`;
-                document.getElementById('breakdown-hold').innerText = `${d.HOLD.wins}/${d.HOLD.total}`;
+                setTxt('breakdown-buy', `${d.BUY.wins}/${d.BUY.total}`);
+                setTxt('breakdown-sell', `${d.SELL.wins}/${d.SELL.total}`);
+                setTxt('breakdown-hold', `${d.HOLD.wins}/${d.HOLD.total}`);
             }
         }
 

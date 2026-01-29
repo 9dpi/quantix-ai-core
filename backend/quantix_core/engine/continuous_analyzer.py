@@ -174,7 +174,7 @@ class ContinuousAnalyzer:
                 db_signal_base["status"] = "ACTIVE"
                 signal_base["status"] = "ACTIVE"
                 self.lock_signal(db_signal_base)
-                self.push_to_telegram(signal_base)
+                # Telegram broadcasting restricted to >= 95% as per user request
             else:
                 # Save as CANDIDATE for Quantix Lab [T0] visibility
                 db_signal_base["status"] = "CANDIDATE"

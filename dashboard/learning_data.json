@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-01-29T01:04:48.070565+00:00",
-  "total_samples": 8,
-  "avg_confidence": 0.5231,
+  "last_updated": "2026-01-29T01:06:31.433677+00:00",
+  "total_samples": 9,
+  "avg_confidence": 0.549,
   "peak_confidence": 1,
-  "current_trend": "RISING",
+  "current_trend": "STABLE",
   "performance": {
     "total_signals": 0,
     "wins": 0,
@@ -55,6 +55,10 @@
     {
       "t": "2026-01-29T01:04:45.875182+00:00",
       "v": 75.7
+    },
+    {
+      "t": "2026-01-29T01:06:29.203122+00:00",
+      "v": 75.6
     }
   ]
 }

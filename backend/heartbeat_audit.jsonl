@@ -29,3 +29,5 @@
 {"timestamp": "2026-01-29T01:04:12.673518+00:00", "asset": "EURUSD", "price": 1.19702, "direction": "BUY", "strength": "ACTIVE", "confidence": 0.7547570937778743, "status": "ANALYZED"}
 {"timestamp": "2026-01-29T01:04:45.239517+00:00", "status": "SYSTEM_STARTUP", "message": "Quantix AI Core Heartbeat Thread Initialized"}
 {"timestamp": "2026-01-29T01:04:45.875182+00:00", "asset": "EURUSD", "price": 1.19683, "direction": "BUY", "strength": "ACTIVE", "confidence": 0.7566490850008576, "status": "ANALYZED"}
+{"timestamp": "2026-01-29T01:06:28.564640+00:00", "status": "SYSTEM_STARTUP", "message": "Quantix AI Core Heartbeat Thread Initialized"}
+{"timestamp": "2026-01-29T01:06:29.203122+00:00", "asset": "EURUSD", "price": 1.19674, "direction": "BUY", "strength": "ACTIVE", "confidence": 0.7562473439318242, "status": "ANALYZED"}

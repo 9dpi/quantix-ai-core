@@ -345,3 +345,17 @@
 {"timestamp": "2026-01-29T09:47:55.695715+00:00", "asset": "EURUSD", "price": 1.19643, "direction": "SELL", "strength": 0.61, "confidence": 1.0, "status": "ANALYZED"}
 {"timestamp": "2026-01-29T09:50:01.535902+00:00", "asset": "EURUSD", "price": 1.19611, "direction": "SELL", "strength": 0.64, "confidence": 1.0, "status": "ANALYZED"}
 {"timestamp": "2026-01-29T09:54:18.874994+00:00", "asset": "EURUSD", "price": 1.19547, "direction": "SELL", "strength": 0.67, "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-29T09:56:31.636542+00:00", "asset": "EURUSD", "price": 1.19542, "direction": "SELL", "strength": 0.68, "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-29T09:58:36.348596+00:00", "asset": "EURUSD", "price": 1.19536, "direction": "SELL", "strength": 0.68, "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-29T10:00:41.069826+00:00", "asset": "EURUSD", "price": 1.19545, "direction": "SELL", "strength": 0.67, "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-29T10:02:52.283511+00:00", "asset": "EURUSD", "price": 1.19562, "direction": "SELL", "strength": 0.66, "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-29T10:04:57.839875+00:00", "asset": "EURUSD", "price": 1.19554, "direction": "SELL", "strength": 0.66, "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-29T10:07:02.148745+00:00", "asset": "EURUSD", "price": 1.1956, "direction": "SELL", "strength": 0.66, "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-29T10:09:07.364177+00:00", "asset": "EURUSD", "price": 1.19543, "direction": "SELL", "strength": 0.66, "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-29T10:11:11.674306+00:00", "asset": "EURUSD", "price": 1.19559, "direction": "SELL", "strength": 0.66, "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-29T10:13:19.240549+00:00", "asset": "EURUSD", "price": 1.1956, "direction": "SELL", "strength": 0.66, "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-29T10:15:23.984968+00:00", "asset": "EURUSD", "price": 1.19523, "direction": "SELL", "strength": 0.64, "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-29T10:17:28.846885+00:00", "asset": "EURUSD", "price": 1.19548, "direction": "SELL", "strength": 0.64, "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-29T10:19:36.557109+00:00", "asset": "EURUSD", "price": 1.19495, "direction": "SELL", "strength": 0.62, "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-29T10:23:59.780925+00:00", "asset": "EURUSD", "price": 1.19515, "direction": "SELL", "strength": 0.61, "confidence": 1.0, "status": "ANALYZED"}
+{"timestamp": "2026-01-29T10:26:09.163300+00:00", "asset": "EURUSD", "price": 1.19545, "direction": "SELL", "strength": 0.62, "confidence": 1.0, "status": "ANALYZED"}

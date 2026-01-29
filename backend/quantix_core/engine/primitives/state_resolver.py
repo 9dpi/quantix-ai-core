@@ -17,7 +17,8 @@ class StructureState:
     This is what the reasoning engine produces.
     """
     state: str  # "bullish", "bearish", "range", "unclear"
-    confidence: float  # 0.0 to 1.0
+    confidence: float  # 0.0 to 1.0 (Consistency of evidence)
+    strength: float    # 0.0 to 1.0 (Force/Momentum of the move)
     dominance: Dict[str, float]  # {"bullish": X, "bearish": Y}
     evidence: List[str]  # Human-readable evidence
     
@@ -91,8 +92,13 @@ class StateResolver:
         
         # Calculate confidence (consistency of evidence)
         # Higher when one direction dominates
-        confidence = abs(bullish_score - bearish_score) / total_score
+        confidence = abs(bullish_score - bearish_score) / total_score if total_score > 0 else 0.0
         
+        # Calculate strength (Force/Momentum)
+        # We'll take the average strength of the evidence items as a proxy for 'force'
+        # In a more advanced version, this could come from a separate MomentumEngine
+        strength = self._calculate_aggregate_strength(evidence_items)
+
         # Determine state based on relative dominance
         state, final_evidence = self._determine_state(
             bullish_score,
@@ -103,7 +109,8 @@ class StateResolver:
         
         return StructureState(
             state=state,
-            confidence=confidence,
+            confidence=round(confidence, 2),
+            strength=round(strength, 2),
             dominance={
                 "bullish": round(bullish_score, 2),
                 "bearish": round(bearish_score, 2)
@@ -113,6 +120,26 @@ class StateResolver:
             source=source,
             timeframe=timeframe
         )
+
+    def _calculate_aggregate_strength(self, evidence_items: List[str]) -> float:
+        """
+        Estimate aggregate strength from evidence descriptions.
+        (Temporary shim until we pass raw StructureEvidence objects here)
+        """
+        if not evidence_items:
+            return 0.0
+            
+        strengths = []
+        for item in evidence_items:
+            # Look for body percentage in description "body 85%"
+            if "body " in item:
+                try:
+                    pct_str = item.split("body ")[1].split("%")[0]
+                    strengths.append(int(pct_str) / 100.0)
+                except:
+                    continue
+        
+        return sum(strengths) / len(strengths) if strengths else 0.5
     
     def _determine_state(
         self,
@@ -183,6 +210,7 @@ class StateResolver:
             "feature": "structure",
             "state": state.state,
             "confidence": round(state.confidence, 2),
+            "strength": round(state.strength, 2),
             "dominance": state.dominance,
             "evidence": state.evidence,
             "trace_id": state.trace_id,

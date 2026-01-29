@@ -109,13 +109,13 @@ class ContinuousAnalyzer:
             sl = round(price - 0.0015 if state.state == "bullish" else price + 0.0015, 5)
             rrr = round(abs(tp - price) / abs(price - sl), 2) if abs(price - sl) > 0 else 2.0
 
-            # Determine strength label
-            strength = "ULTRA" if state.confidence >= 0.95 else "HIGH" if state.confidence >= 0.85 else "ACTIVE"
+            # Determine strength label for internal logic/filtering
+            strength_label = "ULTRA" if state.confidence >= 0.95 else "HIGH" if state.confidence >= 0.85 else "ACTIVE"
             
             signal_base = {
                 "asset": "EURUSD",
                 "direction": direction,
-                "strength": strength,
+                "strength": state.strength, # Store numeric strength [0-1]
                 "timeframe": "M15",
                 "entry_low": price,
                 "entry_high": price + 0.0002,
@@ -124,17 +124,16 @@ class ContinuousAnalyzer:
                 "reward_risk_ratio": rrr,
                 "ai_confidence": state.confidence,
                 "generated_at": datetime.now(timezone.utc).isoformat(),
-                "explainability": "Structure Alpha v1.0",
+                "explainability": f"Structure {state.state.upper()} | Strength {int(state.strength*100)}%",
             }
 
             # 4. Local Audit Log (JSONL) - Robust Absolute Path
-            # Local log REMAINS WITH STRENGTH for local analytics
             analysis_entry = {
                 "timestamp": signal_base["generated_at"],
                 "asset": "EURUSD",
                 "price": price,
                 "direction": direction,
-                "strength": strength,
+                "strength": state.strength,
                 "confidence": state.confidence,
                 "status": "ANALYZED"
             }
@@ -146,40 +145,32 @@ class ContinuousAnalyzer:
                 logger.error(f"Failed to write heartbeat log: {e}")
 
             # 4b. Push Analysis to Supabase [T1] for persistent telemetry
-            # REMOVE STRENGTH for DB until schema is updated
-            db_analysis_entry = analysis_entry.copy()
-            del db_analysis_entry["strength"]
             try:
-                db.client.table(settings.TABLE_ANALYSIS_LOG).insert(db_analysis_entry).execute()
+                db.client.table(settings.TABLE_ANALYSIS_LOG).insert(analysis_entry).execute()
             except Exception as e:
-                logger.debug(f"Failed to push telemetry to DB: {e}")
+                logger.debug(f"DB telemetry write failed: {e}")
 
             # 5. Logic Branching: ULTRA (>95%), LOCK (ACTIVE), or CANDIDATE
             if not db.client:
                 logger.warning("DB Client offline - cannot save signals")
                 return
 
-            db_signal_base = signal_base.copy()
-            del db_signal_base["strength"]
-
             # AUTO-PUSH Logic based on Confidence
             if state.confidence >= 0.95:
                 logger.info(f"🚀 ULTRA High Confidence Detected: {state.confidence*100:.1f}%")
-                db_signal_base["status"] = "ACTIVE"
                 signal_base["status"] = "ACTIVE"
-                self.lock_signal(db_signal_base)
+                self.lock_signal(signal_base)
                 self.push_to_telegram(signal_base)
             elif state.confidence >= 0.75 and not self.has_traded_today():
                 logger.info(f"🎯 High Confidence Moment Detected: {state.confidence*100:.1f}%")
-                db_signal_base["status"] = "ACTIVE"
                 signal_base["status"] = "ACTIVE"
-                self.lock_signal(db_signal_base)
+                self.lock_signal(signal_base)
                 # Telegram broadcasting restricted to >= 95% as per user request
             else:
                 # Save as CANDIDATE for Quantix Lab [T0] visibility
-                db_signal_base["status"] = "CANDIDATE"
+                signal_base["status"] = "CANDIDATE"
                 try:
-                    db.client.table(settings.TABLE_SIGNALS).insert(db_signal_base).execute()
+                    db.client.table(settings.TABLE_SIGNALS).insert(signal_base).execute()
                     
                     # 🧹 Cleanup OLD candidates (older than 1 hour)
                     expiry = (datetime.now(timezone.utc) - pd.Timedelta(hours=1)).isoformat()
@@ -221,11 +212,15 @@ class ContinuousAnalyzer:
         try:
             # Simple format for immediate visibility
             dir_emoji = "🟢" if signal["direction"] == "BUY" else "🔴"
+            strength_val = signal.get("strength", 0)
+            strength_pct = f"{int(strength_val * 100)}%" if isinstance(strength_val, (int, float)) else str(strength_val)
+            
             msg = (
                 f"⚡️ *QUANTIX HIGH-CONFIDENCE SIGNAL*\n\n"
                 f"Asset: {signal['asset']}\n"
                 f"Direction: {dir_emoji} {signal['direction']}\n"
-                f"Confidence: {round(signal['ai_confidence'] * 100, 1)}%\n\n"
+                f"Confidence: {round(signal['ai_confidence'] * 100, 1)}%\n"
+                f"Force/Strength: {strength_pct}\n\n"
                 f"🎯 Entry: {signal['entry_low']}\n"
                 f"💰 TP: {signal['tp']}\n"
                 f"🛑 SL: {signal['sl']}\n\n"

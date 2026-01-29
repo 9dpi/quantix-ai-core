@@ -1,4 +1,3 @@
-
 fastapi
 uvicorn
 pandas
@@ -10,3 +9,6 @@ asyncio
 python-multipart
 pydantic
 pydantic-settings
+loguru
+httpcore>=1.0.3
+httpx>=0.25.0

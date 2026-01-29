@@ -26,8 +26,18 @@ class ContinuousAnalyzer:
         
         # Absolute path to prevent "reset to 0" issues on machine restart
         import os
-        self.base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-        self.audit_log_path = os.path.join(self.base_dir, "backend", "heartbeat_audit.jsonl")
+        # Robust path detection: try to find the project root (where .env or quantix_core is)
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        # Target: the folder containing 'quantix_core'
+        self.project_root = os.path.dirname(os.path.dirname(current_dir))
+        
+        # In Docker/Railway, heartbeat_audit.jsonl is usually in the root
+        # In local dev, it might be in backend/heartbeat_audit.jsonl
+        potential_path = os.path.join(self.project_root, "heartbeat_audit.jsonl")
+        if not os.path.exists(potential_path) and os.path.exists(os.path.join(self.project_root, "backend")):
+             self.audit_log_path = os.path.join(self.project_root, "backend", "heartbeat_audit.jsonl")
+        else:
+             self.audit_log_path = potential_path
         
         logger.info(f"💓 Quantix Heartbeat [T0+Δ] Initialized (Log: {self.audit_log_path})")
 
@@ -202,6 +212,15 @@ class ContinuousAnalyzer:
             logger.debug("Telegram push on cooldown")
             return
 
+        # 🛡️ Signal Deduplication (Same asset/direction/entry)
+        if not hasattr(self, '_pushed_signals'):
+            self._pushed_signals = set()
+        
+        signal_key = f"{signal['asset']}_{signal['direction']}_{signal['entry_low']}"
+        if signal_key in self._pushed_signals:
+            logger.info(f"Signal {signal_key} already pushed to Telegram")
+            return
+
         token = settings.TELEGRAM_BOT_TOKEN
         chat_id = settings.TELEGRAM_CHAT_ID
 
@@ -214,17 +233,19 @@ class ContinuousAnalyzer:
             dir_emoji = "🟢" if signal["direction"] == "BUY" else "🔴"
             strength_val = signal.get("strength", 0)
             strength_pct = f"{int(strength_val * 100)}%" if isinstance(strength_val, (int, float)) else str(strength_val)
+            timeframe = signal.get("timeframe", "M15")
             
             msg = (
-                f"⚡️ *QUANTIX HIGH-CONFIDENCE SIGNAL*\n\n"
+                f"⚡️ *SIGNAL GENIUS AI*\n\n"
                 f"Asset: {signal['asset']}\n"
+                f"Timeframe: {timeframe}\n"
                 f"Direction: {dir_emoji} {signal['direction']}\n"
                 f"Confidence: {round(signal['ai_confidence'] * 100, 1)}%\n"
                 f"Force/Strength: {strength_pct}\n\n"
                 f"🎯 Entry: {signal['entry_low']}\n"
                 f"💰 TP: {signal['tp']}\n"
                 f"🛑 SL: {signal['sl']}\n\n"
-                f"🔗 [View Live Dashboard](https://9dpi.github.io/quantix-ai-core/dashboard/)"
+                f"🔗 [View Live Dashboard](https://www.signalgeniusai.com/)"
             )
 
             url = f"https://api.telegram.org/bot{token}/sendMessage"
@@ -237,6 +258,7 @@ class ContinuousAnalyzer:
             if res.ok:
                 logger.info("🚀 Signal pushed to Telegram successfully")
                 self.last_pushed_at = now
+                self._pushed_signals.add(signal_key)
             else:
                 logger.error(f"Telegram push failed: {res.text}")
 

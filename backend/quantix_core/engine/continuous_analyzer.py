@@ -105,8 +105,8 @@ class ContinuousAnalyzer:
             direction = direction_map.get(state.state, "BUY") # Default to BUY if structure is ambiguous
             
             # RRR Calculation
-            tp = price + 0.0020 if state.state == "bullish" else price - 0.0020
-            sl = price - 0.0015 if state.state == "bullish" else price + 0.0015
+            tp = round(price + 0.0020 if state.state == "bullish" else price - 0.0020, 5)
+            sl = round(price - 0.0015 if state.state == "bullish" else price + 0.0015, 5)
             rrr = round(abs(tp - price) / abs(price - sl), 2) if abs(price - sl) > 0 else 2.0
 
             # Determine strength label
@@ -128,6 +128,7 @@ class ContinuousAnalyzer:
             }
 
             # 4. Local Audit Log (JSONL) - Robust Absolute Path
+            # Local log REMAINS WITH STRENGTH for local analytics
             analysis_entry = {
                 "timestamp": signal_base["generated_at"],
                 "asset": "EURUSD",
@@ -145,33 +146,40 @@ class ContinuousAnalyzer:
                 logger.error(f"Failed to write heartbeat log: {e}")
 
             # 4b. Push Analysis to Supabase [T1] for persistent telemetry
+            # REMOVE STRENGTH for DB until schema is updated
+            db_analysis_entry = analysis_entry.copy()
+            del db_analysis_entry["strength"]
             try:
-                db.client.table(settings.TABLE_ANALYSIS_LOG).insert(analysis_entry).execute()
+                db.client.table(settings.TABLE_ANALYSIS_LOG).insert(db_analysis_entry).execute()
             except Exception as e:
-                logger.debug(f"Failed to push telemetry to DB (Expected if table missing): {e}")
+                logger.debug(f"Failed to push telemetry to DB: {e}")
 
             # 5. Logic Branching: ULTRA (>95%), LOCK (ACTIVE), or CANDIDATE
             if not db.client:
                 logger.warning("DB Client offline - cannot save signals")
                 return
 
+            db_signal_base = signal_base.copy()
+            del db_signal_base["strength"]
+
             # AUTO-PUSH Logic based on Confidence
             if state.confidence >= 0.95:
                 logger.info(f"🚀 ULTRA High Confidence Detected: {state.confidence*100:.1f}%")
+                db_signal_base["status"] = "ACTIVE"
                 signal_base["status"] = "ACTIVE"
-                # ULTRA ignores daily cap for visibility, but respects telegram cooldown
-                self.lock_signal(signal_base)
+                self.lock_signal(db_signal_base)
                 self.push_to_telegram(signal_base)
             elif state.confidence >= 0.75 and not self.has_traded_today():
                 logger.info(f"🎯 High Confidence Moment Detected: {state.confidence*100:.1f}%")
+                db_signal_base["status"] = "ACTIVE"
                 signal_base["status"] = "ACTIVE"
-                self.lock_signal(signal_base)
+                self.lock_signal(db_signal_base)
                 self.push_to_telegram(signal_base)
             else:
                 # Save as CANDIDATE for Quantix Lab [T0] visibility
-                signal_base["status"] = "CANDIDATE"
+                db_signal_base["status"] = "CANDIDATE"
                 try:
-                    db.client.table(settings.TABLE_SIGNALS).insert(signal_base).execute()
+                    db.client.table(settings.TABLE_SIGNALS).insert(db_signal_base).execute()
                     
                     # 🧹 Cleanup OLD candidates (older than 1 hour)
                     expiry = (datetime.now(timezone.utc) - pd.Timedelta(hours=1)).isoformat()

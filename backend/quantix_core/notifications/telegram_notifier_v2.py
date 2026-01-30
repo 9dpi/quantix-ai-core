@@ -270,6 +270,75 @@ class TelegramNotifierV2:
             logger.error(f"Failed to send to {chat_id}: {e}")
             return False
 
+    def get_updates(self, offset: Optional[int] = None) -> list:
+        """Get latest updates from Telegram API."""
+        try:
+            url = f"https://api.telegram.org/bot{self.bot_token}/getUpdates"
+            params = {"timeout": 30, "offset": offset}
+            response = requests.get(url, params=params, timeout=35)
+            response.raise_for_status()
+            return response.json().get("result", [])
+        except Exception as e:
+            logger.error(f"Failed to get updates: {e}")
+            return []
+
+    def handle_commands(self, watcher_instance=None):
+        """Poll for commands and respond if from Admin."""
+        if not self.admin_chat_id:
+            return
+
+        updates = self.get_updates(offset=getattr(self, '_last_update_id', None))
+        for update in updates:
+            self._last_update_id = update['update_id'] + 1
+            
+            message = update.get("message")
+            if not message: continue
+            
+            chat_id = str(message['chat']['id'])
+            text = message.get("text", "")
+            
+            # Security: Only respond to Admin
+            if chat_id != str(self.admin_chat_id):
+                continue
+
+            if text.startswith("/"):
+                self._process_command(text, watcher_instance)
+
+    def _process_command(self, command: str, watcher=None):
+        """Internal command processor."""
+        cmd = command.lower().split()[0]
+        instance = os.getenv("INSTANCE_NAME", "UNKNOWN")
+
+        if cmd == "/help":
+            help_text = (
+                "🤖 *QUANTIX ADMIN HELP*\n\n"
+                "📌 *COMMANDS:*\n"
+                "• `/status` - System health & stats\n"
+                "• `/ping` - Check if bot is alive\n"
+                "• `/signals` - List active signals\n"
+                "• `/help` - Show this menu\n\n"
+                f"Instance: `{instance}`"
+            )
+            self._send_to_chat(self.admin_chat_id, help_text)
+
+        elif cmd == "/ping":
+            self._send_to_chat(self.admin_chat_id, f"🏓 *PONG!*\nInstance: `{instance}`\nStatus: Online 🟢")
+
+        elif cmd == "/status":
+            stats = "N/A"
+            if watcher:
+                active_count = len(watcher._active_signals) if hasattr(watcher, '_active_signals') else 0
+                stats = f"Watching `{active_count}` signals"
+            
+            status_text = (
+                "📊 *SYSTEM STATUS*\n\n"
+                f"Instance: `{instance}`\n"
+                f"Uptime: Running ✅\n"
+                f"Engine: {stats}\n"
+                f"Time: `{datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}`"
+            )
+            self._send_to_chat(self.admin_chat_id, status_text)
+
     
     # ========================================
     # HELPER METHODS

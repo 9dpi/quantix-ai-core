@@ -59,6 +59,13 @@ class SignalWatcher:
         self._running = True
         logger.info("🔍 SignalWatcher started")
         
+        # Start Telegram Command Listener Thread if notifier is available
+        if self.telegram and self.telegram.admin_chat_id:
+            import threading
+            self._cmd_thread = threading.Thread(target=self._listen_for_commands, daemon=True)
+            self._cmd_thread.start()
+            logger.info("🤖 Telegram Command Listener started")
+        
         while self._running:
             try:
                 self.check_cycle()
@@ -78,6 +85,16 @@ class SignalWatcher:
     def stop(self):
         """Stop the watcher loop gracefully"""
         self._running = False
+
+    def _listen_for_commands(self):
+        """Infinite loop for Telegram command polling (runs in thread)."""
+        while self._running:
+            try:
+                if self.telegram:
+                    self.telegram.handle_commands(watcher_instance=self)
+            except Exception as e:
+                logger.error(f"Error in command listener: {e}")
+            time.sleep(3) # Poll every 3 seconds for responsive feel
     
     def check_cycle(self):
         """

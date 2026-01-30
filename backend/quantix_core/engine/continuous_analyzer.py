@@ -10,6 +10,7 @@ from quantix_core.ingestion.twelve_data_client import TwelveDataClient
 from quantix_core.engine.structure_engine_v1 import StructureEngineV1
 from quantix_core.database.connection import db
 from quantix_core.utils.entry_calculator import EntryCalculator
+from quantix_core.utils.market_hours import MarketHours
 
 class ContinuousAnalyzer:
     """
@@ -103,6 +104,10 @@ class ContinuousAnalyzer:
 
     def run_cycle(self):
         """One analysis cycle [T0 + Δ]"""
+        # 🛡️ Market Hours Safety Check
+        if not MarketHours.should_generate_signals():
+            return
+
         try:
             self.cycle_count += 1
             # 1. Continuous Feed [T0]

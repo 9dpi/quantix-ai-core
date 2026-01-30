@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from typing import List, Optional
 from loguru import logger
 from supabase import Client
+from quantix_core.utils.market_hours import MarketHours
 
 
 class SignalWatcher:
@@ -89,6 +90,13 @@ class SignalWatcher:
         """Stop the watcher loop gracefully"""
         self._running = False
 
+    def _cleanup_pending_on_close(self, signals: List[dict]):
+        """Cancel all WAITING_FOR_ENTRY signals on Friday close."""
+        for sig in signals:
+            if sig.get("state") == "WAITING_FOR_ENTRY":
+                logger.info(f"🚿 Market Closing: Cancelling pending signal {sig.get('id')}")
+                self.transition_to_cancelled(sig)
+
     def _listen_for_commands(self):
         """Infinite loop for Telegram command polling (runs in thread)."""
         while self._running:
@@ -109,6 +117,16 @@ class SignalWatcher:
         # 1. Fetch active signals
         signals = self.fetch_active_signals()
         self.last_watched_count = len(signals)
+        
+        # 🛡️ Market Hours Check
+        if not MarketHours.is_market_open():
+            if signals:
+                logger.warning(f"Market is CLOSED. Pausing watcher for {len(signals)} signals.")
+                # Optional: Auto-cancel WAITING signals on Friday close to avoid weekend gaps
+                now = datetime.now(timezone.utc)
+                if now.weekday() == 4: # Friday
+                     self._cleanup_pending_on_close(signals)
+            return
         
         if not signals:
             logger.debug("No active signals to watch")

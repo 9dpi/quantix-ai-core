@@ -63,12 +63,13 @@ def main():
     # Initialize Telegram notifier
     telegram_token = os.getenv("TELEGRAM_BOT_TOKEN")
     telegram_chat_id = os.getenv("TELEGRAM_CHAT_ID")
+    admin_chat_id = os.getenv("TELEGRAM_ADMIN_CHAT_ID")
     
     telegram_notifier = None
     if telegram_token and telegram_chat_id:
         from quantix_core.notifications.telegram_notifier_v2 import TelegramNotifierV2
-        telegram_notifier = TelegramNotifierV2(telegram_token, telegram_chat_id)
-        logger.success("✅ Telegram notifier initialized")
+        telegram_notifier = TelegramNotifierV2(telegram_token, telegram_chat_id, admin_chat_id)
+        logger.success(f"✅ Telegram notifier initialized (Admin: {admin_chat_id})")
     else:
         logger.warning("⚠️  Telegram credentials not found, notifications disabled")
     

@@ -40,6 +40,17 @@ class ContinuousAnalyzer:
         else:
              self.audit_log_path = potential_path
         
+        # Initialize Telegram notifier
+        token = os.getenv("TELEGRAM_BOT_TOKEN")
+        chat_id = os.getenv("TELEGRAM_CHAT_ID")
+        admin_chat_id = os.getenv("TELEGRAM_ADMIN_CHAT_ID")
+        
+        self.notifier = None
+        if token and chat_id:
+            from quantix_core.notifications.telegram_notifier_v2 import create_notifier
+            self.notifier = create_notifier(token, chat_id, admin_chat_id)
+            logger.success(f"✅ Telegram notifier initialized (Admin: {admin_chat_id})")
+        
         logger.info(f"💓 Quantix Heartbeat [T0+Δ] Initialized (Log: {self.audit_log_path})")
 
     def convert_to_df(self, td_data: dict) -> pd.DataFrame:
@@ -279,11 +290,8 @@ class ContinuousAnalyzer:
             logger.info(f"Signal {signal_key} already pushed to Telegram")
             return
 
-        token = settings.TELEGRAM_BOT_TOKEN
-        chat_id = settings.TELEGRAM_CHAT_ID
-
-        if not token or not chat_id:
-            logger.warning("Telegram pushing skipped: Missing TOKEN or CHAT_ID")
+        if not self.notifier:
+            logger.warning("Telegram pushing skipped: Notifier not initialized")
             return
 
         try:
@@ -329,19 +337,12 @@ class ContinuousAnalyzer:
                     f"You will receive an update when entry is triggered."
                 )
 
-            url = f"https://api.telegram.org/bot{token}/sendMessage"
-            res = requests.post(url, json={
-                "chat_id": chat_id,
-                "text": msg,
-                "parse_mode": "Markdown"
-            }, timeout=10)
-            
-            if res.ok:
+            if self.notifier.send_message(msg):
                 logger.info("🚀 Signal pushed to Telegram successfully")
                 self.last_pushed_at = now
                 self._pushed_signals.add(signal_key)
             else:
-                logger.error(f"Telegram push failed: {res.text}")
+                logger.error("Telegram push failed")
 
         except Exception as e:
             logger.error(f"Telegram push error: {e}")
@@ -370,13 +371,8 @@ class ContinuousAnalyzer:
             except Exception as e:
                 error_msg = str(e)
                 logger.error(f"Cycle error: {error_msg}")
-                if "API_BLOCKED" in error_msg:
-                    from quantix_core.notifications.telegram_notifier_v2 import create_notifier
-                    bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
-                    chat_id = os.getenv("TELEGRAM_CHAT_ID")
-                    if bot_token and chat_id:
-                        notifier = create_notifier(bot_token, chat_id)
-                        notifier.send_critical_alert(f"TwelveData API Blocked or Invalid: {error_msg}")
+                if "API_BLOCKED" in error_msg and self.notifier:
+                    self.notifier.send_critical_alert(f"TwelveData API Blocked: {error_msg}")
             
             time.sleep(interval)
 

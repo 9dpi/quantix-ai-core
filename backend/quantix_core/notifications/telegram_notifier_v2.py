@@ -23,16 +23,18 @@ class TelegramNotifierV2:
     - CANCELLED: Signal expired without entry
     """
     
-    def __init__(self, bot_token: str, chat_id: str):
+    def __init__(self, bot_token: str, chat_id: str, admin_chat_id: Optional[str] = None):
         """
         Initialize Telegram notifier.
         
         Args:
             bot_token: Telegram bot token
-            chat_id: Telegram chat/channel ID
+            chat_id: Telegram chat/channel ID for signals
+            admin_chat_id: Optional chat ID for system alerts
         """
         self.bot_token = bot_token
         self.chat_id = chat_id
+        self.admin_chat_id = admin_chat_id
         self.api_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
         
         # Memory set to track signals where ENTRY_HIT has been notified.
@@ -40,7 +42,7 @@ class TelegramNotifierV2:
         # Rule: No TP/SL without prior ENTRY_HIT.
         self._notified_entries = set()
         
-        logger.info(f"TelegramNotifierV2 initialized (chat_id={chat_id})")
+        logger.info(f"TelegramNotifierV2 initialized (chat_id={chat_id}, admin={admin_chat_id})")
     
     def send_message(self, text: str) -> bool:
         """
@@ -240,8 +242,10 @@ class TelegramNotifierV2:
         return self.send_message(message)
 
     def send_critical_alert(self, error_msg: str) -> bool:
-        """Send a critical system alert (e.g. API Blocked)."""
+        """Send a critical system alert (e.g. API Blocked) to Admin chat."""
+        import os
         instance = os.getenv("INSTANCE_NAME", "UNKNOWN")
+        target_chat = self.admin_chat_id or self.chat_id
         message = (
             f"🚨 *CRITICAL SYSTEM ALERT*\n\n"
             f"Instance: `{instance}`\n"
@@ -249,7 +253,22 @@ class TelegramNotifierV2:
             f"Error: `{error_msg}`\n\n"
             f"Action Required: Check Railway logs or API quota immediately."
         )
-        return self.send_message(message)
+        return self._send_to_chat(target_chat, message)
+
+    def _send_to_chat(self, chat_id: str, text: str) -> bool:
+        """Internal helper to send message to a specific chat ID."""
+        try:
+            payload = {
+                "chat_id": chat_id,
+                "text": text,
+                "parse_mode": "Markdown"
+            }
+            response = requests.post(self.api_url, json=payload, timeout=10)
+            response.raise_for_status()
+            return True
+        except Exception as e:
+            logger.error(f"Failed to send to {chat_id}: {e}")
+            return False
 
     
     # ========================================
@@ -282,15 +301,16 @@ class TelegramNotifierV2:
 # CONVENIENCE FUNCTIONS
 # ========================================
 
-def create_notifier(bot_token: str, chat_id: str) -> TelegramNotifierV2:
+def create_notifier(bot_token: str, chat_id: str, admin_chat_id: Optional[str] = None) -> TelegramNotifierV2:
     """
     Create a TelegramNotifierV2 instance.
     
     Args:
         bot_token: Telegram bot token
         chat_id: Telegram chat/channel ID
+        admin_chat_id: Optional admin chat ID
     
     Returns:
         TelegramNotifierV2 instance
     """
-    return TelegramNotifierV2(bot_token, chat_id)
+    return TelegramNotifierV2(bot_token, chat_id, admin_chat_id)

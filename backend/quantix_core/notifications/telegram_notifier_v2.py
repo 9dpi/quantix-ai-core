@@ -5,8 +5,10 @@ Sends Telegram notifications for each state transition in the signal lifecycle.
 Each state has its own dedicated message template.
 """
 
+import os
+import json
 import requests
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from loguru import logger
 

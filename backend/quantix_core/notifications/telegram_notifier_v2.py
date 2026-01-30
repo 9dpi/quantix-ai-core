@@ -347,8 +347,14 @@ class TelegramNotifierV2:
                     f"Thời gian: `{datetime.utcnow().strftime('%H:%M:%S UTC')}`"
                 )
                 self._send_to_chat(self.admin_chat_id, status_text)
+
+            elif cmd == "/signal" or cmd == "/signals":
+                count = getattr(watcher, 'last_watched_count', 0) if watcher else 0
+                self._send_to_chat(self.admin_chat_id, f"🔍 *TRA CỨU TÍN HIỆU*\n\nHệ thống đang canh chừng `{count}` cặp tiền trên thị trường. Mọi thứ đều ổn định.")
             
             else:
+                # Fallback for unknown commands
+                self._send_to_chat(self.admin_chat_id, f"❓ *Lệnh không hợp lệ: `{cmd}`*\n\nHãy gõ `/help` để xem danh sách các lệnh điều khiển hệ thống.")
                 logger.info(f"Unknown command: {cmd}")
 
         except Exception as e:

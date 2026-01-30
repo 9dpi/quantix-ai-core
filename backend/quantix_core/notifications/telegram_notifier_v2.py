@@ -238,6 +238,19 @@ class TelegramNotifierV2:
         
         logger.info(f"Sending CANCELLED message for {asset}")
         return self.send_message(message)
+
+    def send_critical_alert(self, error_msg: str) -> bool:
+        """Send a critical system alert (e.g. API Blocked)."""
+        instance = os.getenv("INSTANCE_NAME", "UNKNOWN")
+        message = (
+            f"🚨 *CRITICAL SYSTEM ALERT*\n\n"
+            f"Instance: `{instance}`\n"
+            f"Status: 🔴 SYSTEM STALLED\n\n"
+            f"Error: `{error_msg}`\n\n"
+            f"Action Required: Check Railway logs or API quota immediately."
+        )
+        return self.send_message(message)
+
     
     # ========================================
     # HELPER METHODS

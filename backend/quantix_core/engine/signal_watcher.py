@@ -66,7 +66,10 @@ class SignalWatcher:
                 logger.info("SignalWatcher stopped by user")
                 break
             except Exception as e:
-                logger.error(f"Error in watcher cycle: {e}", exc_info=True)
+                error_msg = str(e)
+                logger.error(f"Error in watcher cycle: {error_msg}")
+                if "API_BLOCKED" in error_msg and self.telegram:
+                    self.telegram.send_critical_alert(f"TwelveData API Blocked or Invalid: {error_msg}")
             
             time.sleep(self.check_interval)
         

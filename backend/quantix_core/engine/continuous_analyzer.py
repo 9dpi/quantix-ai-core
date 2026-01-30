@@ -364,8 +364,20 @@ class ContinuousAnalyzer:
             logger.error(f"Startup log failed: {e}")
 
         while True:
-            logger.info("🎬 Starting new analysis cycle...")
-            self.run_cycle()
+            try:
+                logger.info("🎬 Starting new analysis cycle...")
+                self.run_cycle()
+            except Exception as e:
+                error_msg = str(e)
+                logger.error(f"Cycle error: {error_msg}")
+                if "API_BLOCKED" in error_msg:
+                    from quantix_core.notifications.telegram_notifier_v2 import create_notifier
+                    bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
+                    chat_id = os.getenv("TELEGRAM_CHAT_ID")
+                    if bot_token and chat_id:
+                        notifier = create_notifier(bot_token, chat_id)
+                        notifier.send_critical_alert(f"TwelveData API Blocked or Invalid: {error_msg}")
+            
             time.sleep(interval)
 
 if __name__ == "__main__":

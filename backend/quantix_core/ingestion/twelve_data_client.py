@@ -32,6 +32,10 @@ class TwelveDataClient:
                 
                 response = requests.get(url, params=params, headers=headers, timeout=15)
                 
+                if response.status_code == 403:
+                    logger.critical("🚨 TwelveData API FORBIDDEN (403) - Possible IP Block!")
+                    raise ValueError("API_BLOCKED_403")
+                    
                 if response.status_code == 429:
                     import time
                     wait_time = (attempt + 1) * 2

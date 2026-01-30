@@ -249,6 +249,12 @@ class TelegramNotifierV2:
         logger.info(f"Sending CANCELLED message for {asset}")
         return self.send_message(message)
 
+    def send_admin_notification(self, text: str) -> bool:
+        """Send a general notification to the Admin chat (non-critical)."""
+        if not self.admin_chat_id:
+            return False
+        return self._send_to_chat(self.admin_chat_id, text, use_markdown=True)
+
     def send_critical_alert(self, error_msg: str) -> bool:
         """Send a critical system alert (e.g. API Blocked) to Admin chat."""
         import os

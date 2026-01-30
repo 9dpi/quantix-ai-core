@@ -105,6 +105,7 @@ class SignalWatcher:
         """
         # 1. Fetch active signals
         signals = self.fetch_active_signals()
+        self.last_watched_count = len(signals)
         
         if not signals:
             logger.debug("No active signals to watch")

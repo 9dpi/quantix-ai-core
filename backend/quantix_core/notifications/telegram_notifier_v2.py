@@ -258,30 +258,32 @@ class TelegramNotifierV2:
         return self._send_to_chat(target_chat, message)
 
     def _send_to_chat(self, chat_id: str, text: str) -> bool:
-        """Internal helper to send message to a specific chat ID."""
+        """Internal helper to send message to a specific chat ID with logging."""
         try:
             payload = {
-                "chat_id": chat_id,
+                "chat_id": str(chat_id).strip(),
                 "text": text,
                 "parse_mode": "Markdown"
             }
+            logger.debug(f"📤 Sending to Telegram {chat_id}: {text[:50]}...")
             response = requests.post(self.api_url, json=payload, timeout=10)
             response.raise_for_status()
+            logger.info(f"✅ Reply sent to {chat_id}")
             return True
         except Exception as e:
-            logger.error(f"Failed to send to {chat_id}: {e}")
+            logger.error(f"❌ Failed to send reply to {chat_id}: {e}")
             return False
 
     def get_updates(self, offset: Optional[int] = None) -> list:
         """Get latest updates from Telegram API."""
         try:
             url = f"https://api.telegram.org/bot{self.bot_token}/getUpdates"
-            params = {"timeout": 30, "offset": offset}
-            response = requests.get(url, params=params, timeout=35)
+            params = {"timeout": 20, "offset": offset}
+            response = requests.get(url, params=params, timeout=25)
             response.raise_for_status()
             return response.json().get("result", [])
         except Exception as e:
-            logger.error(f"Failed to get updates: {e}")
+            logger.error(f"⚠️ getUpdates failed: {e}")
             return []
 
     def handle_commands(self, watcher_instance=None):
@@ -294,56 +296,63 @@ class TelegramNotifierV2:
             self._last_update_id = update['update_id'] + 1
             
             message = update.get("message")
-            if not message: continue
+            if not message or "text" not in message: continue
             
-            chat_id = str(message['chat']['id'])
-            text = message.get("text", "")
-            
-            # Security: Only respond to Admin
+            # Security: Robust Chat ID comparison
             current_chat_id = str(message['chat']['id']).strip()
             target_admin_id = str(self.admin_chat_id).strip()
             
             if current_chat_id != target_admin_id:
+                logger.warning(f"🚫 Ignored command from unauthorized ID: {current_chat_id}")
                 continue
 
-            logger.info(f"📩 Received command: {text} from {current_chat_id}")
+            text = message.get("text", "").strip()
+            logger.info(f"📩 CMD RECEIVED: {text}")
+            
             if text.startswith("/"):
                 self._process_command(text, watcher_instance)
 
     def _process_command(self, command: str, watcher=None):
-        """Internal command processor."""
-        cmd = command.lower().split()[0]
-        instance = os.getenv("INSTANCE_NAME", "UNKNOWN")
+        """Internal command processor with safety try-except."""
+        try:
+            cmd = command.lower().split()[0]
+            instance = os.getenv("INSTANCE_NAME", "RAILWAY-BOT")
 
-        if cmd == "/help":
-            help_text = (
-                "🤖 *QUANTIX ADMIN HELP*\n\n"
-                "📌 *COMMANDS:*\n"
-                "• `/status` - System health & stats\n"
-                "• `/ping` - Check if bot is alive\n"
-                "• `/signals` - List active signals\n"
-                "• `/help` - Show this menu\n\n"
-                f"Instance: `{instance}`"
-            )
-            self._send_to_chat(self.admin_chat_id, help_text)
+            if cmd == "/help":
+                help_text = (
+                    "🤖 *QUANTIX ADMIN PANEL*\n\n"
+                    "📌 *LỆNH ĐIỀU KHIỂN:*\n"
+                    "• `/status` - Kiểm tra sức khỏe & Stats\n"
+                    "• `/ping` - Kiểm tra kết nối\n"
+                    "• `/help` - Hiện lại menu này\n\n"
+                    f"Instance: `{instance}`\n"
+                    "Status: `Listening...` 🟢"
+                )
+                self._send_to_chat(self.admin_chat_id, help_text)
 
-        elif cmd == "/ping":
-            self._send_to_chat(self.admin_chat_id, f"🏓 *PONG!*\nInstance: `{instance}`\nStatus: Online 🟢")
+            elif cmd == "/ping":
+                self._send_to_chat(self.admin_chat_id, f"🏓 *PONG!*\n\nInstance: `{instance}`\nTrạng thái: Máy hoạt động tốt 🟢")
 
-        elif cmd == "/status":
-            stats = "N/A"
-            if watcher:
-                active_count = len(watcher._active_signals) if hasattr(watcher, '_active_signals') else 0
-                stats = f"Watching `{active_count}` signals"
+            elif cmd == "/status":
+                stats = "Đang lấy dữ liệu..."
+                if watcher:
+                    signals = getattr(watcher, 'last_watched_count', 0)
+                    stats = f"Đang canh {signals} tín hiệu"
+                
+                status_text = (
+                    "📊 *BÁO CÁO HỆ THỐNG*\n\n"
+                    f"Máy chủ: `{instance}`\n"
+                    f"Kết nối DB: Khỏe ✅\n"
+                    f"Tiến trình: {stats}\n"
+                    f"Thời gian: `{datetime.utcnow().strftime('%H:%M:%S UTC')}`"
+                )
+                self._send_to_chat(self.admin_chat_id, status_text)
             
-            status_text = (
-                "📊 *SYSTEM STATUS*\n\n"
-                f"Instance: `{instance}`\n"
-                f"Uptime: Running ✅\n"
-                f"Engine: {stats}\n"
-                f"Time: `{datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}`"
-            )
-            self._send_to_chat(self.admin_chat_id, status_text)
+            else:
+                logger.info(f"Unknown command: {cmd}")
+
+        except Exception as e:
+            logger.error(f"Error processing {command}: {e}")
 
     
     # ========================================

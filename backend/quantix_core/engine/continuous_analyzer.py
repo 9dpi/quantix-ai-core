@@ -114,10 +114,20 @@ class ContinuousAnalyzer:
             }
             direction = direction_map.get(state.state, "BUY") # Default to BUY if structure is ambiguous
             
-            # RRR Calculation
-            tp = round(price + 0.0020 if state.state == "bullish" else price - 0.0020, 5)
-            sl = round(price - 0.0015 if state.state == "bullish" else price + 0.0015, 5)
-            rrr = round(abs(tp - price) / abs(price - sl), 2) if abs(price - sl) > 0 else 2.0
+            # FIXED RISK/REWARD RULE (AUTO v0)
+            # TP = 10 pips, SL = 10 pips (Fixed for all signals)
+            # Does NOT change based on: market condition, confidence, volatility, timeframe
+            FIXED_TP_PIPS = 0.0010  # 10 pips
+            FIXED_SL_PIPS = 0.0010  # 10 pips
+            
+            if state.state == "bullish":
+                tp = round(price + FIXED_TP_PIPS, 5)
+                sl = round(price - FIXED_SL_PIPS, 5)
+            else:  # bearish
+                tp = round(price - FIXED_TP_PIPS, 5)
+                sl = round(price + FIXED_SL_PIPS, 5)
+            
+            rrr = 1.0  # Fixed 1:1 Risk/Reward Ratio
 
             # Determine strength label for internal logic/filtering
             strength_label = "ULTRA" if state.confidence >= 0.95 else "HIGH" if state.confidence >= 0.85 else "ACTIVE"

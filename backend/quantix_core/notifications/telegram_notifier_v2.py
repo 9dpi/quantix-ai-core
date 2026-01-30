@@ -300,9 +300,13 @@ class TelegramNotifierV2:
             text = message.get("text", "")
             
             # Security: Only respond to Admin
-            if chat_id != str(self.admin_chat_id):
+            current_chat_id = str(message['chat']['id']).strip()
+            target_admin_id = str(self.admin_chat_id).strip()
+            
+            if current_chat_id != target_admin_id:
                 continue
 
+            logger.info(f"📩 Received command: {text} from {current_chat_id}")
             if text.startswith("/"):
                 self._process_command(text, watcher_instance)
 

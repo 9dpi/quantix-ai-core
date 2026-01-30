@@ -259,21 +259,30 @@ class TelegramNotifierV2:
         )
         return self._send_to_chat(target_chat, message)
 
-    def _send_to_chat(self, chat_id: str, text: str) -> bool:
-        """Internal helper to send message to a specific chat ID with logging."""
+    def _send_to_chat(self, chat_id: str, text: str, use_markdown: bool = False) -> bool:
+        """Internal helper to send message with robust error reporting."""
         try:
+            target_id = str(chat_id).strip()
             payload = {
-                "chat_id": str(chat_id).strip(),
-                "text": text,
-                "parse_mode": "Markdown"
+                "chat_id": target_id,
+                "text": text
             }
-            logger.debug(f"📤 Sending to Telegram {chat_id}: {text[:50]}...")
-            response = requests.post(self.api_url, json=payload, timeout=10)
-            response.raise_for_status()
-            logger.info(f"✅ Reply sent to {chat_id}")
+            if use_markdown:
+                payload["parse_mode"] = "Markdown"
+                
+            response = requests.post(self.api_url, json=payload, timeout=12)
+            
+            if response.status_code != 200:
+                logger.error(f"❌ Telegram API Error ({response.status_code}): {response.text}")
+                # Fallback: try sending without markdown if it failed
+                if use_markdown:
+                    return self._send_to_chat(chat_id, text, use_markdown=False)
+                return False
+                
+            logger.info(f"✅ Reply successfully delivered to {target_id}")
             return True
         except Exception as e:
-            logger.error(f"❌ Failed to send reply to {chat_id}: {e}")
+            logger.error(f"❌ Network error sending to Telegram: {e}")
             return False
 
     def get_updates(self, offset: Optional[int] = None) -> list:
@@ -322,41 +331,41 @@ class TelegramNotifierV2:
 
             if cmd == "/help":
                 help_text = (
-                    "🤖 *QUANTIX ADMIN PANEL*\n\n"
-                    "📌 *LỆNH ĐIỀU KHIỂN:*\n"
-                    "• `/status` - Kiểm tra sức khỏe & Stats\n"
-                    "• `/ping` - Kiểm tra kết nối\n"
-                    "• `/help` - Hiện lại menu này\n\n"
-                    f"Instance: `{instance}`\n"
-                    "Status: `Listening...` 🟢"
+                    "🤖 QUANTIX ADMIN PANEL\n\n"
+                    "📌 CÁC LỆNH ĐIỀU KHIỂN:\n"
+                    "• /status - Kiểm tra sức khỏe & Stats\n"
+                    "• /ping - Kiểm tra kết nối\n"
+                    "• /signals - Số lượng tín hiệu đang canh\n"
+                    "• /help - Hiện lại menu này\n\n"
+                    f"Instance: {instance}\n"
+                    "Status: Online & Listening 🟢"
                 )
-                self._send_to_chat(self.admin_chat_id, help_text)
+                self._send_to_chat(self.admin_chat_id, help_text, use_markdown=False)
 
             elif cmd == "/ping":
-                self._send_to_chat(self.admin_chat_id, f"🏓 *PONG!*\n\nInstance: `{instance}`\nTrạng thái: Máy hoạt động tốt 🟢")
+                self._send_to_chat(self.admin_chat_id, f"🏓 PONG!\n\nInstance: {instance}\nMáy chủ hoạt động tốt 🟢", use_markdown=False)
 
             elif cmd == "/status":
                 stats = "Đang lấy dữ liệu..."
                 if watcher:
                     signals = getattr(watcher, 'last_watched_count', 0)
-                    stats = f"Đang canh {signals} tín hiệu"
+                    stats = f"Đang canh chừng {signals} tín hiệu"
                 
                 status_text = (
-                    "📊 *BÁO CÁO HỆ THỐNG*\n\n"
-                    f"Máy chủ: `{instance}`\n"
+                    "📊 BÁO CÁO HỆ THỐNG\n\n"
+                    f"Máy chủ: {instance}\n"
                     f"Kết nối DB: Khỏe ✅\n"
                     f"Tiến trình: {stats}\n"
-                    f"Thời gian: `{datetime.utcnow().strftime('%H:%M:%S UTC')}`"
+                    f"Thời gian: {datetime.utcnow().strftime('%H:%M:%S UTC')}"
                 )
-                self._send_to_chat(self.admin_chat_id, status_text)
+                self._send_to_chat(self.admin_chat_id, status_text, use_markdown=False)
 
             elif cmd == "/signal" or cmd == "/signals":
                 count = getattr(watcher, 'last_watched_count', 0) if watcher else 0
-                self._send_to_chat(self.admin_chat_id, f"🔍 *TRA CỨU TÍN HIỆU*\n\nHệ thống đang canh chừng `{count}` cặp tiền trên thị trường. Mọi thứ đều ổn định.")
+                self._send_to_chat(self.admin_chat_id, f"🔍 TRA CỨU: Hệ thống đang canh chừng {count} cặp tiền. Mọi thứ đều ổn định.", use_markdown=False)
             
             else:
-                # Fallback for unknown commands
-                self._send_to_chat(self.admin_chat_id, f"❓ *Lệnh không hợp lệ: `{cmd}`*\n\nHãy gõ `/help` để xem danh sách các lệnh điều khiển hệ thống.")
+                self._send_to_chat(self.admin_chat_id, f"❓ Lệnh không hợp lệ: {cmd}. Gõ /help để xem danh sách.", use_markdown=False)
                 logger.info(f"Unknown command: {cmd}")
 
         except Exception as e:

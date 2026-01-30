@@ -49,12 +49,20 @@ const DASHBOARD = {
     },
 
     async fetchLearning() {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
         try {
-            // Fetch the local JSON export from the audit log
-            const response = await fetch(`./learning_data.json?t=${Date.now()}`);
+            const baseUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'https://quantixaicore-production.up.railway.app/api/v1';
+            const response = await fetch(`${baseUrl}/signals/telemetry?t=${Date.now()}`, {
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
             if (!response.ok) return null;
             return await response.json();
         } catch (e) {
+            clearTimeout(timeoutId);
             return null;
         }
     },
@@ -113,8 +121,8 @@ const DASHBOARD = {
         const timeoutId = setTimeout(() => controller.abort(), 10000);
 
         try {
-            const baseUrl = 'https://signalgeniusai-production.up.railway.app/api/v1';
-            const response = await fetch(`${baseUrl}/active?t=${Date.now()}`, {
+            const baseUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'https://quantixaicore-production.up.railway.app/api/v1';
+            const response = await fetch(`${baseUrl}/signals/active?t=${Date.now()}`, {
                 signal: controller.signal
             });
             clearTimeout(timeoutId);

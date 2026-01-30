@@ -106,3 +106,54 @@ async def get_latest_lab_signals():
     except Exception as e:
         logger.error(f"Failed to fetch lab signals: {e}")
         return []
+
+@router.get("/telemetry")
+async def get_system_telemetry():
+    """
+    Fetch system-wide learning and performance telemetry for the dashboard.
+    """
+    try:
+        # Get total signals and win rate from fx_signals
+        stats_query = """
+            SELECT 
+                COUNT(*) as total,
+                COUNT(*) FILTER (WHERE state = 'TP_HIT') as wins,
+                COUNT(*) FILTER (WHERE state = 'SL_HIT') as losses,
+                AVG(ai_confidence) as avg_conf,
+                MAX(ai_confidence) as peak_conf
+            FROM fx_signals
+        """
+        stats = await db.fetch(stats_query)
+        s = stats[0] if stats else {"total": 0, "wins": 0, "losses": 0, "avg_conf": 0, "peak_conf": 0}
+        
+        total = s.get("total", 0)
+        wins = s.get("wins", 0)
+        losses = s.get("losses", 0)
+        win_rate = round((wins / (wins + losses) * 100), 1) if (wins + losses) > 0 else 0
+        
+        # Get recent history for sparkline
+        history_query = "SELECT ai_confidence as v, generated_at as t FROM fx_signals ORDER BY generated_at DESC LIMIT 10"
+        history = await db.fetch(history_query)
+        
+        return {
+            "total_samples": total,
+            "avg_confidence": round(s.get("avg_conf", 0) or 0, 4),
+            "peak_confidence": round(s.get("peak_conf", 0) or 0, 4),
+            "current_trend": "STABLE", # Simple trend logic
+            "last_updated": datetime.utcnow().isoformat() + "Z",
+            "performance": {
+                "total_signals": total,
+                "wins": wins,
+                "losses": losses,
+                "win_rate": win_rate,
+                "details": {
+                    "BUY": {"wins": 0, "total": 0}, # Would need more complex query for breakdown
+                    "SELL": {"wins": 0, "total": 0},
+                    "HOLD": {"wins": 0, "total": 0}
+                }
+            },
+            "recent_history": history[::-1] # Reverse to chronological
+        }
+    except Exception as e:
+        logger.error(f"Telemetry fetch failed: {e}")
+        return {"error": str(e)}

@@ -142,7 +142,11 @@
             <a href="../disclaimer/index.html" class="nav-link">Legal</a>
         </nav>
         <div class="status-tag hide-mobile"
-            style="width: 240px; display: flex; justify-content: flex-end; font-size: 0.7rem; color: var(--text-dim); align-items: center; gap: 8px;">
+            style="width: 350px; display: flex; justify-content: flex-end; font-size: 0.7rem; color: var(--text-dim); align-items: center; gap: 12px;">
+            <div style="background: rgba(13, 114, 229, 0.1); color: #0072e5; padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(13, 114, 229, 0.2); font-weight: 800; display: flex; align-items: center; gap: 6px;">
+                <span class="status-dot" style="background: #0072e5; box-shadow: 0 0 8px #0072e5; margin: 0;"></span>
+                RAILWAY PRODUCTION
+            </div>
             <div class="dot dot-online"></div> SYSTEM_OF_RECORD
         </div>
     </header>
@@ -153,16 +157,20 @@
             <div class="bento-block">
                 <div class="block-header">🛰️ System Status</div>
                 <div class="telemetry-item">
+                    <span class="telemetry-label">Cloud Environment</span>
+                    <span class="telemetry-value" style="color: #0072e5;">RAILWAY-WKR</span>
+                </div>
+                <div class="telemetry-item">
                     <span class="telemetry-label">Engine</span>
-                    <span class="telemetry-value" style="color: var(--highlight);">ACTIVE</span>
+                    <span class="telemetry-value" style="color: var(--highlight);">ACTIVE (v2.2)</span>
                 </div>
                 <div class="telemetry-item" style="flex-direction: column; align-items: flex-start; gap: 4px;">
                     <span class="telemetry-label">Signal Source</span>
-                    <span class="telemetry-value">Live market data</span>
+                    <span class="telemetry-value"> TwelveData Real-time</span>
                 </div>
                 <div class="telemetry-item">
                     <span class="telemetry-label">Interval</span>
-                    <span class="telemetry-value">Every 15m</span>
+                    <span class="telemetry-value">Every 10m Scans</span>
                 </div>
                 <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 16px; line-height: 1.5;">
                     <strong style="color: var(--text-main);">Signal Output:</strong> BUY / SELL with TP & SL<br>

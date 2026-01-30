@@ -67,8 +67,7 @@ class SignalWatcher:
             self._cmd_thread.start()
             logger.info("🤖 Telegram Command Listener started")
             
-            # Gửi tin nhắn chào mừng để xác nhận kết nối Admin (Sử dụng mẫu thân thiện)
-            self.telegram.send_admin_notification("🚀 *Hệ thống Quantix đã Online!*\nTôi đã sẵn sàng nhận lệnh từ bạn. Gõ `/help` để bắt đầu.")
+            # self.telegram.send_admin_notification("🚀 *Hệ thống Quantix đã Online!*\nTôi đã sẵn sàng nhận lệnh từ bạn. Gõ `/help` để bắt đầu.")
         
         while self._running:
             try:

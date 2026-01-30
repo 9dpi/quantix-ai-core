@@ -305,22 +305,27 @@ class TelegramNotifierV2:
             return
 
         updates = self.get_updates(offset=getattr(self, '_last_update_id', None))
+        if updates:
+            logger.info(f"💾 Found {len(updates)} new Telegram updates")
+            
         for update in updates:
             self._last_update_id = update['update_id'] + 1
             
             message = update.get("message")
             if not message or "text" not in message: continue
             
-            # Security: Robust Chat ID comparison
+            # Security: Robust Chat ID comparison with EXPLICIT LOGGING
             current_chat_id = str(message['chat']['id']).strip()
             target_admin_id = str(self.admin_chat_id).strip()
             
+            logger.debug(f"🔍 Comparing IDs: Sender={current_chat_id} | Admin={target_admin_id}")
+            
             if current_chat_id != target_admin_id:
-                logger.warning(f"🚫 Ignored command from unauthorized ID: {current_chat_id}")
+                logger.warning(f"🚫 Unauthorized ID {current_chat_id} tried: {message.get('text')}")
                 continue
 
             text = message.get("text", "").strip()
-            logger.info(f"📩 CMD RECEIVED: {text}")
+            logger.success(f"📩 ADMIN COMMAND MATCHED: {text}")
             
             if text.startswith("/"):
                 logger.info(f"⚡ Processing command: {text}")

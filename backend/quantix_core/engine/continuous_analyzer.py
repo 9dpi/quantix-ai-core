@@ -259,8 +259,7 @@ class ContinuousAnalyzer:
                     f"Strength: {strength_pct}\n\n"
                     f"🎯 Entry: {signal['entry_low']}\n"
                     f"💰 TP: {signal['tp']}\n"
-                    f"🛑 SL: {signal['sl']}\n\n"
-                    f"🔗 [View Live Dashboard](https://www.signalgeniusai.com/)"
+                    f"🛑 SL: {signal['sl']}\n"
                 )
             else:
                 # TEMPLATE 1 – SIGNAL CÒN HIỆU LỰC (ACTIVE)
@@ -275,8 +274,7 @@ class ContinuousAnalyzer:
                     f"Force/Strength: {strength_pct}\n\n"
                     f"🎯 Entry: {signal['entry_low']}\n"
                     f"💰 TP: {signal['tp']}\n"
-                    f"🛑 SL: {signal['sl']}\n\n"
-                    f"🔗 [View Live Dashboard](https://www.signalgeniusai.com/)"
+                    f"🛑 SL: {signal['sl']}\n"
                 )
 
             url = f"https://api.telegram.org/bot{token}/sendMessage"

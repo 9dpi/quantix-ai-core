@@ -40,9 +40,11 @@ class TelegramNotifierV2:
         self.api_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
         
         # Memory set to track signals where ENTRY_HIT has been notified.
-        # This prevents sending TP/SL for signals that "started" in ENTRY_HIT (e.g. backfilled or after restart).
-        # Rule: No TP/SL without prior ENTRY_HIT.
         self._notified_entries = set()
+        
+        # Initialize update tracker
+        self._last_update_id = None
+        self._startup_checked = False
         
         logger.info(f"TelegramNotifierV2 initialized (chat_id={chat_id}, admin={admin_chat_id})")
     

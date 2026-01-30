@@ -80,7 +80,92 @@
 
 ## ⚙️ GATE 2 — ENTRY CALCULATOR
 
-**Status:** ⏳ PENDING
+**Status:** ✅ COMPLETE  
+**Time:** 17:38 - 17:43 (5 minutes)
+
+### Actions Taken:
+
+1. **Entry Calculator Integration**
+   - Imported `EntryCalculator` and `timedelta`
+   - Replaced market price entry with future entry (5 pips offset)
+   - Updated TP/SL calculation from entry (not market)
+   - Result: ✅ Success
+
+2. **Signal Structure Updated**
+   - Added `state`: "WAITING_FOR_ENTRY"
+   - Added `entry_price`: future price (±5 pips)
+   - Added `expiry_at`: 15 minutes from creation
+   - Result: ✅ Success
+
+3. **Validation Added**
+   - Skip signal if entry invalid
+   - Log entry calculation for verification
+   - Result: ✅ Success
+
+4. **Dry-Run Tests**
+   - BUY signal: market=1.19371, entry=1.19321 (5 pips below) ✅
+   - SELL signal: market=1.19371, entry=1.19421 (5 pips above) ✅
+   - Expiry: 15 minutes ✅
+   - Result: ✅ All tests passed
+
+### GO/NO-GO Decision: ✅ GO
+
+**Reason:** Entry calculator working correctly, signals created in WAITING_FOR_ENTRY state.
+
+**Next:** Proceed to GATE 3 - Signal Watcher (Observe Mode)
+
+---
+
+## 👁️ GATE 3 — SIGNAL WATCHER (OBSERVE MODE)
+
+**Status:** 🔴 BLOCKED  
+**Time:** 17:49 - 17:53 (4 minutes analysis)
+
+### Blocker Identified:
+
+**Issue:** `ModuleNotFoundError: No module named 'supabase'`
+
+**Root Cause Analysis:**
+1. **Python 3.14 incompatibility** (bleeding-edge version)
+   - `supabase`, `twelvedata`, `loguru` not fully tested on 3.14
+   - stdout suppression preventing debugging
+   - pip install success/failure unclear
+
+2. **Environment issues:**
+   - No isolated venv
+   - Dependencies not installed
+   - Output buffering preventing verification
+
+### Resolution Plan:
+
+**Solution:** Create Python 3.11 venv (production-stable)
+
+**Steps:**
+1. Install Python 3.11.x (if not present)
+2. Create venv: `python -m venv .venv`
+3. Activate: `.\.venv\Scripts\activate`
+4. Install deps: `pip install supabase twelvedata python-dotenv loguru`
+5. Verify: Import tests
+6. Start watcher: `python run_signal_watcher.py`
+
+### Documentation Created:
+
+- [x] `GATE3_PRODUCTION_SETUP.md` - Complete setup guide
+- [x] Troubleshooting section
+- [x] Verification steps
+
+### Next Action Required:
+
+**USER must manually:**
+1. Follow `GATE3_PRODUCTION_SETUP.md`
+2. Create Python 3.11 venv
+3. Install dependencies
+4. Start watcher
+5. Report back: ✅ GO or ❌ NO-GO
+
+**Estimated Time:** ~10 minutes setup + 30 minutes observation
+
+**Waiting for user to complete setup...**
 
 ---
 

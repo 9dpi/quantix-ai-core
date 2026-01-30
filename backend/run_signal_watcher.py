@@ -59,6 +59,18 @@ def main():
     td_client = TDClient(apikey=td_api_key)
     logger.success("✅ TwelveData client initialized")
     
+    # Initialize Telegram notifier
+    telegram_token = os.getenv("TELEGRAM_BOT_TOKEN")
+    telegram_chat_id = os.getenv("TELEGRAM_CHAT_ID")
+    
+    telegram_notifier = None
+    if telegram_token and telegram_chat_id:
+        from quantix_core.notifications.telegram_notifier_v2 import TelegramNotifierV2
+        telegram_notifier = TelegramNotifierV2(telegram_token, telegram_chat_id)
+        logger.success("✅ Telegram notifier initialized")
+    else:
+        logger.warning("⚠️  Telegram credentials not found, notifications disabled")
+    
     # Get configuration
     check_interval = int(os.getenv("WATCHER_CHECK_INTERVAL", "60"))
     
@@ -68,7 +80,8 @@ def main():
     watcher = SignalWatcher(
         supabase_client=supabase,
         td_client=td_client,
-        check_interval=check_interval
+        check_interval=check_interval,
+        telegram_notifier=telegram_notifier
     )
     
     logger.success("✅ SignalWatcher initialized")

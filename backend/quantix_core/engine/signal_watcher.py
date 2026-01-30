@@ -395,9 +395,9 @@ class SignalWatcher:
             
             logger.success(f"Signal {signal_id} → CANCELLED (expired)")
             
-            # Optional: Send Telegram notification
-            # if self.telegram:
-            #     self.telegram.send_cancelled(signal)
+            # Send Telegram notification
+            if self.telegram:
+                self.telegram.send_cancelled(signal)
         
         except Exception as e:
             logger.error(f"Failed to transition signal {signal_id} to CANCELLED: {e}")

@@ -321,15 +321,16 @@ class TelegramNotifierV2:
             logger.info(f"📩 CMD RECEIVED: {text}")
             
             if text.startswith("/"):
-                self._process_command(text, watcher_instance)
+                logger.info(f"⚡ Processing command: {text}")
+                self._process_command(text, current_chat_id, watcher_instance)
 
-    def _process_command(self, command: str, watcher=None):
-        """Internal command processor with safety try-except."""
+    def _process_command(self, command: str, target_chat_id: str, watcher=None):
+        """Internal command processor that replies directly to sender."""
         try:
             cmd = command.lower().split()[0]
             instance = os.getenv("INSTANCE_NAME", "RAILWAY-BOT")
 
-            if cmd == "/help":
+            if cmd == "/help" or cmd == "/start":
                 help_text = (
                     "🤖 QUANTIX ADMIN PANEL\n\n"
                     "📌 CÁC LỆNH ĐIỀU KHIỂN:\n"
@@ -338,34 +339,29 @@ class TelegramNotifierV2:
                     "• /signals - Số lượng tín hiệu đang canh\n"
                     "• /help - Hiện lại menu này\n\n"
                     f"Instance: {instance}\n"
-                    "Status: Online & Listening 🟢"
+                    "Status: Online 🟢"
                 )
-                self._send_to_chat(self.admin_chat_id, help_text, use_markdown=False)
+                self._send_to_chat(target_chat_id, help_text, use_markdown=False)
 
             elif cmd == "/ping":
-                self._send_to_chat(self.admin_chat_id, f"🏓 PONG!\n\nInstance: {instance}\nMáy chủ hoạt động tốt 🟢", use_markdown=False)
+                self._send_to_chat(target_chat_id, f"🏓 PONG!\n\nTôi đang lắng nghe bạn tại {instance} 🟢", use_markdown=False)
 
             elif cmd == "/status":
-                stats = "Đang lấy dữ liệu..."
-                if watcher:
-                    signals = getattr(watcher, 'last_watched_count', 0)
-                    stats = f"Đang canh chừng {signals} tín hiệu"
-                
+                signals = getattr(watcher, 'last_watched_count', 0) if watcher else "N/A"
                 status_text = (
                     "📊 BÁO CÁO HỆ THỐNG\n\n"
                     f"Máy chủ: {instance}\n"
-                    f"Kết nối DB: Khỏe ✅\n"
-                    f"Tiến trình: {stats}\n"
+                    f"Tiến trình: Đang canh {signals} cặp tiền\n"
                     f"Thời gian: {datetime.utcnow().strftime('%H:%M:%S UTC')}"
                 )
-                self._send_to_chat(self.admin_chat_id, status_text, use_markdown=False)
+                self._send_to_chat(target_chat_id, status_text, use_markdown=False)
 
             elif cmd == "/signal" or cmd == "/signals":
                 count = getattr(watcher, 'last_watched_count', 0) if watcher else 0
-                self._send_to_chat(self.admin_chat_id, f"🔍 TRA CỨU: Hệ thống đang canh chừng {count} cặp tiền. Mọi thứ đều ổn định.", use_markdown=False)
+                self._send_to_chat(target_chat_id, f"🔍 TRA CỨU: Hệ thống đang canh chừng {count} cặp tiền. Mọi thứ đều ổn định.", use_markdown=False)
             
             else:
-                self._send_to_chat(self.admin_chat_id, f"❓ Lệnh không hợp lệ: {cmd}. Gõ /help để xem danh sách.", use_markdown=False)
+                self._send_to_chat(target_chat_id, f"❓ Lệnh không hợp lệ: {cmd}. Gõ /help để xem danh sách.", use_markdown=False)
                 logger.info(f"Unknown command: {cmd}")
 
         except Exception as e:

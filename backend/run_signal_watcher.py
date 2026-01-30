@@ -34,9 +34,10 @@ def main():
         level="INFO"
     )
     
-    logger.info("=" * 60)
-    logger.info("SIGNAL WATCHER STARTING")
-    logger.info("=" * 60)
+    logger.info("============================================================")
+    instance_name = os.getenv("INSTANCE_NAME", "LOCAL-MACHINE")
+    logger.info(f"SIGNAL WATCHER STARTING - INSTANCE: {instance_name}")
+    logger.info("============================================================")
     
     # Initialize Supabase client
     supabase_url = os.getenv("SUPABASE_URL")

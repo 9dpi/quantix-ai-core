@@ -142,28 +142,41 @@ class SignalWatcher:
             or None if fetch fails
         """
         try:
-            # Get latest candle
-            ts = self.td_client.time_series(
-                symbol="EUR/USD",
-                interval="15min",
-                outputsize=1
-            )
+            # Use direct API call instead of pandas
+            # TwelveData REST API endpoint
+            import requests
+            import os
             
-            data = ts.as_json()
+            api_key = os.getenv("TWELVE_DATA_API_KEY")
+            url = "https://api.twelvedata.com/time_series"
             
-            if not data:
+            params = {
+                "symbol": "EUR/USD",
+                "interval": "15min",
+                "outputsize": 1,
+                "apikey": api_key
+            }
+            
+            response = requests.get(url, params=params)
+            data = response.json()
+            
+            if data.get("status") == "error":
+                logger.warning(f"TwelveData API error: {data.get('message')}")
+                return None
+            
+            if "values" not in data or not data["values"]:
                 logger.warning("No candle data returned from TwelveData")
                 return None
             
-            # Extract first (latest) candle
-            candle_data = data[0] if isinstance(data, list) else data
+            # Get latest candle (first in values array)
+            latest = data["values"][0]
             
             return {
-                "timestamp": candle_data.get("datetime"),
-                "open": float(candle_data.get("open", 0)),
-                "high": float(candle_data.get("high", 0)),
-                "low": float(candle_data.get("low", 0)),
-                "close": float(candle_data.get("close", 0))
+                "timestamp": latest.get("datetime"),
+                "open": float(latest.get("open", 0)),
+                "high": float(latest.get("high", 0)),
+                "low": float(latest.get("low", 0)),
+                "close": float(latest.get("close", 0))
             }
         
         except Exception as e:

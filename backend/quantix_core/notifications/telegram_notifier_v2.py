@@ -35,6 +35,11 @@ class TelegramNotifierV2:
         self.chat_id = chat_id
         self.api_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
         
+        # Memory set to track signals where ENTRY_HIT has been notified.
+        # This prevents sending TP/SL for signals that "started" in ENTRY_HIT (e.g. backfilled or after restart).
+        # Rule: No TP/SL without prior ENTRY_HIT.
+        self._notified_entries = set()
+        
         logger.info(f"TelegramNotifierV2 initialized (chat_id={chat_id})")
     
     def send_message(self, text: str) -> bool:
@@ -117,17 +122,25 @@ class TelegramNotifierV2:
         Args:
             signal: Signal dict with asset, timeframe, direction, entry_price
         """
+        signal_id = signal.get("id")
+        self._notified_entries.add(signal_id)
+        
         asset = signal.get("asset", "EURUSD").replace("/", "")
         timeframe = signal.get("timeframe", "M15")
         direction = signal.get("direction", "BUY")
         entry = signal.get("entry_price", 0)
         
         message = (
-            f"✅ *ENTRY HIT*\n\n"
+            f"📍 *ENTRY PRICE HIT*\n\n"
             f"{asset} | {timeframe}\n"
-            f"{direction} @ {entry}\n\n"
-            f"Status: 📡 LIVE\n"
-            f"Now monitoring Take Profit and Stop Loss."
+            f"{dir_emoji} {direction}\n\n"
+            f"Entry: {entry}\n"
+            f"Time: {datetime.utcnow().strftime('%H:%M UTC')}\n\n"
+            f"Status: 🔵 ENTRY CONFIRMED\n\n"
+            f"🎯 TP: {signal.get('tp')}\n"
+            f"🛑 SL: {signal.get('sl')}\n\n"
+            f"Trade is now ACTIVE.\n"
+            f"Waiting for TP or SL."
         )
         
         logger.info(f"Sending ENTRY_HIT message for {asset}")
@@ -147,11 +160,21 @@ class TelegramNotifierV2:
         direction = signal.get("direction", "BUY")
         entry = signal.get("entry_price", 0)
         
+        # Rule: BLOCK if ENTRY_HIT was not sent by this instance
+        signal_id = signal.get("id")
+        if signal_id not in self._notified_entries:
+            logger.warning(f"⛔ Blocked TP_HIT for {signal_id} (Orphan: Entry not notified)")
+            return False
+        
         message = (
-            f"🎯 *TAKE PROFIT HIT*\n\n"
+            f"✅ *TAKE PROFIT HIT*\n\n"
             f"{asset} | {timeframe}\n"
-            f"{direction} @ {entry}\n\n"
-            f"Result: ✅ PROFIT"
+            f"{dir_emoji} {direction}\n\n"
+            f"Entry: {entry}\n"
+            f"TP: {signal.get('tp')}\n\n"
+            f"Result: 🟢 PROFIT\n"
+            f"R:R: 1 : 1\n\n"
+            f"Signal lifecycle completed."
         )
         
         logger.info(f"Sending TP_HIT message for {asset}")
@@ -171,11 +194,20 @@ class TelegramNotifierV2:
         direction = signal.get("direction", "BUY")
         entry = signal.get("entry_price", 0)
         
+        # Rule: BLOCK if ENTRY_HIT was not sent by this instance
+        signal_id = signal.get("id")
+        if signal_id not in self._notified_entries:
+            logger.warning(f"⛔ Blocked SL_HIT for {signal_id} (Orphan: Entry not notified)")
+            return False
+        
         message = (
             f"🛑 *STOP LOSS HIT*\n\n"
             f"{asset} | {timeframe}\n"
-            f"{direction} @ {entry}\n\n"
-            f"Result: ❌ LOSS"
+            f"{dir_emoji} {direction}\n\n"
+            f"Entry: {entry}\n"
+            f"SL: {signal.get('sl')}\n\n"
+            f"Result: 🔴 LOSS\n\n"
+            f"Signal lifecycle completed."
         )
         
         logger.info(f"Sending SL_HIT message for {asset}")
@@ -192,12 +224,16 @@ class TelegramNotifierV2:
         """
         asset = signal.get("asset", "EURUSD").replace("/", "")
         timeframe = signal.get("timeframe", "M15")
+        direction = signal.get("direction", "BUY")
+        dir_emoji = "🟢" if direction == "BUY" else "🔴"
         
         message = (
-            f"⚠️ *SIGNAL CANCELLED*\n\n"
-            f"{asset} | {timeframe}\n\n"
-            f"Price did not reach the entry level within the valid time.\n"
-            f"No trade was triggered."
+            f"⚪ *SIGNAL EXPIRED*\n\n"
+            f"{asset} | {timeframe}\n"
+            f"{dir_emoji} {direction}\n\n"
+            f"Status: NOT TRIGGERED\n"
+            f"Entry price was not reached.\n\n"
+            f"No trade taken."
         )
         
         logger.info(f"Sending CANCELLED message for {asset}")

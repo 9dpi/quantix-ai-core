@@ -301,13 +301,15 @@ class ContinuousAnalyzer:
                     f"🚨 *ULTRA SIGNAL (95%+)*\n\n"
                     f"{asset} | {timeframe}\n"
                     f"{dir_emoji} {signal['direction']}\n\n"
-                    f"Status: 🟢 ACTIVE\n"
+                    f"Status: 🟡 WAITING FOR ENTRY\n"
                     f"Entry window: OPEN\n\n"
                     f"Confidence: {confidence}%\n"
                     f"Strength: {strength_pct}\n\n"
                     f"🎯 Entry: {signal['entry_low']}\n"
                     f"💰 TP: {signal['tp']}\n"
-                    f"🛑 SL: {signal['sl']}\n"
+                    f"🛑 SL: {signal['sl']}\n\n"
+                    f"⚠️ Do NOT enter until entry price is hit.\n"
+                    f"You will receive an update when entry is triggered."
                 )
             else:
                 # TEMPLATE 1 – SIGNAL CÒN HIỆU LỰC (ACTIVE)
@@ -316,13 +318,15 @@ class ContinuousAnalyzer:
                     f"Asset: {asset}\n"
                     f"Timeframe: {timeframe}\n"
                     f"Direction: {dir_emoji} {signal['direction']}\n\n"
-                    f"Status: 🟢 ACTIVE\n"
-                    f"Valid for: ~90 minutes\n\n"
+                    f"Status: 🟡 WAITING FOR ENTRY\n"
+                    f"Entry window: OPEN\n\n"
                     f"Confidence: {confidence}%\n"
                     f"Force/Strength: {strength_pct}\n\n"
                     f"🎯 Entry: {signal['entry_low']}\n"
                     f"💰 TP: {signal['tp']}\n"
-                    f"🛑 SL: {signal['sl']}\n"
+                    f"🛑 SL: {signal['sl']}\n\n"
+                    f"⚠️ Do NOT enter until entry price is hit.\n"
+                    f"You will receive an update when entry is triggered."
                 )
 
             url = f"https://api.telegram.org/bot{token}/sendMessage"

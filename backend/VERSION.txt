@@ -1,0 +1,11 @@
+Version: phase4-stable
+Date: 2026-01-30 19:05:00 UTC+7
+Status: Steady State Reached
+Features: 
+- Future Entry (5 pips offset)
+- Memory-based Telegram Filter (No Orphan TP/SL)
+- Python 3.11 Production venv
+- Database v2 Schema (state, entry_hit_at, closed_at)
+-----------------------------------------------------------
+FINAL BACKUP COMPLETED LOCALLY.
+🚀 READY FOR 24/7 LIVE MONITORING.

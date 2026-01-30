@@ -1,9 +1,17 @@
-Version: phase4-stable
-Date: 2026-01-30 19:05:00 UTC+7
-Status: Steady State Reached
-Features: 
-- Future Entry (5 pips offset)
-- Memory-based Telegram Filter (No Orphan TP/SL)
+VersPROJECT: Quantix AI Core (v2.0)
+VERSION: phase4-stable-online-v2.1
+DATE: 2026-01-30
+STATUS: DEPLOYED & STABILIZED
+
+KEY FEATURES:
+- Full Cloud Deployment on Railway (Dual Worker: Watcher & Analyzer)
+- Anti-Block & Retry Logic for TwelveData API
+- Survival Alerts (Telegram alerts on API Forbidden/Block)
+- Admin Command Interaction (/help, /status, /ping)
+- Personal Admin Channel (Chat ID 7985984228)
+- Future Entry Support (5 pips offset)
+- Strict Signal State Machine (No orphan TP/SL)
+- Phase 4 Final Backup Verified
 - Python 3.11 Production venv
 - Database v2 Schema (state, entry_hit_at, closed_at)
 -----------------------------------------------------------

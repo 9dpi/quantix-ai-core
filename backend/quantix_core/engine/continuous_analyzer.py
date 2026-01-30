@@ -1,7 +1,7 @@
 import time
 import requests
 import pandas as pd
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from loguru import logger
 from typing import Optional
 
@@ -9,6 +9,7 @@ from quantix_core.config.settings import settings
 from quantix_core.ingestion.twelve_data_client import TwelveDataClient
 from quantix_core.engine.structure_engine_v1 import StructureEngineV1
 from quantix_core.database.connection import db
+from quantix_core.utils.entry_calculator import EntryCalculator
 
 class ContinuousAnalyzer:
     """
@@ -114,38 +115,85 @@ class ContinuousAnalyzer:
             }
             direction = direction_map.get(state.state, "BUY") # Default to BUY if structure is ambiguous
             
+            # ============================================
+            # v2 FUTURE ENTRY LOGIC (5 pips offset)
+            # ============================================
+            
+            # Calculate future entry price (NOT market price)
+            entry_calc = EntryCalculator(offset_pips=5.0)
+            entry_price, is_valid, validation_msg = entry_calc.calculate_and_validate(
+                market_price=price,
+                direction=direction
+            )
+            
+            # Validation: Skip signal if entry invalid
+            if not is_valid:
+                logger.warning(f"SKIP_SIGNAL: {validation_msg}")
+                return
+            
+            # Log entry calculation for dry-run verification
+            offset_pips = abs(entry_price - price) / 0.0001
+            logger.info(
+                f"Entry calculated: market={price}, entry={entry_price}, "
+                f"offset={offset_pips:.1f} pips, direction={direction}"
+            )
+            
             # FIXED RISK/REWARD RULE (AUTO v0)
-            # TP = 10 pips, SL = 10 pips (Fixed for all signals)
-            # Does NOT change based on: market condition, confidence, volatility, timeframe
+            # TP = 10 pips, SL = 10 pips from ENTRY (not market)
             FIXED_TP_PIPS = 0.0010  # 10 pips
             FIXED_SL_PIPS = 0.0010  # 10 pips
             
-            if state.state == "bullish":
-                tp = round(price + FIXED_TP_PIPS, 5)
-                sl = round(price - FIXED_SL_PIPS, 5)
-            else:  # bearish
-                tp = round(price - FIXED_TP_PIPS, 5)
-                sl = round(price + FIXED_SL_PIPS, 5)
+            if direction == "BUY":
+                tp = round(entry_price + FIXED_TP_PIPS, 5)
+                sl = round(entry_price - FIXED_SL_PIPS, 5)
+            else:  # SELL
+                tp = round(entry_price - FIXED_TP_PIPS, 5)
+                sl = round(entry_price + FIXED_SL_PIPS, 5)
             
             rrr = 1.0  # Fixed 1:1 Risk/Reward Ratio
+            
+            # Calculate expiry time (15 minutes from now)
+            now = datetime.now(timezone.utc)
+            expiry_at = now + timedelta(minutes=15)
 
             # Determine strength label for internal logic/filtering
             strength_label = "ULTRA" if state.confidence >= 0.95 else "HIGH" if state.confidence >= 0.85 else "ACTIVE"
             
+            # ============================================
+            # v2 SIGNAL STRUCTURE (WAITING_FOR_ENTRY)
+            # ============================================
             signal_base = {
                 "asset": "EURUSD",
                 "direction": direction,
-                "strength": state.strength, # Store numeric strength [0-1]
+                "strength": state.strength,
                 "timeframe": "M15",
-                "entry_low": price,
-                "entry_high": price + 0.0002,
+                
+                # v2 NEW FIELDS
+                "state": "WAITING_FOR_ENTRY",  # Initial state
+                "entry_price": entry_price,     # Future entry (NOT market)
+                "expiry_at": expiry_at.isoformat(),  # 15 min expiry
+                
+                # Legacy fields (for backward compatibility)
+                "entry_low": entry_price,
+                "entry_high": entry_price + 0.0002,
+                
+                # TP/SL (calculated from entry, not market)
                 "tp": tp,
                 "sl": sl,
                 "reward_risk_ratio": rrr,
+                
+                # Metadata
                 "ai_confidence": state.confidence,
-                "generated_at": datetime.now(timezone.utc).isoformat(),
-                "explainability": f"Structure {state.state.upper()} | Strength {int(state.strength*100)}%",
+                "generated_at": now.isoformat(),
+                "explainability": f"Structure {state.state.upper()} | Strength {int(state.strength*100)}% | Entry offset: {offset_pips:.1f} pips",
             }
+            
+            # Log signal creation for verification
+            logger.success(
+                f"Signal created: {direction} @ {entry_price} "
+                f"(market: {price}, offset: +{offset_pips:.1f} pips) "
+                f"| State: WAITING_FOR_ENTRY | Expiry: {expiry_at.strftime('%H:%M:%S UTC')}"
+            )
 
             # 4. Local Audit Log (JSONL) - Robust Absolute Path
             analysis_entry = {

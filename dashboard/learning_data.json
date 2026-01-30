@@ -1,20 +1,20 @@
 {
-  "last_updated": "2026-01-30T10:26:29.532047+00:00",
-  "total_samples": 682,
-  "avg_confidence": 0.768,
+  "last_updated": "2026-01-30T10:28:35.384579+00:00",
+  "total_samples": 683,
+  "avg_confidence": 0.7683,
   "peak_confidence": 1,
   "current_trend": "STABLE",
   "performance": {
-    "total_signals": 672,
+    "total_signals": 673,
     "wins": 282,
-    "win_rate": 42.0,
+    "win_rate": 41.9,
     "details": {
       "BUY": {
         "total": 285,
         "wins": 126
       },
       "SELL": {
-        "total": 311,
+        "total": 312,
         "wins": 144
       },
       "HOLD": {
@@ -24,10 +24,6 @@
     }
   },
   "recent_history": [
-    {
-      "t": "2026-01-30T06:12:01.411861+00:00",
-      "v": 100
-    },
     {
       "t": "2026-01-30T06:14:05.387124+00:00",
       "v": 100
@@ -214,6 +210,10 @@
     },
     {
       "t": "2026-01-30T10:26:27.030143+00:00",
+      "v": 100
+    },
+    {
+      "t": "2026-01-30T10:28:32.426543+00:00",
       "v": 100
     }
   ]

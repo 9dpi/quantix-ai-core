@@ -73,8 +73,16 @@ def main():
     
     # Get configuration
     check_interval = int(os.getenv("WATCHER_CHECK_INTERVAL", "60"))
+    observe_mode = os.getenv("WATCHER_OBSERVE_MODE", "true").lower() == "true"
     
     logger.info(f"Check interval: {check_interval} seconds")
+    logger.info(f"Observe mode: {observe_mode}")
+    
+    # Force disable Telegram in observe mode (GATE 3)
+    if observe_mode:
+        telegram_notifier = None
+        logger.warning("🔍 OBSERVE MODE: Telegram notifications DISABLED")
+        logger.info("Only logging state transitions to verify correctness")
     
     # Initialize watcher
     watcher = SignalWatcher(

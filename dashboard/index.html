@@ -143,7 +143,8 @@
         </nav>
         <div class="status-tag hide-mobile"
             style="width: 350px; display: flex; justify-content: flex-end; font-size: 0.7rem; color: var(--text-dim); align-items: center; gap: 12px;">
-            <div style="background: rgba(13, 114, 229, 0.1); color: #0072e5; padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(13, 114, 229, 0.2); font-weight: 800; display: flex; align-items: center; gap: 6px;">
+            <div
+                style="background: rgba(13, 114, 229, 0.1); color: #0072e5; padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(13, 114, 229, 0.2); font-weight: 800; display: flex; align-items: center; gap: 6px;">
                 <span class="status-dot" style="background: #0072e5; box-shadow: 0 0 8px #0072e5; margin: 0;"></span>
                 RAILWAY PRODUCTION
             </div>
@@ -254,26 +255,27 @@
                 </div>
 
                 <!-- Moved from Right Column to Middle Column -->
+                <!-- AI Learning Telemetry: Forced 4-column layout -->
                 <div class="bento-block" style="margin-top: 40px;">
                     <div class="block-header">🧠 AI Learning Telemetry</div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
                         <div class="telemetry-item"
-                            style="border: 1px solid var(--border); padding: 16px; border-radius: 12px; flex-direction: column; align-items: flex-start;">
+                            style="border: 1px solid var(--border); padding: 12px; border-radius: 12px; flex-direction: column; align-items: flex-start;">
                             <span class="telemetry-label">Real Evidence Data</span>
                             <span id="learn-samples" class="telemetry-value" style="font-size: 1.5rem;">0</span>
                         </div>
                         <div class="telemetry-item"
-                            style="border: 1px solid var(--border); padding: 16px; border-radius: 12px; flex-direction: column; align-items: flex-start;">
+                            style="border: 1px solid var(--border); padding: 12px; border-radius: 12px; flex-direction: column; align-items: flex-start;">
                             <span class="telemetry-label">Avg Confidence</span>
                             <span id="learn-avg-conf" class="telemetry-value" style="font-size: 1.5rem;">0%</span>
                         </div>
                         <div class="telemetry-item"
-                            style="border: 1px solid var(--border); padding: 16px; border-radius: 12px; flex-direction: column; align-items: flex-start;">
+                            style="border: 1px solid var(--border); padding: 12px; border-radius: 12px; flex-direction: column; align-items: flex-start;">
                             <span class="telemetry-label">Peak Confidence</span>
                             <span id="learn-peak-conf" class="telemetry-value" style="font-size: 1.5rem;">0%</span>
                         </div>
                         <div class="telemetry-item"
-                            style="border: 1px solid var(--border); padding: 16px; border-radius: 12px; flex-direction: column; align-items: flex-start;">
+                            style="border: 1px solid var(--border); padding: 12px; border-radius: 12px; flex-direction: column; align-items: flex-start;">
                             <span class="telemetry-label">Current Trend</span>
                             <span id="learn-trend" class="telemetry-value"
                                 style="font-size: 1.5rem; color: var(--highlight);">STABLE</span>

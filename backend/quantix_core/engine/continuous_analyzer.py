@@ -229,24 +229,45 @@ class ContinuousAnalyzer:
             return
 
         try:
-            # Simple format for immediate visibility
+            # Standard Fields Extraction
             dir_emoji = "🟢" if signal["direction"] == "BUY" else "🔴"
+            confidence = int(signal['ai_confidence'] * 100)
             strength_val = signal.get("strength", 0)
             strength_pct = f"{int(strength_val * 100)}%" if isinstance(strength_val, (int, float)) else str(strength_val)
             timeframe = signal.get("timeframe", "M15")
+            asset = signal.get("asset", "EURUSD").replace("/", "")
             
-            msg = (
-                f"⚡️ *SIGNAL GENIUS AI*\n\n"
-                f"Asset: {signal['asset']}\n"
-                f"Timeframe: {timeframe}\n"
-                f"Direction: {dir_emoji} {signal['direction']}\n"
-                f"Confidence: {round(signal['ai_confidence'] * 100, 1)}%\n"
-                f"Force/Strength: {strength_pct}\n\n"
-                f"🎯 Entry: {signal['entry_low']}\n"
-                f"💰 TP: {signal['tp']}\n"
-                f"🛑 SL: {signal['sl']}\n\n"
-                f"🔗 [View Live Dashboard](https://www.signalgeniusai.com/)"
-            )
+            # TEMPLATE 3 – SIGNAL ULTRA (95%+ FAST ALERT)
+            if confidence >= 95:
+                msg = (
+                    f"🚨 *ULTRA SIGNAL (95%+)*\n\n"
+                    f"{asset} | {timeframe}\n"
+                    f"{dir_emoji} {signal['direction']}\n\n"
+                    f"Status: 🟢 ACTIVE\n"
+                    f"Entry window: OPEN\n\n"
+                    f"Confidence: {confidence}%\n"
+                    f"Strength: {strength_pct}\n\n"
+                    f"🎯 Entry: {signal['entry_low']}\n"
+                    f"💰 TP: {signal['tp']}\n"
+                    f"🛑 SL: {signal['sl']}\n\n"
+                    f"🔗 [View Live Dashboard](https://www.signalgeniusai.com/)"
+                )
+            else:
+                # TEMPLATE 1 – SIGNAL CÒN HIỆU LỰC (ACTIVE)
+                msg = (
+                    f"⚡️ *SIGNAL GENIUS AI*\n\n"
+                    f"Asset: {asset}\n"
+                    f"Timeframe: {timeframe}\n"
+                    f"Direction: {dir_emoji} {signal['direction']}\n\n"
+                    f"Status: 🟢 ACTIVE\n"
+                    f"Valid for: ~90 minutes\n\n"
+                    f"Confidence: {confidence}%\n"
+                    f"Force/Strength: {strength_pct}\n\n"
+                    f"🎯 Entry: {signal['entry_low']}\n"
+                    f"💰 TP: {signal['tp']}\n"
+                    f"🛑 SL: {signal['sl']}\n\n"
+                    f"🔗 [View Live Dashboard](https://www.signalgeniusai.com/)"
+                )
 
             url = f"https://api.telegram.org/bot{token}/sendMessage"
             res = requests.post(url, json={

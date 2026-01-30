@@ -34,10 +34,14 @@ class TelegramNotifierV2:
             chat_id: Telegram chat/channel ID for signals
             admin_chat_id: Optional chat ID for system alerts
         """
-        self.bot_token = bot_token
-        self.chat_id = chat_id
-        self.admin_chat_id = admin_chat_id
-        self.api_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        self.bot_token = str(bot_token).strip()
+        self.chat_id = str(chat_id).strip()
+        self.admin_chat_id = str(admin_chat_id).strip() if admin_chat_id else None
+        self.api_url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
+        
+        # Diagnostic Log
+        safe_token = f"{self.bot_token[:5]}...{self.bot_token[-5:]}" if len(self.bot_token) > 10 else "INVALID"
+        logger.info(f"TelegramNotifierV2 sanitized. Token: {safe_token}")
         
         # Memory set to track signals where ENTRY_HIT has been notified.
         self._notified_entries = set()
@@ -260,7 +264,7 @@ class TelegramNotifierV2:
         return self._send_to_chat(target_chat, message)
 
     def _send_to_chat(self, chat_id: str, text: str, use_markdown: bool = False) -> bool:
-        """Internal helper to send message with robust error reporting."""
+        """Internal helper using URL parameters for maximum compatibility."""
         try:
             target_id = str(chat_id).strip()
             payload = {
@@ -270,19 +274,17 @@ class TelegramNotifierV2:
             if use_markdown:
                 payload["parse_mode"] = "Markdown"
                 
-            response = requests.post(self.api_url, json=payload, timeout=12)
+            # Use params= (URL encoded) instead of json= to match the successful curl test
+            response = requests.post(self.api_url, params=payload, timeout=12)
             
             if response.status_code != 200:
                 logger.error(f"❌ Telegram API Error ({response.status_code}): {response.text}")
-                # Fallback: try sending without markdown if it failed
-                if use_markdown:
-                    return self._send_to_chat(chat_id, text, use_markdown=False)
                 return False
                 
             logger.info(f"✅ Reply successfully delivered to {target_id}")
             return True
         except Exception as e:
-            logger.error(f"❌ Network error sending to Telegram: {e}")
+            logger.error(f"❌ Network error: {e}")
             return False
 
     def get_updates(self, offset: Optional[int] = None) -> list:

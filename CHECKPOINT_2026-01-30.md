@@ -1,45 +1,34 @@
-# 🏁 Quantix AI Core - Phase 4 Checkpoint (2026-01-30)
+# 🏁 Quantix AI Core - Final Session Checkpoint (2026-01-30)
 
 ## 🎯 USER Objective:
-Triển khai hệ thống lên Cloud (Railway), kích hoạt chế độ vận hành thực tế (Live Mode), tối ưu hóa chi phí API và hoàn thiện bộ điều khiển Telegram cho Admin.
+Deploy hệ thống lên Cloud, tối ưu hóa chi phí API, hoàn thiện Dashboard và sửa lỗi hiển thị trên website công khai.
 
-## ✅ Accomplishments:
+## ✅ Accomplishments (Final Sync):
 
 ### 1. Cloud Infrastructure (Railway)
-- Triển khai thành công 2 dịch vụ độc lập trên Railway:
-    - **Watcher:** Chuyên canh trạng thái lệnh và nhận lệnh từ Admin.
-    - **Analyzer:** Chuyên quét thị trường tìm kèo mới.
-- Cấu hình biến môi trường (`.env`) chuẩn production.
+- Triển khai **Watcher** và **Analyzer** chạy độc lập 24/7.
+- Cấu hình nhịp quét tối ưu (10p/lần) để duy trì trong hạn mức 800 credit/ngày của TwelveData.
+- Tự động hóa chế độ nghỉ cuối tuần (Market Hours).
 
-### 2. Telegram Notifier V2 (Production Grade)
-- Hỗ trợ gửi tin nhắn đa kênh: **Group** (Tín hiệu) & **Admin** (Cảnh báo/Điều khiển).
-- Hệ thống lệnh tương tác: `/ping`, `/status`, `/help`, `/signals`.
-- **Bảo mật:** Xác thực Chat ID Admin tuyệt đối, chống lệnh lạ.
-- **Ổn định:** Chuyển sang URL-encoded params để đảm bảo tin nhắn không bao giờ bị nghẽn do lỗi định dạng.
+### 2. Telegram Notifier & Control
+- Tích hợp bộ lệnh Admin mạnh mẽ (`/ping`, `/status`, `/signals`).
+- Thêm kênh thông báo Admin riêng biệt cho các cảnh báo hệ thống.
+- **UI Fix:** Tắt thông báo chào mừng khi khởi động để tránh làm phiền Admin.
 
-### 3. API & Market Optimization
-- **Tiết kiệm API:** Tự động ngừng gọi TwelveData khi không có tín hiệu nào đang Active.
-- **Nhịp thở 800/ngày:** Cấu hình `180s` cho Watcher và `600s` cho Analyzer để chạy bền bỉ 24/7.
-- **Market Hours:** Tự động nghỉ lễ cuối tuần và dọn dẹp lệnh chờ vào sáng Thứ Bảy (giờ VN).
+### 3. Dashboard (Quantix-Core)
+- Chuyển giao diện Dashboard sang sử dụng dữ liệu trực tiếp từ API Railway.
+- Hiển thị đầy đủ Telemetry học tập của AI (Win Rate, Confidence).
+- **UI Fix:** Cố định 4 widget Telemetry trên một hàng ngang cho giao diện chuyên nghiệp.
 
-### 4. Dashboard & UI
-- Kết nối Dashboard công khai với Backend Railway.
-- Hiển thị Telemetry thời gian thực (Win Rate, Peak Confidence, Sparkline).
-- UI Dashboard: Sắp xếp 4 widget Telemetry trên một hàng ngang cân đối.
-- Cải thiện Template thông báo: Chào mừng Admin thân thiện, không gây hiểu lầm là báo động đỏ.
-
-## 📁 Key Files Modified:
-- `backend/quantix_core/notifications/telegram_notifier_v2.py` (Core logic & Commands)
-- `backend/quantix_core/engine/signal_watcher.py` (Live tracking & Speed optimization)
-- `backend/quantix_core/engine/continuous_analyzer.py` (Market scanning logic)
-- `backend/quantix_core/utils/market_hours.py` (New - Weekend safeguards)
-- `dashboard/index.html` & `static/js/dashboard.js` (Cloud integration)
+### 4. SignalGeniusAI.com (Public Proof Layer)
+- **Bug Fix:** Giải quyết triệt để lỗi `Invalid Date` trên website chính thức bằng cơ chế Safe Date Parsing.
+- **UI Refinement:** Loại bỏ các thông tin trạng thái trùng lặp, tập trung vào **Lifecycle Status** minh bạch.
+- **Timestamp:** Hiển thị thời gian tạo lệnh chuẩn ISO (UTC) để phục vụ mục đích Audit.
 
 ## 🚀 Current System State:
-- **Version:** `v2.3 Stable (Cloud Edition)`
-- **Environment:** Railway (LIVE)
-- **Status:** Listening for commands & Monitoring signals.
-- **Admin:** Verified (7985984228)
+- **Quantix Core:** `v2.3 Stable` (Railway Live)
+- **Signal Genius UI:** `v1.2 Patched` (Live on signalgeniusai.com)
+- **Status:** Market Ready.
 
 ---
-*Hệ thống đã sẵn sàng cho hành trình tự động hóa hoàn toàn. Đã đến lúc nghỉ ngơi và để Quantix làm việc!* 🤖💹🏆
+*Mọi hệ thống đã được kiểm tra và đồng bộ hóa. Toàn bộ mã nguồn đã được commit và push lên các repository chuẩn (`quantix-ai-core` và `quantix-live-execution`).* 🤖💹🏆🏁

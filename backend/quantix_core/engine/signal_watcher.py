@@ -361,16 +361,21 @@ class SignalWatcher:
         signal_id = signal.get("id")
         
         try:
+            # 1. Send Telegram notification First (Single Source of Truth)
+            msg_id = None
+            if self.telegram:
+                msg_id = self.telegram.send_entry_hit(signal)
+                if not msg_id:
+                     logger.error(f"❌ Aborting transition for signal {signal_id}: Telegram notification failed")
+                     return
+            
+            # 2. ONLY update DB if notification succeeded (or if telegram is disabled)
             self.db.table("fx_signals").update({
                 "state": "ENTRY_HIT",
                 "entry_hit_at": candle["timestamp"]
             }).eq("id", signal_id).execute()
             
             logger.success(f"Signal {signal_id} → ENTRY_HIT")
-            
-            # Send Telegram notification
-            if self.telegram:
-                self.telegram.send_entry_hit(signal)
         
         except Exception as e:
             logger.error(f"Failed to transition signal {signal_id} to ENTRY_HIT: {e}")
@@ -387,6 +392,14 @@ class SignalWatcher:
         signal_id = signal.get("id")
         
         try:
+            # 1. Send Telegram notification First
+            if self.telegram:
+                msg_id = self.telegram.send_tp_hit(signal)
+                if not msg_id:
+                     logger.error(f"❌ Aborting TP_HIT for {signal_id}: Telegram notification failed")
+                     return
+
+            # 2. Update DB
             self.db.table("fx_signals").update({
                 "state": "TP_HIT",
                 "result": "PROFIT",
@@ -394,10 +407,6 @@ class SignalWatcher:
             }).eq("id", signal_id).execute()
             
             logger.success(f"Signal {signal_id} → TP_HIT (PROFIT)")
-            
-            # Send Telegram notification
-            if self.telegram:
-                self.telegram.send_tp_hit(signal)
         
         except Exception as e:
             logger.error(f"Failed to transition signal {signal_id} to TP_HIT: {e}")
@@ -414,6 +423,14 @@ class SignalWatcher:
         signal_id = signal.get("id")
         
         try:
+            # 1. Send Telegram notification First
+            if self.telegram:
+                msg_id = self.telegram.send_sl_hit(signal)
+                if not msg_id:
+                     logger.error(f"❌ Aborting SL_HIT for {signal_id}: Telegram notification failed")
+                     return
+
+            # 2. Update DB
             self.db.table("fx_signals").update({
                 "state": "SL_HIT",
                 "result": "LOSS",
@@ -421,10 +438,6 @@ class SignalWatcher:
             }).eq("id", signal_id).execute()
             
             logger.success(f"Signal {signal_id} → SL_HIT (LOSS)")
-            
-            # Send Telegram notification
-            if self.telegram:
-                self.telegram.send_sl_hit(signal)
         
         except Exception as e:
             logger.error(f"Failed to transition signal {signal_id} to SL_HIT: {e}")
@@ -441,6 +454,14 @@ class SignalWatcher:
         signal_id = signal.get("id")
         
         try:
+            # 1. Send Telegram notification First
+            if self.telegram:
+                msg_id = self.telegram.send_cancelled(signal)
+                if not msg_id:
+                     logger.error(f"❌ Aborting CANCELLED for {signal_id}: Telegram notification failed")
+                     return
+
+            # 2. Update DB
             self.db.table("fx_signals").update({
                 "state": "CANCELLED",
                 "result": "CANCELLED",
@@ -448,10 +469,6 @@ class SignalWatcher:
             }).eq("id", signal_id).execute()
             
             logger.success(f"Signal {signal_id} → CANCELLED (expired)")
-            
-            # Send Telegram notification
-            if self.telegram:
-                self.telegram.send_cancelled(signal)
         
         except Exception as e:
             logger.error(f"Failed to transition signal {signal_id} to CANCELLED: {e}")

@@ -92,15 +92,22 @@ class ContinuousAnalyzer:
             
         return False
 
-    def lock_signal(self, signal_data: dict):
+    def lock_signal(self, signal_data: dict) -> Optional[str]:
         """LOCK signal with timestamp in Immutable Record [T1]"""
         try:
+            # ONLY save if telegram_message_id is present (Single Source of Truth)
+            if not signal_data.get("telegram_message_id"):
+                logger.warning("🚫 Signal NOT locked: Missing telegram_message_id")
+                return None
+                
             res = db.client.table(settings.TABLE_SIGNALS).insert(signal_data).execute()
             if res.data:
-                logger.info(f"🔒 Signal LOCKED in [T1]: {res.data[0]['id']}")
+                logger.info(f"🔒 Signal LOCKED in [T1]: {res.data[0]['id']} | Telegram: {signal_data.get('telegram_message_id')}")
                 self.last_execution_date = datetime.now(timezone.utc).date()
+                return res.data[0]['id']
         except Exception as e:
             logger.error(f"❌ Failed to LOCK signal in [T1]: {e}")
+        return None
 
     def run_cycle(self):
         """One analysis cycle [T0 + Δ]"""
@@ -240,16 +247,30 @@ class ContinuousAnalyzer:
                 return
 
             # AUTO-PUSH Logic based on Confidence
+            # AUTO-PUSH Logic based on Confidence
             if state.confidence >= 0.95:
                 logger.info(f"🚀 ULTRA High Confidence Detected: {state.confidence*100:.1f}%")
-                signal_base["status"] = "ACTIVE"
-                self.lock_signal(signal_base)
-                self.push_to_telegram(signal_base)
+                
+                # 1. PUSH to Telegram First (Single Source of Truth)
+                msg_id = self.push_to_telegram(signal_base)
+                
+                # 2. ONLY lock in DB if push succeeded
+                if msg_id:
+                    signal_base["telegram_message_id"] = msg_id
+                    signal_base["status"] = "ACTIVE"
+                    self.lock_signal(signal_base)
+                else:
+                    logger.error("❌ Signal NOT recorded: Telegram push failed")
             elif state.confidence >= 0.75 and not self.has_traded_today():
                 logger.info(f"🎯 High Confidence Moment Detected: {state.confidence*100:.1f}%")
-                signal_base["status"] = "ACTIVE"
-                self.lock_signal(signal_base)
-                # Telegram broadcasting restricted to >= 95% as per user request
+                # Even for normal signals, we now follow the "Telegram First" rule
+                msg_id = self.push_to_telegram(signal_base)
+                if msg_id:
+                    signal_base["telegram_message_id"] = msg_id
+                    signal_base["status"] = "ACTIVE"
+                    self.lock_signal(signal_base)
+                else:
+                    logger.error("❌ Signal NOT recorded: Telegram push failed")
             else:
                 # Save as CANDIDATE for Quantix Lab [T0] visibility
                 signal_base["status"] = "CANDIDATE"
@@ -278,13 +299,13 @@ class ContinuousAnalyzer:
         except Exception as e:
             logger.error(f"Heartbeat cycle failed: {e}")
 
-    def push_to_telegram(self, signal: dict):
+    def push_to_telegram(self, signal: dict) -> Optional[int]:
         """Proactive Broadcast for High Confidence Signals"""
         # 🛡️ Cooldown Check (1 push per 60 minutes)
         now = datetime.now(timezone.utc)
         if self.last_pushed_at and (now - self.last_pushed_at) < pd.Timedelta(minutes=60):
             logger.debug("Telegram push on cooldown")
-            return
+            return None
 
         # 🛡️ Signal Deduplication (Same asset/direction/entry)
         if not hasattr(self, '_pushed_signals'):
@@ -293,64 +314,28 @@ class ContinuousAnalyzer:
         signal_key = f"{signal['asset']}_{signal['direction']}_{signal['entry_low']}"
         if signal_key in self._pushed_signals:
             logger.info(f"Signal {signal_key} already pushed to Telegram")
-            return
+            return None
 
         if not self.notifier:
             logger.warning("Telegram pushing skipped: Notifier not initialized")
-            return
+            return None
 
         try:
-            # Standard Fields Extraction
-            dir_emoji = "🟢" if signal["direction"] == "BUY" else "🔴"
-            confidence = int(signal['ai_confidence'] * 100)
-            strength_val = signal.get("strength", 0)
-            strength_pct = f"{int(strength_val * 100)}%" if isinstance(strength_val, (int, float)) else str(strength_val)
-            timeframe = signal.get("timeframe", "M15")
-            asset = signal.get("asset", "EURUSD").replace("/", "")
+            # Use the new state-based method for standardized reporting
+            msg_id = self.notifier.send_waiting_for_entry(signal)
             
-            # TEMPLATE 3 – SIGNAL ULTRA (95%+ FAST ALERT)
-            if confidence >= 95:
-                msg = (
-                    f"🚨 *ULTRA SIGNAL (95%+)*\n\n"
-                    f"{asset} | {timeframe}\n"
-                    f"{dir_emoji} {signal['direction']}\n\n"
-                    f"Status: 🟡 WAITING FOR ENTRY\n"
-                    f"Entry window: OPEN\n\n"
-                    f"Confidence: {confidence}%\n"
-                    f"Strength: {strength_pct}\n\n"
-                    f"🎯 Entry: {signal['entry_low']}\n"
-                    f"💰 TP: {signal['tp']}\n"
-                    f"🛑 SL: {signal['sl']}\n\n"
-                    f"⚠️ Do NOT enter until entry price is hit.\n"
-                    f"You will receive an update when entry is triggered."
-                )
-            else:
-                # TEMPLATE 1 – SIGNAL CÒN HIỆU LỰC (ACTIVE)
-                msg = (
-                    f"⚡️ *SIGNAL GENIUS AI*\n\n"
-                    f"Asset: {asset}\n"
-                    f"Timeframe: {timeframe}\n"
-                    f"Direction: {dir_emoji} {signal['direction']}\n\n"
-                    f"Status: 🟡 WAITING FOR ENTRY\n"
-                    f"Entry window: OPEN\n\n"
-                    f"Confidence: {confidence}%\n"
-                    f"Force/Strength: {strength_pct}\n\n"
-                    f"🎯 Entry: {signal['entry_low']}\n"
-                    f"💰 TP: {signal['tp']}\n"
-                    f"🛑 SL: {signal['sl']}\n\n"
-                    f"⚠️ Do NOT enter until entry price is hit.\n"
-                    f"You will receive an update when entry is triggered."
-                )
-
-            if self.notifier.send_message(msg):
-                logger.info("🚀 Signal pushed to Telegram successfully")
+            if msg_id:
+                logger.info(f"🚀 Signal released to Telegram (ID: {msg_id})")
                 self.last_pushed_at = now
                 self._pushed_signals.add(signal_key)
+                return msg_id
             else:
-                logger.error("Telegram push failed")
+                logger.error("Telegram push failed: Notifier returned None")
+                return None
 
         except Exception as e:
             logger.error(f"Telegram push error: {e}")
+            return None
 
     def start(self):
         """Start the continuous evaluation loop"""

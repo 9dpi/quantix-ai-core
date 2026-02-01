@@ -14,6 +14,8 @@ from quantix_core.api.routes import health, signals, ingestion, csv_ingestion, a
 from quantix_core.config.settings import settings
 from quantix_core.database.connection import db
 from quantix_core.engine.continuous_analyzer import ContinuousAnalyzer
+from quantix_core.engine.signal_watcher import SignalWatcher
+from twelvedata import TDClient
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -75,6 +77,33 @@ async def background_startup_tasks():
             logger.info("💓 Starting Continuous Market Heartbeat...")
             analyzer = ContinuousAnalyzer()
             asyncio.create_task(asyncio.to_thread(analyzer.start))
+            
+            logger.info("🔍 Starting Signal Watcher...")
+            # Initialize Watcher dependencies
+            td_client = TDClient(apikey=settings.TWELVE_DATA_API_KEY)
+            
+            # Optional Telegram Notifier for Watcher state transitions
+            watcher_notifier = None
+            if settings.TELEGRAM_BOT_TOKEN and settings.TELEGRAM_CHAT_ID:
+                try:
+                    from quantix_core.notifications.telegram_notifier_v2 import create_notifier
+                    watcher_notifier = create_notifier(
+                        settings.TELEGRAM_BOT_TOKEN, 
+                        settings.TELEGRAM_CHAT_ID,
+                        getattr(settings, 'TELEGRAM_ADMIN_CHAT_ID', None)
+                    )
+                    logger.info("✅ Watcher Notifier initialized")
+                except Exception as te:
+                    logger.warning(f"Watcher Notifier failed to init: {te}")
+
+            # Initialize Watcher
+            watcher = SignalWatcher(
+                supabase_client=db.client,
+                td_client=td_client,
+                check_interval=60, # Default 60s
+                telegram_notifier=watcher_notifier
+            )
+            asyncio.create_task(asyncio.to_thread(watcher.run))
             
     except Exception as e:
         logger.error(f"⚠️ Background task failed (non-critical): {e}")

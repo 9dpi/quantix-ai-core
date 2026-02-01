@@ -32,6 +32,7 @@ class SignalOutput(BaseModel):
     confidence: float = Field(..., alias="ai_confidence")
     strategy: Optional[str] = Field(default="Quantix Alpha", alias="learning_version")
     status: Optional[str] = "CANDIDATE"
+    telegram_message_id: Optional[int] = None
     
     # Expiry
     generated_at: datetime = Field(default_factory=datetime.utcnow)

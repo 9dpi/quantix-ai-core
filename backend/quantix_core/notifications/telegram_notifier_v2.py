@@ -72,18 +72,21 @@ class TelegramNotifierV2:
             response = requests.post(self.api_url, json=payload, timeout=10)
             response.raise_for_status()
             
-            logger.success("Telegram message sent successfully")
-            return True
+            data = response.json()
+            message_id = data.get("result", {}).get("message_id")
+            
+            logger.success(f"Telegram message sent successfully (ID: {message_id})")
+            return message_id
         
         except Exception as e:
             logger.error(f"Failed to send Telegram message: {e}")
-            return False
+            return None
     
     # ========================================
     # STATE-SPECIFIC MESSAGE METHODS
     # ========================================
     
-    def send_waiting_for_entry(self, signal: dict) -> bool:
+    def send_waiting_for_entry(self, signal: dict) -> Optional[int]:
         """
         Send WAITING_FOR_ENTRY message (State 1).
         
@@ -123,7 +126,7 @@ class TelegramNotifierV2:
         logger.info(f"Sending WAITING_FOR_ENTRY message for {asset}")
         return self.send_message(message)
     
-    def send_entry_hit(self, signal: dict) -> bool:
+    def send_entry_hit(self, signal: dict) -> Optional[int]:
         """
         Send ENTRY_HIT message (State 2).
         
@@ -139,6 +142,7 @@ class TelegramNotifierV2:
         timeframe = signal.get("timeframe", "M15")
         direction = signal.get("direction", "BUY")
         entry = signal.get("entry_price", 0)
+        dir_emoji = "🟢" if direction == "BUY" else "🔴"
         
         message = (
             f"📍 *ENTRY PRICE HIT*\n\n"
@@ -154,9 +158,15 @@ class TelegramNotifierV2:
         )
         
         logger.info(f"Sending ENTRY_HIT message for {asset}")
+        
+        # If we have a telegram_message_id, reply to it
+        msg_id = signal.get("telegram_message_id")
+        if msg_id:
+            return self.reply_to_message(msg_id, message)
+            
         return self.send_message(message)
     
-    def send_tp_hit(self, signal: dict) -> bool:
+    def send_tp_hit(self, signal: dict) -> Optional[int]:
         """
         Send TP_HIT message (State 3a).
         
@@ -169,12 +179,13 @@ class TelegramNotifierV2:
         timeframe = signal.get("timeframe", "M15")
         direction = signal.get("direction", "BUY")
         entry = signal.get("entry_price", 0)
+        dir_emoji = "🟢" if direction == "BUY" else "🔴"
         
         # Rule: BLOCK if ENTRY_HIT was not sent by this instance
         signal_id = signal.get("id")
         if signal_id not in self._notified_entries:
             logger.warning(f"⛔ Blocked TP_HIT for {signal_id} (Orphan: Entry not notified)")
-            return False
+            return None
         
         message = (
             f"✅ *TAKE PROFIT HIT*\n\n"
@@ -188,9 +199,15 @@ class TelegramNotifierV2:
         )
         
         logger.info(f"Sending TP_HIT message for {asset}")
+        
+        # If we have a telegram_message_id, reply to it
+        msg_id = signal.get("telegram_message_id")
+        if msg_id:
+            return self.reply_to_message(msg_id, message)
+            
         return self.send_message(message)
     
-    def send_sl_hit(self, signal: dict) -> bool:
+    def send_sl_hit(self, signal: dict) -> Optional[int]:
         """
         Send SL_HIT message (State 3b).
         
@@ -203,12 +220,13 @@ class TelegramNotifierV2:
         timeframe = signal.get("timeframe", "M15")
         direction = signal.get("direction", "BUY")
         entry = signal.get("entry_price", 0)
+        dir_emoji = "🟢" if direction == "BUY" else "🔴"
         
         # Rule: BLOCK if ENTRY_HIT was not sent by this instance
         signal_id = signal.get("id")
         if signal_id not in self._notified_entries:
             logger.warning(f"⛔ Blocked SL_HIT for {signal_id} (Orphan: Entry not notified)")
-            return False
+            return None
         
         message = (
             f"🛑 *STOP LOSS HIT*\n\n"
@@ -221,9 +239,15 @@ class TelegramNotifierV2:
         )
         
         logger.info(f"Sending SL_HIT message for {asset}")
+        
+        # If we have a telegram_message_id, reply to it
+        msg_id = signal.get("telegram_message_id")
+        if msg_id:
+            return self.reply_to_message(msg_id, message)
+            
         return self.send_message(message)
     
-    def send_cancelled(self, signal: dict) -> bool:
+    def send_cancelled(self, signal: dict) -> Optional[int]:
         """
         Send CANCELLED message (State 4).
         
@@ -247,7 +271,34 @@ class TelegramNotifierV2:
         )
         
         logger.info(f"Sending CANCELLED message for {asset}")
+        
+        # If we have a telegram_message_id, reply to it
+        msg_id = signal.get("telegram_message_id")
+        if msg_id:
+            return self.reply_to_message(msg_id, message)
+            
         return self.send_message(message)
+
+    def reply_to_message(self, message_id: int, text: str) -> Optional[int]:
+        """Send message as a reply to an existing message."""
+        try:
+            payload = {
+                "chat_id": self.chat_id,
+                "text": text,
+                "reply_to_message_id": message_id,
+                "parse_mode": "Markdown"
+            }
+            # Use params for consistency with _send_to_chat if needed, 
+            # but sendMessage POST with json is standard.
+            response = requests.post(self.api_url, json=payload, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+            new_msg_id = data.get("result", {}).get("message_id")
+            logger.info(f"✅ Reply sent to {message_id} (New ID: {new_msg_id})")
+            return new_msg_id
+        except Exception as e:
+            logger.error(f"❌ Reply failed: {e}")
+            return None
 
     def send_admin_notification(self, text: str) -> bool:
         """Send a general notification to the Admin chat (non-critical)."""

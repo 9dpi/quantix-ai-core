@@ -223,7 +223,46 @@ class SupabaseConnection:
                     "total_ingested": int(df['total_rows'].sum()),
                     "avg_weight": float(df['avg_learning_weight'].mean())
                 }]
-            
+
+            # 3. Shim for telemetry aggregation (used in dashboard)
+            if "COUNT(*) as total" in query and "FROM fx_signals" in query:
+                res = self.client.table('fx_signals').select('*').execute()
+                if not res.data:
+                    return [{"total": 0, "wins": 0, "losses": 0, "avg_conf": 0, "peak_conf": 0}]
+                
+                data = res.data
+                total = len(data)
+                wins = len([s for s in data if s.get("state") == "TP_HIT"])
+                losses = len([s for s in data if s.get("state") == "SL_HIT"])
+                confidences = [s.get("ai_confidence", 0) for s in data if s.get("ai_confidence") is not None]
+                avg_conf = sum(confidences) / len(confidences) if confidences else 0
+                peak_conf = max(confidences) if confidences else 0
+                
+                # Directional breakdown
+                buy_sigs = [s for s in data if s.get("direction") == "BUY"]
+                sell_sigs = [s for s in data if s.get("direction") == "SELL"]
+                
+                details = {
+                    "BUY": {"wins": len([s for s in buy_sigs if s.get("state") == "TP_HIT"]), "total": len(buy_sigs)},
+                    "SELL": {"wins": len([s for s in sell_sigs if s.get("state") == "TP_HIT"]), "total": len(sell_sigs)},
+                    "HOLD": {"wins": 0, "total": 0} # Hold is not usually in fx_signals state
+                }
+
+                return [{
+                    "total": total,
+                    "wins": wins,
+                    "losses": losses,
+                    "avg_conf": avg_conf,
+                    "peak_conf": peak_conf,
+                    "details": details
+                }]
+
+            # 4. Shim for history with specific columns (used in dashboard)
+            if "SELECT ai_confidence as v, generated_at as t" in query:
+                res = self.client.table('fx_signals').select('ai_confidence,generated_at').order('generated_at', desc=True).limit(10).execute()
+                if not res.data: return []
+                return [{"v": s.get("ai_confidence", 0), "t": s.get("generated_at")} for s in res.data]
+
             return []
         except Exception as e:
             logger.error(f"Database fetch error: {e}")

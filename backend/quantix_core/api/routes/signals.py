@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Optional
 from loguru import logger
 
+from datetime import datetime
 from quantix_core.config.settings import settings
 from quantix_core.schemas.signal import SignalOutput
 from quantix_core.database.connection import db
@@ -80,17 +81,53 @@ async def generate_signal(asset: str, timeframe: str = "M15"):
     
     return SignalOutput(**signal_data)
 
+@router.get("/", response_model=List[SignalOutput])
+async def list_signals(
+    asset: Optional[str] = None,
+    state: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0
+):
+    """
+    List all signals with optional filtering and pagination.
+    Used for the History Tab on SignalGeniusAI.com.
+    """
+    try:
+        query = "SELECT * FROM fx_signals"
+        conditions = ["telegram_message_id IS NOT NULL"] # SINGLE SOURCE OF TRUTH
+        params = {}
+
+        if asset:
+            conditions.append("asset = :asset")
+            params["asset"] = asset
+        
+        if state:
+            conditions.append("state = :state")
+            params["state"] = state
+
+        query += " WHERE " + " AND ".join(conditions)
+
+        query += " ORDER BY generated_at DESC LIMIT :limit OFFSET :offset"
+        params["limit"] = limit
+        params["offset"] = offset
+
+        results = await db.fetch(query, params)
+        return results
+    except Exception as e:
+        logger.error(f"Failed to list signals: {e}")
+        return []
+
 @router.get("/active", response_model=List[SignalOutput])
 async def get_active_signals():
     """
     Fetch all currently active internal signals from Supabase
     """
     try:
-        query = "SELECT * FROM fx_signals WHERE status = 'ACTIVE' ORDER BY generated_at DESC"
+        query = "SELECT * FROM fx_signals WHERE state IN ('WAITING_FOR_ENTRY', 'ENTRY_HIT') AND telegram_message_id IS NOT NULL ORDER BY generated_at DESC"
         results = await db.fetch(query)
         return results
     except Exception as e:
-        logger.error(f"Failed to fetch signals: {e}")
+        logger.error(f"Failed to fetch active signals: {e}")
         return []
 
 @router.get("/latest-lab", response_model=List[SignalOutput])
@@ -99,7 +136,6 @@ async def get_latest_lab_signals():
     Fetch the 3 most recent signals (candidates or locked) for the Laboratory
     """
     try:
-        # Fetching top 3 regardless of status to show 'latest' activity
         query = "SELECT * FROM fx_signals ORDER BY generated_at DESC LIMIT 3"
         results = await db.fetch(query)
         return results
@@ -146,11 +182,11 @@ async def get_system_telemetry():
                 "wins": wins,
                 "losses": losses,
                 "win_rate": win_rate,
-                "details": {
-                    "BUY": {"wins": 0, "total": 0}, # Would need more complex query for breakdown
+                "details": s.get("details", {
+                    "BUY": {"wins": 0, "total": 0},
                     "SELL": {"wins": 0, "total": 0},
                     "HOLD": {"wins": 0, "total": 0}
-                }
+                })
             },
             "recent_history": history[::-1] # Reverse to chronological
         }

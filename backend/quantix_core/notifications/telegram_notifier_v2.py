@@ -415,41 +415,48 @@ class TelegramNotifierV2:
                 try:
                     from quantix_core.database.connection import db
                     from quantix_core.config.settings import settings
-                    import asyncio
                     
-                    # 1. Total Signals Stats
-                    stats_res = db.client.table(settings.TABLE_SIGNALS).select("state", count="exact").execute()
-                    total_sigs = stats_res.count if stats_res else 0
-                    
-                    # 2. Today's Miner Activity
+                    # 1. Today's Activity Breakdown
                     today = datetime.now(timezone.utc).date().isoformat()
-                    today_res = db.client.table(settings.TABLE_SIGNALS).select("id", count="exact").gte("generated_at", today).execute()
-                    today_count = today_res.count if today_res else 0
                     
-                    # 3. Active Watcher Stats
+                    # Count Analysis Cycles (Market Scans)
+                    scan_res = db.client.table(settings.TABLE_ANALYSIS_LOG).select("timestamp", count="exact").gte("timestamp", today).execute()
+                    scan_count = scan_res.count if scan_res else 0
+                    
+                    # Count Signals Found (Candidates or Active)
+                    found_res = db.client.table(settings.TABLE_SIGNALS).select("id", count="exact").gte("generated_at", today).execute()
+                    found_count = found_res.count if found_res else 0
+                    
+                    # Count actual pushes to Telegram today (Status ACTIVE with TG ID)
+                    push_res = db.client.table(settings.TABLE_SIGNALS).select("id", count="exact").gte("generated_at", today).not_.is_("telegram_message_id", "null").execute()
+                    push_count = push_res.count if push_res else 0
+                    
+                    # 2. Watcher Stats
                     active_count = getattr(watcher, 'last_watched_count', 0) if watcher else 0
                     
-                    # 4. Successful Signals (Wins)
+                    # 3. Overall Performance
+                    total_res = db.client.table(settings.TABLE_SIGNALS).select("id", count="exact").execute()
+                    total_sigs = total_res.count if total_res else 0
+                    
                     wins_res = db.client.table(settings.TABLE_SIGNALS).select("id", count="exact").eq("state", "TP_HIT").execute()
                     wins = wins_res.count if wins_res else 0
-                    
-                    # 5. Heartbeat Status (Analyzer)
-                    # We can infer analyzer health from the presence of a watcher instance or heartbeat logs
+
                     analyzer_status = "ACTIVE 🟢" if watcher else "STANDBY 🟡"
 
                     status_text = (
-                        "📊 *QUANTIX SYSTEM STATUS*\n\n"
+                        "📊 *QUANTIX LIVE STATUS*\n\n"
                         f"🖥️ *Instance:* `{instance}`\n"
                         f"📡 *Analyzer:* {analyzer_status}\n"
-                        f"🕒 *Market Time:* `{datetime.now(timezone.utc).strftime('%H:%M:%S UTC')}`\n\n"
-                        "🔍 *Miner Activity (Today):*\n"
-                        f"• Signals Scanned: `{today_count}`\n"
-                        f"• Engine Sensitivity: `2.0 (High Precision)`\n\n"
-                        "🚀 *Live Signals (Signals):*\n"
-                        f"• Current Watching: `{active_count}`\n"
-                        f"• All-time Processed: `{total_sigs}`\n"
-                        f"• Win Rate (Success): `{wins}` trades\n\n"
-                        "✅ *Health:* Data flows normal. API Quota 100/100."
+                        f"🕒 *UTC Time:* `{datetime.now(timezone.utc).strftime('%H:%M:%S')}`\n\n"
+                        "🔍 *Today's Miner Activity:*\n"
+                        f"• Market Scans: `{scan_count}` cycles\n"
+                        f"• Potential Setups: `{found_count}` found\n"
+                        f"• Telegram Pushes: `{push_count}` signals\n\n"
+                        "🚀 *Watcher & Performance:*\n"
+                        f"• Active Monitoring: `{active_count}` pairs\n"
+                        f"• Total Signals (All-time): `{total_sigs}`\n"
+                        f"• Total Wins (TP): `{wins}` trades\n\n"
+                        "✅ *System Health:* All data flows operational."
                     )
                 except Exception as db_err:
                     logger.error(f"Status DB query failed: {db_err}")

@@ -100,7 +100,7 @@ async def background_startup_tasks():
             watcher = SignalWatcher(
                 supabase_client=db.client,
                 td_client=td_client,
-                check_interval=60, # Default 60s
+                check_interval=settings.WATCHER_CHECK_INTERVAL,
                 telegram_notifier=watcher_notifier
             )
             asyncio.create_task(asyncio.to_thread(watcher.run))

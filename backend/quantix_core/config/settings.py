@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     
     # Heartbeat [T0+Δ]
     MONITOR_INTERVAL_SECONDS: int = 120  # Optimized for 800 req/day quota (1 req/120s)
+    WATCHER_CHECK_INTERVAL: int = 300   # Optimized for 800 req/day quota (1 req/300s)
     
     # Supabase Database
     SUPABASE_URL: Optional[str] = None

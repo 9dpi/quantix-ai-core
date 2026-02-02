@@ -246,46 +246,64 @@ class ContinuousAnalyzer:
                 logger.warning("DB Client offline - cannot save signals")
                 return
 
-            # AUTO-PUSH Logic based on Confidence
-            # AUTO-PUSH Logic based on Confidence
-            if state.confidence >= 0.95:
-                logger.info(f"🚀 ULTRA High Confidence Detected: {state.confidence*100:.1f}%")
+            # ============================================
+            # v2 SIGNAL STRUCTURE (Internal Reality First)
+            # ============================================
+            signal_base = {
+                "asset": "EURUSD",
+                "direction": direction,
+                "strength": state.strength,
+                "timeframe": "M15",
+                "state": "WAITING_FOR_ENTRY",
+                "status": "CANDIDATE", # Default to candidate
+                "entry_price": entry_price,
+                "expiry_at": expiry_at.isoformat(),
+                "entry_low": entry_price,
+                "entry_high": entry_price + 0.0002,
+                "tp": tp,
+                "sl": sl,
+                "reward_risk_ratio": rrr,
+                "ai_confidence": state.confidence,
+                "generated_at": now.isoformat(),
+                "explainability": f"Structure {state.state.upper()} | Strength {int(state.strength*100)}% | Entry offset: {offset_pips:.1f} pips",
+            }
+
+            # 1. DATABASE FIRST: Persist the signal immediately
+            signal_id = self.lock_signal(signal_base)
+            if not signal_id:
+                 logger.error("❌ Critical: Failed to record signal in DB. Signal lost.")
+                 return
+
+            # 2. TELEGRAM AS PUBLIC ANCHOR: Attempt push if confidence is high
+            if state.confidence >= 0.75:
+                logger.info(f"🎯 High Confidence ({state.confidence*100:.1f}%) -> Attempting Public Anchor")
                 
-                # 1. PUSH to Telegram First (Single Source of Truth)
-                msg_id = self.push_to_telegram(signal_base)
+                # Signal for Telegram needs the DB ID for replies later
+                signal_for_tg = signal_base.copy()
+                signal_for_tg["id"] = signal_id
                 
-                # 2. ONLY lock in DB if push succeeded
+                msg_id = self.push_to_telegram(signal_for_tg)
+                
                 if msg_id:
-                    signal_base["telegram_message_id"] = msg_id
-                    signal_base["status"] = "ACTIVE"
-                    self.lock_signal(signal_base)
+                    # Upgrade to ACTIVE and attach PROOF ID
+                    logger.success(f"⚓ Public Anchor Established (TG ID: {msg_id})")
+                    db.client.table(settings.TABLE_SIGNALS).update({
+                        "telegram_message_id": msg_id,
+                        "status": "ACTIVE"
+                    }).eq("id", signal_id).execute()
                 else:
-                    logger.error("❌ Signal NOT recorded: Telegram push failed")
-            elif state.confidence >= 0.75 and not self.has_traded_today():
-                logger.info(f"🎯 High Confidence Moment Detected: {state.confidence*100:.1f}%")
-                # Even for normal signals, we now follow the "Telegram First" rule
-                msg_id = self.push_to_telegram(signal_base)
-                if msg_id:
-                    signal_base["telegram_message_id"] = msg_id
-                    signal_base["status"] = "ACTIVE"
-                    self.lock_signal(signal_base)
-                else:
-                    logger.error("❌ Signal NOT recorded: Telegram push failed")
-            else:
-                # Save as CANDIDATE for Quantix Lab [T0] visibility
-                signal_base["status"] = "CANDIDATE"
-                try:
-                    db.client.table(settings.TABLE_SIGNALS).insert(signal_base).execute()
-                    
-                    # 🧹 Cleanup OLD candidates (older than 1 hour)
-                    expiry = (datetime.now(timezone.utc) - pd.Timedelta(hours=1)).isoformat()
-                    db.client.table(settings.TABLE_SIGNALS)\
-                        .delete()\
-                        .eq("status", "CANDIDATE")\
-                        .lt("generated_at", expiry)\
-                        .execute()
-                except Exception as e:
-                    logger.debug(f"Candidate not saved: {e}")
+                    logger.warning(f"⚠️ Telegram Push failed for signal {signal_id}. Stays internal (CANDIDATE).")
+            
+            # 🧹 Cleanup OLD candidates (older than 1 hour)
+            try:
+                expiry_limit = (datetime.now(timezone.utc) - pd.Timedelta(hours=1)).isoformat()
+                db.client.table(settings.TABLE_SIGNALS)\
+                    .delete()\
+                    .eq("status", "CANDIDATE")\
+                    .lt("generated_at", expiry_limit)\
+                    .execute()
+            except Exception as e:
+                logger.debug(f"Candidate cleanup failed: {e}")
 
             # 6. Dashboard Telemetry Update (Learning Lab Preview)
             try:

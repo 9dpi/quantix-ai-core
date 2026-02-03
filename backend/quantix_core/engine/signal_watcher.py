@@ -185,10 +185,9 @@ class SignalWatcher:
         try:
             # Use direct API call instead of pandas
             # TwelveData REST API endpoint
-            import requests
-            import os
+            from quantix_core.config.settings import settings
             
-            api_key = os.getenv("TWELVE_DATA_API_KEY")
+            api_key = settings.TWELVE_DATA_API_KEY
             url = "https://api.twelvedata.com/time_series"
             
             params = {

@@ -43,7 +43,7 @@ class ContinuousAnalyzer:
         else:
              self.audit_log_path = potential_path
         
-        # Initialize Telegram notifier
+        # 🛡️ Telegram Config Injection (Single Source of Truth)
         token = settings.TELEGRAM_BOT_TOKEN
         chat_id = settings.TELEGRAM_CHAT_ID
         admin_chat_id = settings.TELEGRAM_ADMIN_CHAT_ID
@@ -52,11 +52,12 @@ class ContinuousAnalyzer:
         if token and chat_id:
             from quantix_core.notifications.telegram_notifier_v2 import create_notifier
             self.notifier = create_notifier(token, chat_id, admin_chat_id)
-            logger.success(f"✅ Telegram notifier initialized (Chat: {chat_id})")
+            logger.success(f"✅ [INIT_OK] Telegram notifier initialized (Chat: {chat_id})")
         else:
-            logger.warning(f"❌ Telegram config missing: token={'YES' if token else 'NO'}, chat={'YES' if chat_id else 'NO'}")
+            logger.critical("❌ [INIT_FAIL] Telegram configuration missing! Pipeline will proceed as INTERNAL ONLY.")
+            # Fail-fast logic: If we have an admin channel, we'd alert here, but since config is missing...
         
-        logger.info(f"💓 Quantix Heartbeat [T0+Δ] Initialized (Log: {self.audit_log_path})")
+        logger.info(f"💓 Quantix AI Core v2.1 Initialized (Log: {self.audit_log_path})")
 
     def convert_to_df(self, td_data: dict) -> pd.DataFrame:
         """Convert TwelveData series to StructureEngine compatible DataFrame"""
@@ -73,28 +74,54 @@ class ContinuousAnalyzer:
         
         return df
 
-    def has_traded_today(self) -> bool:
-        """Check [T1] for Daily Execution Cap [1/day]"""
+    def get_published_count_today(self) -> int:
+        """Get number of PUBLISHED signals today from DB"""
         today = datetime.now(timezone.utc).date()
-        if self.last_execution_date == today:
-            return True
+        try:
+            res = db.client.table(settings.TABLE_SIGNALS)\
+                .select("id", count="exact")\
+                .eq("status", "PUBLISHED")\
+                .gte("generated_at", today.isoformat())\
+                .execute()
+            return res.count if res.count is not None else len(res.data)
+        except Exception as e:
+            logger.error(f"Failed to check daily count: {e}")
+            return settings.MAX_SIGNALS_PER_DAY # Safety, assume cap reached
             
-        # Check database as fallback/persistent check
+    def check_release_gate(self, current_candle_time: str) -> tuple[bool, str]:
+        """
+        🔒 ANTI-BURST RULE (FINAL)
+        Returns (is_allowed, reason)
+        """
+        now = datetime.now(timezone.utc)
+        
+        # 1. Daily Cap Check
+        count = self.get_published_count_today()
+        if count >= settings.MAX_SIGNALS_PER_DAY:
+             return False, "DAILY_CAP_REACHED"
+
+        # 2. Cooldown Check (30 mins)
+        if self.last_pushed_at:
+            elapsed = (now - self.last_pushed_at).total_seconds() / 60
+            if elapsed < settings.MIN_RELEASE_INTERVAL_MINUTES:
+                return False, f"COOLDOWN_ACTIVE ({settings.MIN_RELEASE_INTERVAL_MINUTES - elapsed:.1f}m left)"
+
+        # 3. Same Candle Protection
         try:
             res = db.client.table(settings.TABLE_SIGNALS)\
                 .select("id")\
-                .eq("status", "ACTIVE")\
-                .gte("generated_at", today.isoformat())\
-                .limit(1)\
+                .eq("status", "PUBLISHED")\
+                .gte("generated_at", (now - timedelta(minutes=16)).isoformat())\
                 .execute()
             
             if res.data:
-                self.last_execution_date = today
-                return True
-        except Exception as e:
-            logger.error(f"Failed to check daily cap in [T1]: {e}")
+                # This is a bit coarse, but safe for M15. 
+                # Better: Check exact market candle timestamps if stored.
+                return False, "BURST_GUARD_ACTIVE (Too close to previous)"
+        except:
+            pass
             
-        return False
+        return True, "ALLOWED"
 
     def lock_signal(self, signal_data: dict) -> Optional[str]:
         """LOCK signal with timestamp in Immutable Record [T1]"""
@@ -196,7 +223,7 @@ class ContinuousAnalyzer:
             expiry_at = now + timedelta(minutes=15)
 
             # Determine strength label for internal logic/filtering
-            strength_label = "ULTRA" if state.confidence >= 0.95 else "HIGH" if state.confidence >= 0.85 else "ACTIVE"
+            strength_label = "ULTRA" if state.confidence >= 0.95 else "HIGH" if state.confidence >= 0.85 else "NORMAL"
             
             # ============================================
             # v2 SIGNAL STRUCTURE (WAITING_FOR_ENTRY)
@@ -206,8 +233,7 @@ class ContinuousAnalyzer:
                 "direction": direction,
                 "strength": state.strength,
                 "timeframe": "M15",
-                
-                # v2 NEW FIELDS
+                "status": "DETECTED",
                 "state": "WAITING_FOR_ENTRY",  # Initial state
                 "entry_price": entry_price,     # Future entry (NOT market)
                 "expiry_at": expiry_at.isoformat(),  # 15 min expiry
@@ -276,67 +302,61 @@ class ContinuousAnalyzer:
                 else:
                     logger.debug(f"DB telemetry write failed: {e}")
 
-            # 5. Logic Branching: ULTRA (>95%), LOCK (ACTIVE), or CANDIDATE
-            if not db.client:
-                logger.warning("DB Client offline - cannot save signals")
-                return
-
             # ============================================
-            # v2 SIGNAL STRUCTURE (Internal Reality First)
+            # v2 STANDARD LOCK FLOW
             # ============================================
-            signal_base = {
-                "asset": "EURUSD",
-                "direction": direction,
-                "strength": state.strength,
-                "timeframe": "M15",
-                "state": "WAITING_FOR_ENTRY",
-                "status": "CANDIDATE", # Default to candidate
-                "entry_price": entry_price,
-                "expiry_at": expiry_at.isoformat(),
-                "entry_low": entry_price,
-                "entry_high": entry_price + 0.0002,
-                "tp": tp,
-                "sl": sl,
-                "reward_risk_ratio": rrr,
-                "ai_confidence": state.confidence,
-                "release_confidence": release_score,
-                "generated_at": now.isoformat(),
-                "explainability": f"Structure {state.state.upper()} | Strength {int(state.strength*100)}% | Entry offset: {offset_pips:.1f} pips | Refinement: {refinement_reason}",
-                "refinement_reason": refinement_reason
-            }
 
-            # 1. DATABASE FIRST: Persist the signal immediately
+            # 1. SAVE DETECTED: Persist as internal audit record first
             signal_id = self.lock_signal(signal_base)
             if not signal_id:
                  logger.error("❌ Critical: Failed to record signal in DB. Signal lost.")
                  return
 
-            # 2. TELEGRAM AS PUBLIC ANCHOR: Attempt push if Release Confidence is high
+            # 2. RELEASE GATE: Anti-Burst Check
+            is_allowed, gate_reason = self.check_release_gate(df.iloc[-1]['datetime'] if 'datetime' in df.columns else "")
+            
             if release_score >= 0.75:
-                logger.info(f"🎯 Release Score High ({release_score*100:.1f}%) -> Attempting Public Anchor")
-                
-                # Signal for Telegram needs the DB ID for replies later
-                signal_for_tg = signal_base.copy()
-                signal_for_tg["id"] = signal_id
-                
-                msg_id = self.push_to_telegram(signal_for_tg)
-                
-                if msg_id:
-                    # Upgrade to ACTIVE and attach PROOF ID
-                    logger.success(f"⚓ Public Anchor Established (TG ID: {msg_id})")
-                    db.client.table(settings.TABLE_SIGNALS).update({
-                        "telegram_message_id": msg_id,
-                        "status": "ACTIVE"
-                    }).eq("id", signal_id).execute()
+                if is_allowed:
+                    logger.info(f"🎯 Release Score High ({release_score*100:.1f}%) -> Attempting Public Release")
+                    
+                    if not self.notifier:
+                        logger.warning(f"⚠️ Notifier NOT initialized. Signal {signal_id} stays DETECTED.")
+                        return
+
+                    # Signal for Telegram needs the DB ID for replies later
+                    signal_for_tg = signal_base.copy()
+                    signal_for_tg["id"] = signal_id
+                    
+                    msg_id = self.push_to_telegram(signal_for_tg)
+                    
+                    if msg_id:
+                        # 3. GET message_id & UPDATE PUBLISHED
+                        logger.success(f"⚓ [LOCK_SUCCESS] Public Anchor Established (TG ID: {msg_id})")
+                        try:
+                            # 🛡️ Cooldown set here
+                            self.last_pushed_at = datetime.now(timezone.utc)
+                            
+                            db.client.table(settings.TABLE_SIGNALS).update({
+                                "telegram_message_id": msg_id,
+                                "status": "PUBLISHED",
+                                "state": "WAITING_FOR_ENTRY"
+                            }).eq("id", signal_id).execute()
+                            logger.info(f"✅ Signal {signal_id} promoted to PUBLISHED")
+                        except Exception as e:
+                            logger.error(f"❌ Failed to promote signal {signal_id} to PUBLISHED: {e}")
+                    else:
+                        logger.warning(f"⚠️ Telegram Push failed for signal {signal_id}. Monitoring Internal only.")
                 else:
-                    logger.warning(f"⚠️ Telegram Push failed for signal {signal_id}. Stays internal (CANDIDATE).")
+                    logger.warning(f"🛡️ [ANTI-BURST] Signal {signal_id} rejected by Gate: {gate_reason}")
+            else:
+                logger.info(f"🔍 Signal {signal_id} stored as Internal DETECTED (Score: {release_score:.2f})")
             
             # 🧹 Cleanup OLD candidates (older than 1 hour)
             try:
                 expiry_limit = (datetime.now(timezone.utc) - pd.Timedelta(hours=1)).isoformat()
                 db.client.table(settings.TABLE_SIGNALS)\
                     .delete()\
-                    .eq("status", "CANDIDATE")\
+                    .eq("status", "DETECTED")\
                     .lt("generated_at", expiry_limit)\
                     .execute()
             except Exception as e:

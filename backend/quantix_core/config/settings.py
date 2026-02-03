@@ -46,6 +46,10 @@ class Settings(BaseSettings):
     MIN_CONFIDENCE: float = 0.75
     MAX_SIGNALS_PER_ASSET: int = 3
     
+    # 🔒 ANTI-BURST RULES
+    MIN_RELEASE_INTERVAL_MINUTES: int = 30
+    MAX_SIGNALS_PER_DAY: int = 5
+    
     # Session Times (UTC)
     TOKYO_OPEN: str = "00:00"
     TOKYO_CLOSE: str = "09:00"

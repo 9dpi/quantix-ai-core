@@ -372,6 +372,7 @@ class SignalWatcher:
             # 2. ONLY update DB if notification succeeded (or if telegram is disabled)
             self.db.table("fx_signals").update({
                 "state": "ENTRY_HIT",
+                "status": "ENTRY_HIT",
                 "entry_hit_at": candle["timestamp"]
             }).eq("id", signal_id).execute()
             
@@ -402,6 +403,7 @@ class SignalWatcher:
             # 2. Update DB
             self.db.table("fx_signals").update({
                 "state": "TP_HIT",
+                "status": "CLOSED",
                 "result": "PROFIT",
                 "closed_at": candle["timestamp"]
             }).eq("id", signal_id).execute()
@@ -433,6 +435,7 @@ class SignalWatcher:
             # 2. Update DB
             self.db.table("fx_signals").update({
                 "state": "SL_HIT",
+                "status": "CLOSED",
                 "result": "LOSS",
                 "closed_at": candle["timestamp"]
             }).eq("id", signal_id).execute()
@@ -464,6 +467,7 @@ class SignalWatcher:
             # 2. Update DB
             self.db.table("fx_signals").update({
                 "state": "CANCELLED",
+                "status": "CLOSED",
                 "result": "CANCELLED",
                 "closed_at": datetime.now(timezone.utc).isoformat()
             }).eq("id", signal_id).execute()

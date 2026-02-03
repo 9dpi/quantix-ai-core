@@ -88,9 +88,9 @@ class ContinuousAnalyzer:
             logger.error(f"Failed to check daily count: {e}")
             return settings.MAX_SIGNALS_PER_DAY # Safety, assume cap reached
             
-    def check_release_gate(self, current_candle_time: str) -> tuple[bool, str]:
+    def check_release_gate(self, asset: str, timeframe: str) -> tuple[bool, str]:
         """
-        🔒 ANTI-BURST RULE (FINAL)
+        🔒 ANTI-BURST RULE (HARD LOCK)
         Returns (is_allowed, reason)
         """
         now = datetime.now(timezone.utc)
@@ -100,26 +100,25 @@ class ContinuousAnalyzer:
         if count >= settings.MAX_SIGNALS_PER_DAY:
              return False, "DAILY_CAP_REACHED"
 
-        # 2. Cooldown Check (30 mins)
+        # 2. Hard Active Lock (Compact Fix)
+        try:
+            res = db.client.table(settings.TABLE_SIGNALS)\
+                .select("id")\
+                .eq("asset", asset)\
+                .eq("timeframe", timeframe)\
+                .in_("status", ["PUBLISHED", "ENTRY_HIT"])\
+                .execute()
+            
+            if res.data:
+                return False, f"ACTIVE_SIGNAL_EXISTS ({asset} {timeframe})"
+        except Exception as e:
+            logger.error(f"Gate check error: {e}")
+
+        # 3. Cooldown Check (30 mins)
         if self.last_pushed_at:
             elapsed = (now - self.last_pushed_at).total_seconds() / 60
             if elapsed < settings.MIN_RELEASE_INTERVAL_MINUTES:
                 return False, f"COOLDOWN_ACTIVE ({settings.MIN_RELEASE_INTERVAL_MINUTES - elapsed:.1f}m left)"
-
-        # 3. Same Candle Protection
-        try:
-            res = db.client.table(settings.TABLE_SIGNALS)\
-                .select("id")\
-                .eq("status", "PUBLISHED")\
-                .gte("generated_at", (now - timedelta(minutes=16)).isoformat())\
-                .execute()
-            
-            if res.data:
-                # This is a bit coarse, but safe for M15. 
-                # Better: Check exact market candle timestamps if stored.
-                return False, "BURST_GUARD_ACTIVE (Too close to previous)"
-        except:
-            pass
             
         return True, "ALLOWED"
 
@@ -312,8 +311,8 @@ class ContinuousAnalyzer:
                  logger.error("❌ Critical: Failed to record signal in DB. Signal lost.")
                  return
 
-            # 2. RELEASE GATE: Anti-Burst Check
-            is_allowed, gate_reason = self.check_release_gate(df.iloc[-1]['datetime'] if 'datetime' in df.columns else "")
+            # 2. RELEASE GATE: Anti-Burst Check (Hard Lock)
+            is_allowed, gate_reason = self.check_release_gate(signal_base["asset"], signal_base["timeframe"])
             
             if release_score >= 0.75:
                 if is_allowed:

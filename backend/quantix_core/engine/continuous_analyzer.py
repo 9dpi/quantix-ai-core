@@ -44,15 +44,17 @@ class ContinuousAnalyzer:
              self.audit_log_path = potential_path
         
         # Initialize Telegram notifier
-        token = os.getenv("TELEGRAM_BOT_TOKEN")
-        chat_id = os.getenv("TELEGRAM_CHAT_ID")
-        admin_chat_id = os.getenv("TELEGRAM_ADMIN_CHAT_ID")
+        token = settings.TELEGRAM_BOT_TOKEN
+        chat_id = settings.TELEGRAM_CHAT_ID
+        admin_chat_id = settings.TELEGRAM_ADMIN_CHAT_ID
         
         self.notifier = None
         if token and chat_id:
             from quantix_core.notifications.telegram_notifier_v2 import create_notifier
             self.notifier = create_notifier(token, chat_id, admin_chat_id)
-            logger.success(f"✅ Telegram notifier initialized (Admin: {admin_chat_id})")
+            logger.success(f"✅ Telegram notifier initialized (Chat: {chat_id})")
+        else:
+            logger.warning(f"❌ Telegram config missing: token={'YES' if token else 'NO'}, chat={'YES' if chat_id else 'NO'}")
         
         logger.info(f"💓 Quantix Heartbeat [T0+Δ] Initialized (Log: {self.audit_log_path})")
 

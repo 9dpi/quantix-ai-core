@@ -102,11 +102,25 @@ class ContinuousAnalyzer:
                 
             res = db.client.table(settings.TABLE_SIGNALS).insert(signal_data).execute()
             if res.data:
-                logger.info(f"🔒 Signal LOCKED in [T1]: {res.data[0]['id']} | Telegram: {signal_data.get('telegram_message_id')}")
+                logger.info(f"🔒 Signal LOCKED in [T1]: {res.data[0]['id']} | Telegram: {signal_data.get('telegram_message_id', 'None')}")
                 self.last_execution_date = datetime.now(timezone.utc).date()
                 return res.data[0]['id']
         except Exception as e:
-            logger.error(f"❌ Failed to LOCK signal in [T1]: {e}")
+            # 🛡️ Fallback for missing columns (Schema Resilience)
+            error_msg = str(e)
+            if "PGRST204" in error_msg and ("refinement_reason" in error_msg or "release_confidence" in error_msg):
+                logger.warning("⚠️ Supabase schema mismatch (missing refinement columns). Retrying without them...")
+                fallback_data = {k: v for k, v in signal_data.items() 
+                                 if k not in ["refinement_reason", "release_confidence"]}
+                try:
+                    res = db.client.table(settings.TABLE_SIGNALS).insert(fallback_data).execute()
+                    if res.data:
+                        logger.success("✅ Signal LOCKED (Fallback mode)")
+                        return res.data[0]['id']
+                except Exception as e2:
+                    logger.error(f"❌ Fallback LOCK also failed: {e2}")
+            else:
+                logger.error(f"❌ Failed to LOCK signal in [T1]: {e}")
         return None
 
     def run_cycle(self):
@@ -249,7 +263,16 @@ class ContinuousAnalyzer:
             try:
                 db.client.table(settings.TABLE_ANALYSIS_LOG).insert(analysis_entry).execute()
             except Exception as e:
-                logger.debug(f"DB telemetry write failed: {e}")
+                error_msg = str(e)
+                if "PGRST204" in error_msg and ("refinement" in error_msg or "release_confidence" in error_msg):
+                    # Fallback for telemetry
+                    fallback_entry = {k: v for k, v in analysis_entry.items() 
+                                      if k not in ["refinement", "release_confidence"]}
+                    try:
+                        db.client.table(settings.TABLE_ANALYSIS_LOG).insert(fallback_entry).execute()
+                    except: pass
+                else:
+                    logger.debug(f"DB telemetry write failed: {e}")
 
             # 5. Logic Branching: ULTRA (>95%), LOCK (ACTIVE), or CANDIDATE
             if not db.client:

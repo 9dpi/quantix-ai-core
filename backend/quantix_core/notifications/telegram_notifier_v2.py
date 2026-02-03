@@ -101,7 +101,7 @@ class TelegramNotifierV2:
         entry = signal.get("entry_price", 0)
         tp = signal.get("tp", 0)
         sl = signal.get("sl", 0)
-        confidence = int(signal.get("ai_confidence", 0) * 100)
+        confidence = int(signal.get("release_confidence", signal.get("ai_confidence", 0)) * 100)
         
         # Format expiry time
         expiry_str = self._format_expiry_time(signal.get("expiry_at"))

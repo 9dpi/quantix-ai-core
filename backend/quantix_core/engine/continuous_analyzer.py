@@ -11,6 +11,7 @@ from quantix_core.engine.structure_engine_v1 import StructureEngineV1
 from quantix_core.database.connection import db
 from quantix_core.utils.entry_calculator import EntryCalculator
 from quantix_core.utils.market_hours import MarketHours
+from quantix_core.engine.confidence_refiner import ConfidenceRefiner
 
 class ContinuousAnalyzer:
     """
@@ -25,6 +26,7 @@ class ContinuousAnalyzer:
         self.last_execution_date = None
         self.cycle_count = 0
         self.last_pushed_at = None # For Telegram Cooldown
+        self.refiner = ConfidenceRefiner()
         
         # Absolute path to prevent "reset to 0" issues on machine restart
         import os
@@ -95,10 +97,8 @@ class ContinuousAnalyzer:
     def lock_signal(self, signal_data: dict) -> Optional[str]:
         """LOCK signal with timestamp in Immutable Record [T1]"""
         try:
-            # ONLY save if telegram_message_id is present (Single Source of Truth)
-            if not signal_data.get("telegram_message_id"):
-                logger.warning("🚫 Signal NOT locked: Missing telegram_message_id")
-                return None
+            # Removed the mandatory telegram_message_id check to allow 'Database First' candidates
+            # Audit integrity requires saving even before we have a public proof anchor.
                 
             res = db.client.table(settings.TABLE_SIGNALS).insert(signal_data).execute()
             if res.data:
@@ -211,11 +211,19 @@ class ContinuousAnalyzer:
                 "explainability": f"Structure {state.state.upper()} | Strength {int(state.strength*100)}% | Entry offset: {offset_pips:.1f} pips",
             }
             
+            # --- RELEASE CONFIDENCE REFINEMENT ---
+            release_score, refinement_reason = self.refiner.calculate_release_score(
+                raw_confidence=state.confidence,
+                df=df
+            )
+            signal_base["release_confidence"] = release_score
+            signal_base["refinement_reason"] = refinement_reason
+            
             # Log signal creation for verification
-            logger.success(
-                f"Signal created: {direction} @ {entry_price} "
-                f"(market: {price}, offset: +{offset_pips:.1f} pips) "
-                f"| State: WAITING_FOR_ENTRY | Expiry: {expiry_at.strftime('%H:%M:%S UTC')}"
+            logger.info(
+                f"Signal Evaluated: {direction} @ {entry_price} "
+                f"| Raw Conf: {state.confidence:.2f} | Release Score: {release_score:.2f} "
+                f"| {refinement_reason}"
             )
 
             # 4. Local Audit Log (JSONL) - Robust Absolute Path
@@ -226,6 +234,8 @@ class ContinuousAnalyzer:
                 "direction": direction,
                 "strength": state.strength,
                 "confidence": state.confidence,
+                "release_confidence": release_score,
+                "refinement": refinement_reason,
                 "status": "ANALYZED"
             }
             try:
@@ -264,8 +274,10 @@ class ContinuousAnalyzer:
                 "sl": sl,
                 "reward_risk_ratio": rrr,
                 "ai_confidence": state.confidence,
+                "release_confidence": release_score,
                 "generated_at": now.isoformat(),
-                "explainability": f"Structure {state.state.upper()} | Strength {int(state.strength*100)}% | Entry offset: {offset_pips:.1f} pips",
+                "explainability": f"Structure {state.state.upper()} | Strength {int(state.strength*100)}% | Entry offset: {offset_pips:.1f} pips | Refinement: {refinement_reason}",
+                "refinement_reason": refinement_reason
             }
 
             # 1. DATABASE FIRST: Persist the signal immediately
@@ -274,9 +286,9 @@ class ContinuousAnalyzer:
                  logger.error("❌ Critical: Failed to record signal in DB. Signal lost.")
                  return
 
-            # 2. TELEGRAM AS PUBLIC ANCHOR: Attempt push if confidence is high
-            if state.confidence >= 0.75:
-                logger.info(f"🎯 High Confidence ({state.confidence*100:.1f}%) -> Attempting Public Anchor")
+            # 2. TELEGRAM AS PUBLIC ANCHOR: Attempt push if Release Confidence is high
+            if release_score >= 0.75:
+                logger.info(f"🎯 Release Score High ({release_score*100:.1f}%) -> Attempting Public Anchor")
                 
                 # Signal for Telegram needs the DB ID for replies later
                 signal_for_tg = signal_base.copy()

@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     MODEL_VERSION: str = "quantix_fx_v1.0"
     DEBUG: bool = False
+    INSTANCE_NAME: str = "LOCAL-MACHINE"
     
     # API
     API_HOST: str = "0.0.0.0"
@@ -33,6 +34,7 @@ class Settings(BaseSettings):
     # Telegram [T1]
     TELEGRAM_BOT_TOKEN: Optional[str] = None
     TELEGRAM_CHAT_ID: Optional[str] = None
+    TELEGRAM_ADMIN_CHAT_ID: Optional[str] = None
     
     # Database Tables
     TABLE_SIGNALS: str = "fx_signals"
@@ -80,6 +82,7 @@ class Settings(BaseSettings):
     ENABLE_BACKTEST: bool = True
     ENABLE_LEARNING: bool = True
     ENABLE_LAB_SIGNALS: bool = True
+    WATCHER_OBSERVE_MODE: bool = True
     QUANTIX_PUBLIC_API_KEY: str = "quantix_dev_beta_2026"
     
     class Config:

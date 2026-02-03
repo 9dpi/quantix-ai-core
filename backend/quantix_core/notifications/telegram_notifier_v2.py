@@ -109,8 +109,10 @@ class TelegramNotifierV2:
         # Direction emoji
         dir_emoji = "🟢" if direction == "BUY" else "🔴"
         
+        test_tag = "[TEST] " if signal.get("is_test") else ""
+        
         message = (
-            f"🚨 *NEW SIGNAL*\n\n"
+            f"{test_tag}🚨 *NEW SIGNAL*\n\n"
             f"Asset: {asset}\n"
             f"Timeframe: {timeframe}\n"
             f"Direction: {dir_emoji} {direction}\n\n"
@@ -144,8 +146,10 @@ class TelegramNotifierV2:
         entry = signal.get("entry_price", 0)
         dir_emoji = "🟢" if direction == "BUY" else "🔴"
         
+        test_tag = "[TEST] " if signal.get("is_test") else ""
+        
         message = (
-            f"📍 *ENTRY PRICE HIT*\n\n"
+            f"{test_tag}📍 *ENTRY PRICE HIT*\n\n"
             f"{asset} | {timeframe}\n"
             f"{dir_emoji} {direction}\n\n"
             f"Entry: {entry}\n"
@@ -181,6 +185,8 @@ class TelegramNotifierV2:
         entry = signal.get("entry_price", 0)
         dir_emoji = "🟢" if direction == "BUY" else "🔴"
         
+        test_tag = "[TEST] " if signal.get("is_test") else ""
+        
         # Rule: BLOCK if ENTRY_HIT was not sent by this instance
         signal_id = signal.get("id")
         if signal_id not in self._notified_entries:
@@ -188,7 +194,7 @@ class TelegramNotifierV2:
             return None
         
         message = (
-            f"✅ *TAKE PROFIT HIT*\n\n"
+            f"{test_tag}✅ *TAKE PROFIT HIT*\n\n"
             f"{asset} | {timeframe}\n"
             f"{dir_emoji} {direction}\n\n"
             f"Entry: {entry}\n"
@@ -222,6 +228,8 @@ class TelegramNotifierV2:
         entry = signal.get("entry_price", 0)
         dir_emoji = "🟢" if direction == "BUY" else "🔴"
         
+        test_tag = "[TEST] " if signal.get("is_test") else ""
+        
         # Rule: BLOCK if ENTRY_HIT was not sent by this instance
         signal_id = signal.get("id")
         if signal_id not in self._notified_entries:
@@ -229,7 +237,7 @@ class TelegramNotifierV2:
             return None
         
         message = (
-            f"🛑 *STOP LOSS HIT*\n\n"
+            f"{test_tag}🛑 *STOP LOSS HIT*\n\n"
             f"{asset} | {timeframe}\n"
             f"{dir_emoji} {direction}\n\n"
             f"Entry: {entry}\n"
@@ -261,8 +269,10 @@ class TelegramNotifierV2:
         direction = signal.get("direction", "BUY")
         dir_emoji = "🟢" if direction == "BUY" else "🔴"
         
+        test_tag = "[TEST] " if signal.get("is_test") else ""
+        
         message = (
-            f"⚪ *SIGNAL EXPIRED*\n\n"
+            f"{test_tag}⚪ *SIGNAL EXPIRED*\n\n"
             f"{asset} | {timeframe}\n"
             f"{dir_emoji} {direction}\n\n"
             f"Status: NOT TRIGGERED\n"

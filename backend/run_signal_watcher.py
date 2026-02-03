@@ -18,10 +18,8 @@ from loguru import logger
 from supabase import create_client
 from twelvedata import TDClient
 
+from quantix_core.config.settings import settings
 from quantix_core.engine.signal_watcher import SignalWatcher
-
-# Load environment variables
-load_dotenv()
 
 def main():
     """Initialize and run signal watcher"""
@@ -35,13 +33,13 @@ def main():
     )
     
     logger.info("============================================================")
-    instance_name = os.getenv("INSTANCE_NAME", "LOCAL-MACHINE")
+    instance_name = settings.INSTANCE_NAME
     logger.info(f"SIGNAL WATCHER STARTING - INSTANCE: {instance_name}")
     logger.info("============================================================")
     
     # Initialize Supabase client
-    supabase_url = os.getenv("SUPABASE_URL")
-    supabase_key = os.getenv("SUPABASE_KEY")
+    supabase_url = settings.SUPABASE_URL
+    supabase_key = settings.SUPABASE_KEY
     
     if not supabase_url or not supabase_key:
         logger.error("Missing SUPABASE_URL or SUPABASE_KEY in environment")
@@ -51,7 +49,7 @@ def main():
     logger.success("✅ Supabase client initialized")
     
     # Initialize TwelveData client
-    td_api_key = os.getenv("TWELVE_DATA_API_KEY")
+    td_api_key = settings.TWELVE_DATA_API_KEY
     
     if not td_api_key:
         logger.error("Missing TWELVE_DATA_API_KEY in environment")
@@ -61,9 +59,9 @@ def main():
     logger.success("✅ TwelveData client initialized")
     
     # Initialize Telegram notifier
-    telegram_token = os.getenv("TELEGRAM_BOT_TOKEN")
-    telegram_chat_id = os.getenv("TELEGRAM_CHAT_ID")
-    admin_chat_id = os.getenv("TELEGRAM_ADMIN_CHAT_ID")
+    telegram_token = settings.TELEGRAM_BOT_TOKEN
+    telegram_chat_id = settings.TELEGRAM_CHAT_ID
+    admin_chat_id = settings.TELEGRAM_ADMIN_CHAT_ID
     
     telegram_notifier = None
     if telegram_token and telegram_chat_id:
@@ -74,8 +72,8 @@ def main():
         logger.warning("⚠️  Telegram credentials not found, notifications disabled")
     
     # Get configuration
-    check_interval = int(os.getenv("WATCHER_CHECK_INTERVAL", "60"))
-    observe_mode = os.getenv("WATCHER_OBSERVE_MODE", "true").lower() == "true"
+    check_interval = settings.WATCHER_CHECK_INTERVAL
+    observe_mode = settings.WATCHER_OBSERVE_MODE
     
     logger.info(f"Check interval: {check_interval} seconds")
     logger.info(f"Observe mode: {observe_mode}")

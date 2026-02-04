@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     
     # Trading Rules
     MIN_RR: float = 1.0  # Allow 1:1 RR
-    MIN_CONFIDENCE: float = 0.95
+    MIN_CONFIDENCE: float = 0.90
     MAX_SIGNALS_PER_ASSET: int = 3
     MAX_TRADE_DURATION_MINUTES: int = 30  # Auto-exit after 30 mins in trade
     

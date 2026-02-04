@@ -375,17 +375,18 @@ class ContinuousAnalyzer:
 
     def push_to_telegram(self, signal: dict) -> Optional[int]:
         """Proactive Broadcast for High Confidence Signals"""
-        # 🛡️ Cooldown Check (1 push per 60 minutes)
+        # 🛡️ Cooldown Check (Using dynamic setting)
         now = datetime.now(timezone.utc)
-        if self.last_pushed_at and (now - self.last_pushed_at) < pd.Timedelta(minutes=60):
-            logger.debug("Telegram push on cooldown")
+        cooldown_min = getattr(settings, 'MIN_RELEASE_INTERVAL_MINUTES', 30)
+        if self.last_pushed_at and (now - self.last_pushed_at) < pd.Timedelta(minutes=cooldown_min):
+            logger.debug(f"Telegram push on cooldown ({cooldown_min}m)")
             return None
 
-        # 🛡️ Signal Deduplication (Same asset/direction/entry)
+        # 🛡️ Signal Deduplication (Same asset/direction/tf/entry)
         if not hasattr(self, '_pushed_signals'):
             self._pushed_signals = set()
         
-        signal_key = f"{signal['asset']}_{signal['direction']}_{signal['entry_low']}"
+        signal_key = f"{signal['asset']}_{signal['direction']}_{signal['timeframe']}_{signal['entry_price']}"
         if signal_key in self._pushed_signals:
             logger.info(f"Signal {signal_key} already pushed to Telegram")
             return None

@@ -121,10 +121,8 @@ class SignalWatcher:
         if not MarketHours.is_market_open():
             if signals:
                 logger.warning(f"Market is CLOSED. Pausing watcher for {len(signals)} signals.")
-                # Optional: Auto-cancel WAITING signals on Friday close to avoid weekend gaps
-                now = datetime.now(timezone.utc)
-                if now.weekday() == 4: # Friday
-                     self._cleanup_pending_on_close(signals)
+                # Weekend cleanup REMOVED per user request - signals persist
+                pass
             return
         
         if not signals:

@@ -95,10 +95,8 @@ class ContinuousAnalyzer:
         """
         now = datetime.now(timezone.utc)
         
-        # 1. Daily Cap Check
-        count = self.get_published_count_today()
-        if count >= settings.MAX_SIGNALS_PER_DAY:
-             return False, "DAILY_CAP_REACHED"
+        # 1. Daily Cap Check (REMOVED - Unlimited flow)
+        pass
 
         # 2. Hard Active Lock (Compact Fix)
         try:

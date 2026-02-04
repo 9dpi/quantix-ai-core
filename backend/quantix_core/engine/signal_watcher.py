@@ -251,19 +251,19 @@ class SignalWatcher:
             self.transition_to_entry_hit(signal, candle)
             return
         
-        # Priority 2: Check expiry
-        current_time = datetime.now(timezone.utc)
-        expiry_str = signal.get("expiry_at")
-        
-        if expiry_str:
-            # Parse expiry time (handle both Z and +00:00 formats)
-            expiry_at = datetime.fromisoformat(
-                expiry_str.replace("Z", "+00:00")
-            )
-            
-            if current_time >= expiry_at:
-                logger.info(f"⚠️ Signal {signal_id} expired without entry")
-                self.transition_to_cancelled(signal)
+        # Priority 2: Check expiry (DISABLED per user request to 'run full')
+        # current_time = datetime.now(timezone.utc)
+        # expiry_str = signal.get("expiry_at")
+        # 
+        # if expiry_str:
+        #     # Parse expiry time (handle both Z and +00:00 formats)
+        #     expiry_at = datetime.fromisoformat(
+        #         expiry_str.replace("Z", "+00:00")
+        #     )
+        #     
+        #     if current_time >= expiry_at:
+        #         logger.info(f"⚠️ Signal {signal_id} expired without entry")
+        #         self.transition_to_cancelled(signal)
     
     def check_entry_hit_signal(self, signal: dict, candle: dict):
         """

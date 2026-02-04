@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     
     # Telegram [T1]
     TELEGRAM_BOT_TOKEN: Optional[str] = None
-    TELEGRAM_CHAT_ID: str = "7985984228"
+    TELEGRAM_CHAT_ID: str = "-1003211826302"
     TELEGRAM_ADMIN_CHAT_ID: str = "7985984228"
     
     # Database Tables

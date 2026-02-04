@@ -255,6 +255,53 @@ class TelegramNotifierV2:
             
         return self.send_message(message)
     
+    def send_time_exit(self, signal: dict, current_price: float) -> Optional[int]:
+        """
+        Send TIME_EXIT message (State 3c).
+        
+        Triggered when a trade is closed due to max duration limit.
+        """
+        asset = signal.get("asset", "EURUSD").replace("/", "")
+        timeframe = signal.get("timeframe", "M15")
+        direction = signal.get("direction", "BUY")
+        entry = signal.get("entry_price", 0)
+        dir_emoji = "🟢" if direction == "BUY" else "🔴"
+        
+        # Calculate result
+        diff = float(current_price) - float(entry)
+        if direction == "SELL":
+            diff = -diff
+        
+        result_icon = "🔵"
+        result_text = "BREAKEVEN / NEUTRAL"
+        if diff > 0.00001: # Small epsilon for pips
+            result_icon = "🟢"
+            result_text = "PROFIT (Time Exit)"
+        elif diff < -0.00001:
+            result_icon = "🔴"
+            result_text = "LOSS (Time Exit)"
+
+        test_tag = "[TEST] " if signal.get("is_test") else ""
+        
+        message = (
+            f"{test_tag}⏱️ *TIME-BASED EXIT*\n\n"
+            f"{asset} | {timeframe}\n"
+            f"{dir_emoji} {direction}\n\n"
+            f"Entry: {entry}\n"
+            f"Exit (Current): {current_price}\n\n"
+            f"Result: {result_icon} {result_text}\n"
+            f"Status: CLOSED (30m Limit reached)\n\n"
+            f"System released for new signals."
+        )
+        
+        logger.info(f"Sending TIME_EXIT message for {asset}")
+        
+        msg_id = signal.get("telegram_message_id")
+        if msg_id:
+            return self.reply_to_message(msg_id, message)
+            
+        return self.send_message(message)
+    
     def send_cancelled(self, signal: dict) -> Optional[int]:
         """
         Send CANCELLED message (State 4).

@@ -284,8 +284,19 @@ class SignalWatcher:
         if self.is_sl_touched(signal, candle):
             logger.info(f"🛑 SL hit for signal {signal_id}")
             self.transition_to_sl_hit(signal, candle)
-    
-    # ========================================
+            return
+
+        # Priority 3: Time-Based Exit (30m limit)
+        from quantix_core.config.settings import settings
+        entry_hit_str = signal.get("entry_hit_at")
+        if entry_hit_str:
+            entry_hit_at = datetime.fromisoformat(entry_hit_str.replace("Z", "+00:00"))
+            now = datetime.now(timezone.utc)
+            duration_mins = (now - entry_hit_at).total_seconds() / 60
+            
+            if duration_mins >= settings.MAX_TRADE_DURATION_MINUTES:
+                logger.info(f"⏱️ Signal {signal_id} reached max duration ({duration_mins:.1f}m)")
+                self.transition_to_time_exit(signal, candle)
     # TOUCH DETECTION METHODS
     # ========================================
     
@@ -473,3 +484,36 @@ class SignalWatcher:
         
         except Exception as e:
             logger.error(f"Failed to transition signal {signal_id} to CANCELLED: {e}")
+
+    def transition_to_time_exit(self, signal: dict, candle: dict):
+        """
+        Transition: ENTRY_HIT → TIME_EXIT (CLOSED)
+        
+        Updates:
+        - state = TIME_EXIT
+        - status = CLOSED
+        - closed_at = current time
+        """
+        signal_id = signal.get("id")
+        current_price = candle.get("close")
+        
+        try:
+            # 1. Send Telegram notification First
+            if self.telegram:
+                msg_id = self.telegram.send_time_exit(signal, current_price)
+                if not msg_id:
+                     logger.error(f"❌ Aborting TIME_EXIT for {signal_id}: Telegram notification failed")
+                     return
+
+            # 2. Update DB
+            self.db.table("fx_signals").update({
+                "state": "TIME_EXIT",
+                "status": "CLOSED",
+                "result": "TIME_EXIT",
+                "closed_at": datetime.now(timezone.utc).isoformat()
+            }).eq("id", signal_id).execute()
+            
+            logger.success(f"Signal {signal_id} → TIME_EXIT (Closed at {current_price})")
+        
+        except Exception as e:
+            logger.error(f"Failed to transition signal {signal_id} to TIME_EXIT: {e}")

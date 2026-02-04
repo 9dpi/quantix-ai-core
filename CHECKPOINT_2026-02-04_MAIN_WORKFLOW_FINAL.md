@@ -20,11 +20,16 @@ The system has been fully migrated from a Hybrid model to a **Full Cloud Archite
 *   **Cooldown:** 30-minute hard gap between signal releases.
 
 ### 3. HOW (Technical Logic & Integrity)
-*   **DB-First Atomic Updates:** Watcher updates the Database **BEFORE** notifying Telegram. 
-    *   *Mechanism:* `UPDATE ... WHERE state = 'WAITING'`. 
-    *   *Result:* Only one service can succeed. Zero spam.
-*   **Global Hard Lock:** Analyzer checks `fx_signals` for any `PUBLISHED` or `ENTRY_HIT` records before releasing new ones. 
-    *   *Result:* Ensures only one active trade/signal exists at a time across the entire system.
+*   **Two-Phase Signal Creation (v3.0):** 
+    *   **Phase 1 (PREPARE):** Signal record created in DB with state `PREPARED` (Invisible to Watcher/UI).
+    *   **Phase 2 (NOTIFY):** Signal pushed to Telegram. Success yields a `message_id`.
+    *   **Phase 3 (COMMIT):** Atomic promotion to `WAITING_FOR_ENTRY` ONLY if `message_id` is present.
+    *   *Result:* Guaranteed 1:1 mapping between Database and Telegram. Zero Zombies.
+*   **DB-First Atomic Status Updates:** Watcher updates the Database **BEFORE** notifying Telegram for TP/SL hits. 
+    *   *Mechanism:* `UPDATE ... WHERE state = 'WAITING_FOR_ENTRY'`. 
+    *   *Result:* Only one service can succeed. Zero duplicate notifications.
+*   **Global Hard Lock (User-Facing Only):** Analyzer checks `fx_signals` for any `WAITING_FOR_ENTRY` or `ENTRY_HIT` records. `PREPARED` signals are ignored by the lock.
+    *   *Result:* One active trade at a time, but Telegram failures don't block the next cycle.
 *   **Local Safeguard:** All code now contains a `LOCAL-MACHINE` detection. Local instances automatically disable Telegram outputs unless explicitly overridden.
 
 ---
@@ -32,7 +37,7 @@ The system has been fully migrated from a Hybrid model to a **Full Cloud Archite
 ## 📡 Channel Configuration
 *   **Community Group:** `-1003211826302` (Public Signals & Result Replies).
 *   **Admin Channel:** `7985984228` (System Health & Commands).
-*   **Confidence Threshold:** **95%** (Only high-probability "Ultra Signals" are published).
+*   **Confidence Threshold:** **90%** (Signals >= 0.90 are promoted to Public Release).
 
 ---
 

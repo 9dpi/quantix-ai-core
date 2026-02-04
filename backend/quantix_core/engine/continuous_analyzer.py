@@ -314,7 +314,7 @@ class ContinuousAnalyzer:
             # 2. RELEASE GATE: Anti-Burst Check (Hard Lock)
             is_allowed, gate_reason = self.check_release_gate(signal_base["asset"], signal_base["timeframe"])
             
-            if release_score >= 0.75:
+            if release_score >= settings.MIN_CONFIDENCE:
                 if is_allowed:
                     logger.info(f"🎯 Release Score High ({release_score*100:.1f}%) -> Attempting Public Release")
                     

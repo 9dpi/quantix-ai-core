@@ -30,8 +30,8 @@ class ConfidenceRefiner:
         if self.LONDON_OPEN <= hour < self.LONDON_NY_OVERLAP_START:
             return 1.0
             
-        # Outside London hours (Hold - no release)
-        return 0.0
+        # Outside London hours (Asia/NY) - allow with minor penalty
+        return 0.8
 
     def get_volatility_factor(self, df_last_rows) -> float:
         """

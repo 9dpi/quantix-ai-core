@@ -33,8 +33,8 @@ class Settings(BaseSettings):
     
     # Telegram [T1]
     TELEGRAM_BOT_TOKEN: Optional[str] = None
-    TELEGRAM_CHAT_ID: Optional[str] = None
-    TELEGRAM_ADMIN_CHAT_ID: Optional[str] = None
+    TELEGRAM_CHAT_ID: str = "7985984228"
+    TELEGRAM_ADMIN_CHAT_ID: str = "7985984228"
     
     # Database Tables
     TABLE_SIGNALS: str = "fx_signals"
@@ -44,13 +44,13 @@ class Settings(BaseSettings):
     TABLE_ANALYSIS_LOG: str = "fx_analysis_log"
     
     # Trading Rules
-    MIN_RISK_REWARD: float = 1.2
-    MIN_CONFIDENCE: float = 0.75
+    MIN_RR: float = 1.0  # Allow 1:1 RR
+    MIN_CONFIDENCE: float = 0.70
     MAX_SIGNALS_PER_ASSET: int = 3
     
     # 🔒 ANTI-BURST RULES
     MIN_RELEASE_INTERVAL_MINUTES: int = 30
-    MAX_SIGNALS_PER_DAY: int = 5
+    MAX_SIGNALS_PER_DAY: int = 9999  # Effectively disabled to allow natural flow
     
     # Session Times (UTC)
     TOKYO_OPEN: str = "00:00"

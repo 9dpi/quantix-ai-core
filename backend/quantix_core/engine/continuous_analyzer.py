@@ -99,10 +99,11 @@ class ContinuousAnalyzer:
         pass
 
         # 2. GLOBAL HARD LOCK (One Signal at a Time)
+        # Only count 'real' signals that are visible to users. 'PREPARED' signals are ignored.
         try:
             res = db.client.table(settings.TABLE_SIGNALS)\
                 .select("id")\
-                .in_("status", ["PUBLISHED", "ENTRY_HIT"])\
+                .in_("state", ["WAITING_FOR_ENTRY", "ENTRY_HIT"])\
                 .execute()
             
             if res.data:
@@ -228,8 +229,8 @@ class ContinuousAnalyzer:
                 "direction": direction,
                 "strength": state.strength,
                 "timeframe": "M15",
-                "status": "DETECTED",
-                "state": "WAITING_FOR_ENTRY",  # Initial state
+                "status": "PREPARED",
+                "state": "PREPARED",  # Phase 1: Invisible to Watcher/UI
                 "entry_price": entry_price,     # Future entry (NOT market)
                 "expiry_at": expiry_at.isoformat(),  # 15 min expiry
                 
@@ -298,77 +299,76 @@ class ContinuousAnalyzer:
                     logger.debug(f"DB telemetry write failed: {e}")
 
             # ============================================
-            # v2 STANDARD LOCK FLOW
+            # v3 TWO-PHASE SIGNAL CREATION
             # ============================================
 
-            # 1. SAVE DETECTED: Persist as internal audit record first
+            # 1. PHASE 1: PREPARE (Invisible Audit Record)
             signal_id = self.lock_signal(signal_base)
             if not signal_id:
-                 logger.error("❌ Critical: Failed to record signal in DB. Signal lost.")
+                 logger.error("❌ Phase 1 Failed: Could not PREPARE signal in DB.")
                  return
 
-            # 2. RELEASE GATE: Anti-Burst Check (Hard Lock)
+            # 2. RELEASE GATE: Anti-Burst Check
             is_allowed, gate_reason = self.check_release_gate(signal_base["asset"], signal_base["timeframe"])
             
-            if release_score >= settings.MIN_CONFIDENCE:
-                if is_allowed:
-                    logger.info(f"🎯 Release Score High ({release_score*100:.1f}%) -> Attempting Public Release")
-                    
-                    if not self.notifier:
-                        logger.warning(f"⚠️ Notifier NOT initialized. Signal {signal_id} stays DETECTED.")
-                        return
-
-                    # Signal for Telegram needs the DB ID for replies later
-                    signal_for_tg = signal_base.copy()
-                    signal_for_tg["id"] = signal_id
-                    
-                    msg_id = self.push_to_telegram(signal_for_tg)
-                    
-                    if msg_id:
-                        # 3. GET message_id & UPDATE PUBLISHED
-                        logger.success(f"⚓ [LOCK_SUCCESS] Public Anchor Established (TG ID: {msg_id})")
-                        try:
-                            # 🛡️ Cooldown set here
-                            self.last_pushed_at = datetime.now(timezone.utc)
-                            
-                            db.client.table(settings.TABLE_SIGNALS).update({
-                                "telegram_message_id": msg_id,
-                                "status": "PUBLISHED",
-                                "state": "WAITING_FOR_ENTRY"
-                            }).eq("id", signal_id).execute()
-                            logger.info(f"✅ Signal {signal_id} promoted to PUBLISHED")
-                        except Exception as e:
-                            logger.error(f"❌ Failed to promote signal {signal_id} to PUBLISHED: {e}")
-                    else:
-                        logger.warning(f"⚠️ Telegram Push failed for signal {signal_id}. Monitoring Internal only.")
-                else:
-                    logger.warning(f"🛡️ [ANTI-BURST] Signal {signal_id} rejected by Gate: {gate_reason}")
-            else:
-                logger.info(f"🔍 Signal {signal_id} stored as Internal DETECTED (Score: {release_score:.2f})")
-            
-            # 🧹 Cleanup OLD candidates (older than 1 hour)
-            # 🧹 AGGRESSIVE ZOMBIE CLEANUP (Keep Path Clear)
-            # Cancel any 'WAITING' signal that has NO Telegram ID and is older than 2 minutes
-            try:
-                zombie_limit = (datetime.now(timezone.utc) - pd.Timedelta(minutes=2)).isoformat()
+            if release_score >= settings.MIN_CONFIDENCE and is_allowed:
+                logger.info(f"🎯 Release Score High ({release_score*100:.1f}%) -> Phase 2: NOTIFY")
                 
-                # Step 1: Find Zombies
+                if not self.notifier:
+                    logger.warning(f"⚠️ Notifier NOT initialized. Signal {signal_id} stays PREPARED.")
+                    return
+
+                # Signal for Telegram needs the DB ID
+                signal_for_tg = signal_base.copy()
+                signal_for_tg["id"] = signal_id
+                
+                # EXECUTE TELEGRAM SEND
+                msg_id = self.push_to_telegram(signal_for_tg)
+                
+                if msg_id:
+                    # 3. PHASE 3: COMMIT (Promote to WAITING_FOR_ENTRY)
+                    try:
+                        self.last_pushed_at = datetime.now(timezone.utc)
+                        
+                        update_res = db.client.table(settings.TABLE_SIGNALS).update({
+                            "telegram_message_id": msg_id,
+                            "status": "PUBLISHED",
+                            "state": "WAITING_FOR_ENTRY"
+                        }).eq("id", signal_id).eq("state", "PREPARED").execute()
+                        
+                        if update_res.data:
+                            logger.success(f"⚓ [COMMIT_SUCCESS] Signal {signal_id} is now LIVE (TG: {msg_id})")
+                        else:
+                            logger.error(f"❌ Atomic Commit Failed for {signal_id} (State mismatch?)")
+                    except Exception as e:
+                        logger.error(f"❌ Phase 3 Failed: {e}")
+                else:
+                    logger.warning(f"⚠️ Phase 2 Failed: Telegram push failed for {signal_id}. Stays PREPARED.")
+            else:
+                if not is_allowed:
+                    logger.warning(f"🛡️ [ANTI-BURST] Signal {signal_id} rejected by Gate: {gate_reason}")
+                else:
+                    logger.info(f"🔍 Signal {signal_id} saved as Internal PREPARED (Score: {release_score:.2f})")
+            # 🧹 AGGRESSIVE ZOMBIE CLEANUP (Keep Path Clear)
+            try:
+                zombie_limit = (datetime.now(timezone.utc) - timedelta(minutes=15)).isoformat()
+                
+                # Step 1: Find Zombies (Invisible signals that never promoted)
                 zombies = db.client.table(settings.TABLE_SIGNALS)\
                     .select("id")\
-                    .eq("state", "WAITING_FOR_ENTRY")\
-                    .is_("telegram_message_id", "null")\
+                    .eq("state", "PREPARED")\
                     .lt("generated_at", zombie_limit)\
                     .execute()
                 
                 if zombies.data:
                     zombie_ids = [z['id'] for z in zombies.data]
-                    logger.warning(f"🧟 Found {len(zombie_ids)} ZOMBIE signals (No TG ID). Nuking them...")
+                    logger.warning(f"🧟 Found {len(zombie_ids)} STALE PREPARED signals. Cleaned up.")
                     
                     # Step 2: Nuke them
                     db.client.table(settings.TABLE_SIGNALS).update({
                         "state": "CANCELLED",
                         "status": "CLOSED",
-                        "result": "CANCELLED_ZOMBIE",
+                        "result": "CANCELLED_STALE",
                         "closed_at": datetime.now(timezone.utc).isoformat()
                     }).in_("id", zombie_ids).execute()
                     

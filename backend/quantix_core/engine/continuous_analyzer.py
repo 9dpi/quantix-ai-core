@@ -347,15 +347,34 @@ class ContinuousAnalyzer:
                 logger.info(f"🔍 Signal {signal_id} stored as Internal DETECTED (Score: {release_score:.2f})")
             
             # 🧹 Cleanup OLD candidates (older than 1 hour)
+            # 🧹 AGGRESSIVE ZOMBIE CLEANUP (Keep Path Clear)
+            # Cancel any 'WAITING' signal that has NO Telegram ID and is older than 2 minutes
             try:
-                expiry_limit = (datetime.now(timezone.utc) - pd.Timedelta(hours=1)).isoformat()
-                db.client.table(settings.TABLE_SIGNALS)\
-                    .delete()\
-                    .eq("status", "DETECTED")\
-                    .lt("generated_at", expiry_limit)\
+                zombie_limit = (datetime.now(timezone.utc) - pd.Timedelta(minutes=2)).isoformat()
+                
+                # Step 1: Find Zombies
+                zombies = db.client.table(settings.TABLE_SIGNALS)\
+                    .select("id")\
+                    .eq("state", "WAITING_FOR_ENTRY")\
+                    .is_("telegram_message_id", "null")\
+                    .lt("generated_at", zombie_limit)\
                     .execute()
+                
+                if zombies.data:
+                    zombie_ids = [z['id'] for z in zombies.data]
+                    logger.warning(f"🧟 Found {len(zombie_ids)} ZOMBIE signals (No TG ID). Nuking them...")
+                    
+                    # Step 2: Nuke them
+                    db.client.table(settings.TABLE_SIGNALS).update({
+                        "state": "CANCELLED",
+                        "status": "CLOSED",
+                        "result": "CANCELLED_ZOMBIE",
+                        "closed_at": datetime.now(timezone.utc).isoformat()
+                    }).in_("id", zombie_ids).execute()
+                    
+                    logger.success("🧹 Zombie Cleanup Complete. Path cleared.")
             except Exception as e:
-                logger.debug(f"Candidate cleanup failed: {e}")
+                logger.debug(f"Zombie cleanup failed: {e}")
 
             # 6. Dashboard Telemetry Update (Learning Lab Preview)
             try:

@@ -413,6 +413,11 @@ class SignalWatcher:
         """
         signal_id = signal.get("id")
         
+        # 🛡️ GUARD: Re-verify state in DB to prevent duplicate notifications
+        if self._is_already_closed(signal_id):
+            logger.warning(f"⚠️ Signal {signal_id} is already CLOSED. Skipping TP_HIT notification.")
+            return
+
         try:
             # 1. Send Telegram notification First
             if self.telegram:
@@ -445,6 +450,11 @@ class SignalWatcher:
         """
         signal_id = signal.get("id")
         
+        # 🛡️ GUARD: Re-verify state in DB to prevent duplicate notifications
+        if self._is_already_closed(signal_id):
+            logger.warning(f"⚠️ Signal {signal_id} is already CLOSED. Skipping SL_HIT notification.")
+            return
+
         try:
             # 1. Send Telegram notification First
             if self.telegram:
@@ -477,6 +487,11 @@ class SignalWatcher:
         """
         signal_id = signal.get("id")
         
+        # 🛡️ GUARD: Re-verify state in DB to prevent duplicate notifications
+        if self._is_already_closed(signal_id):
+            logger.warning(f"⚠️ Signal {signal_id} is already CLOSED/CANCELLED. Skipping CANCELLED notification.")
+            return
+
         try:
             # 1. Send Telegram notification First
             if self.telegram:
@@ -510,6 +525,11 @@ class SignalWatcher:
         signal_id = signal.get("id")
         current_price = candle.get("close")
         
+        # 🛡️ GUARD: Re-verify state in DB to prevent duplicate notifications
+        if self._is_already_closed(signal_id):
+            logger.warning(f"⚠️ Signal {signal_id} is already CLOSED. Skipping TIME_EXIT notification.")
+            return
+
         try:
             # 1. Send Telegram notification First
             if self.telegram:
@@ -530,3 +550,16 @@ class SignalWatcher:
         
         except Exception as e:
             logger.error(f"Failed to transition signal {signal_id} to TIME_EXIT: {e}")
+
+    def _is_already_closed(self, signal_id: str) -> bool:
+        """Helper to check if a signal is already in a terminal state."""
+        try:
+            from quantix_core.config.settings import settings
+            res = self.db.table(settings.TABLE_SIGNALS).select("status, state").eq("id", signal_id).execute()
+            if res.data:
+                sig = res.data[0]
+                # Terminal states where we shouldn't send more notifications
+                return sig.get("status") == "CLOSED" or sig.get("state") in ["TP_HIT", "SL_HIT", "CANCELLED", "TIME_EXIT"]
+        except Exception:
+            pass
+        return False

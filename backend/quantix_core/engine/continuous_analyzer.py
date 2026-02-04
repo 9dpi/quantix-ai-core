@@ -98,17 +98,15 @@ class ContinuousAnalyzer:
         # 1. Daily Cap Check (REMOVED - Unlimited flow)
         pass
 
-        # 2. Hard Active Lock (Compact Fix)
+        # 2. GLOBAL HARD LOCK (One Signal at a Time)
         try:
             res = db.client.table(settings.TABLE_SIGNALS)\
                 .select("id")\
-                .eq("asset", asset)\
-                .eq("timeframe", timeframe)\
                 .in_("status", ["PUBLISHED", "ENTRY_HIT"])\
                 .execute()
             
             if res.data:
-                return False, f"ACTIVE_SIGNAL_EXISTS ({asset} {timeframe})"
+                return False, "GLOBAL_ACTIVE_SIGNAL_EXISTS"
         except Exception as e:
             logger.error(f"Gate check error: {e}")
 

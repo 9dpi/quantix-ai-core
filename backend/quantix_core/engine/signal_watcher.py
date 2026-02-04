@@ -7,11 +7,13 @@ detects when price touches entry/TP/SL levels, and performs atomic state transit
 
 import time
 import requests
+import os
 from datetime import datetime, timezone
 from typing import List, Optional
 from loguru import logger
 from supabase import Client
 from quantix_core.utils.market_hours import MarketHours
+from quantix_core.config.settings import settings
 
 
 class SignalWatcher:
@@ -61,15 +63,11 @@ class SignalWatcher:
         self._running = True
         logger.info("🔍 SignalWatcher started")
         
-        # Start Telegram Command Listener Thread if notifier is available
-        if self.telegram and self.telegram.admin_chat_id:
-            import threading
-            self._cmd_thread = threading.Thread(target=self._listen_for_commands, daemon=True)
-            self._cmd_thread.start()
-            logger.info("🤖 Telegram Command Listener started")
-            
-            # self.telegram.send_admin_notification("🚀 *Hệ thống Quantix đã Online!*\nTôi đã sẵn sàng nhận lệnh từ bạn. Gõ `/help` để bắt đầu.")
-        
+        # 🛡️ Safeguard: Local environment should not send Telegram signals unless explicitly enabled
+        if settings.INSTANCE_NAME == "LOCAL-MACHINE" and os.getenv("ENABLE_LOCAL_TELEGRAM", "false").lower() != "true":
+            self.telegram = None
+            logger.warning("🚫 LOCAL ENVIRONMENT: Telegram notifications DISABLED to prevent duplicate signals.")
+
         while self._running:
             try:
                 self.check_cycle()
@@ -362,208 +360,151 @@ class SignalWatcher:
     def transition_to_entry_hit(self, signal: dict, candle: dict):
         """
         Transition: WAITING_FOR_ENTRY → ENTRY_HIT
-        
-        Updates:
-        - state = ENTRY_HIT
-        - entry_hit_at = candle timestamp
+        Atomic DB-First approach to prevent duplicate notifications.
         """
         signal_id = signal.get("id")
         
-        # 🛡️ GUARD: Re-verify state in DB to prevent duplicate notifications from multiple workers
         try:
-            from quantix_core.config.settings import settings
-            fresh_res = self.db.table(settings.TABLE_SIGNALS).select("state, entry_hit_at").eq("id", signal_id).execute()
-            if fresh_res.data:
-                fresh_sig = fresh_res.data[0]
-                if fresh_sig.get("state") == "ENTRY_HIT" or fresh_sig.get("entry_hit_at"):
-                    logger.warning(f"⚠️ Signal {signal_id} is already in ENTRY_HIT state. Skipping duplicate notification.")
-                    return
-        except Exception as db_err:
-            logger.error(f"Failed to verify current state for {signal_id}: {db_err}")
-        
-        try:
-            # 1. Send Telegram notification First (Single Source of Truth)
-            tg_id = signal.get("telegram_message_id")
-            if self.telegram and tg_id:
-                msg_id = self.telegram.send_entry_hit(signal)
-                if not msg_id:
-                     logger.error(f"❌ Aborting transition for signal {signal_id}: Telegram notification failed")
-                     return
-            elif self.telegram and not tg_id:
-                logger.info(f"ℹ️ Skipping Telegram notification for internal signal {signal_id} (No TG ID)")
-            
-            # 2. ONLY update DB if notification succeeded (or if telegram is disabled)
-            self.db.table("fx_signals").update({
+            # 1. ATOMIC DB UPDATE: Only proceed if state is still WAITING_FOR_ENTRY
+            res = self.db.table("fx_signals").update({
                 "state": "ENTRY_HIT",
                 "status": "ENTRY_HIT",
                 "entry_hit_at": candle["timestamp"]
-            }).eq("id", signal_id).execute()
+            }).eq("id", signal_id).eq("state", "WAITING_FOR_ENTRY").execute()
             
-            logger.success(f"Signal {signal_id} → ENTRY_HIT")
+            # If no rows were updated, it means another process already handled this
+            if not res.data:
+                logger.warning(f"⚠️ Signal {signal_id} transition skipped: Already processed or state mismatch.")
+                return
+
+            logger.success(f"✅ DB Update: Signal {signal_id} → ENTRY_HIT")
+
+            # 2. SEND NOTIFICATION: Only after DB success
+            tg_id = signal.get("telegram_message_id")
+            if self.telegram and tg_id:
+                self.telegram.send_entry_hit(signal)
+            elif self.telegram and not tg_id:
+                logger.info(f"ℹ️ Internal Signal {signal_id}: No Telegram ID, skipping notification.")
         
         except Exception as e:
-            logger.error(f"Failed to transition signal {signal_id} to ENTRY_HIT: {e}")
-    
+            logger.error(f"❌ Failed to transition signal {signal_id} to ENTRY_HIT: {e}")
+
     def transition_to_tp_hit(self, signal: dict, candle: dict):
         """
         Transition: ENTRY_HIT → TP_HIT
-        
-        Updates:
-        - state = TP_HIT
-        - result = PROFIT
-        - closed_at = candle timestamp
+        Atomic DB-First approach.
         """
         signal_id = signal.get("id")
         
-        # 🛡️ GUARD: Re-verify state in DB to prevent duplicate notifications
-        if self._is_already_closed(signal_id):
-            logger.warning(f"⚠️ Signal {signal_id} is already CLOSED. Skipping TP_HIT notification.")
-            return
-
         try:
-            # 1. Send Telegram notification First
-            tg_id = signal.get("telegram_message_id")
-            if self.telegram and tg_id:
-                msg_id = self.telegram.send_tp_hit(signal)
-                if not msg_id:
-                     logger.error(f"❌ Aborting TP_HIT for {signal_id}: Telegram notification failed")
-                     return
-            elif self.telegram and not tg_id:
-                logger.info(f"ℹ️ Skipping Telegram notification for internal signal {signal_id} (No TG ID)")
-
-            # 2. Update DB
-            self.db.table("fx_signals").update({
+            # 1. ATOMIC DB UPDATE
+            res = self.db.table("fx_signals").update({
                 "state": "TP_HIT",
                 "status": "CLOSED",
                 "result": "PROFIT",
                 "closed_at": candle["timestamp"]
-            }).eq("id", signal_id).execute()
+            }).eq("id", signal_id).eq("state", "ENTRY_HIT").execute()
             
-            logger.success(f"Signal {signal_id} → TP_HIT (PROFIT)")
+            if not res.data:
+                return
+
+            logger.success(f"🎯 DB Update: Signal {signal_id} → TP_HIT (PROFIT)")
+
+            # 2. NOTIFICATION
+            tg_id = signal.get("telegram_message_id")
+            if self.telegram and tg_id:
+                self.telegram.send_tp_hit(signal)
         
         except Exception as e:
-            logger.error(f"Failed to transition signal {signal_id} to TP_HIT: {e}")
-    
+            logger.error(f"❌ Failed to transition signal {signal_id} to TP_HIT: {e}")
+
     def transition_to_sl_hit(self, signal: dict, candle: dict):
         """
         Transition: ENTRY_HIT → SL_HIT
-        
-        Updates:
-        - state = SL_HIT
-        - result = LOSS
-        - closed_at = candle timestamp
+        Atomic DB-First approach.
         """
         signal_id = signal.get("id")
         
-        # 🛡️ GUARD: Re-verify state in DB to prevent duplicate notifications
-        if self._is_already_closed(signal_id):
-            logger.warning(f"⚠️ Signal {signal_id} is already CLOSED. Skipping SL_HIT notification.")
-            return
-
         try:
-            # 1. Send Telegram notification First
-            tg_id = signal.get("telegram_message_id")
-            if self.telegram and tg_id:
-                msg_id = self.telegram.send_sl_hit(signal)
-                if not msg_id:
-                     logger.error(f"❌ Aborting SL_HIT for {signal_id}: Telegram notification failed")
-                     return
-            elif self.telegram and not tg_id:
-                logger.info(f"ℹ️ Skipping Telegram notification for internal signal {signal_id} (No TG ID)")
-
-            # 2. Update DB
-            self.db.table("fx_signals").update({
+            # 1. ATOMIC DB UPDATE
+            res = self.db.table("fx_signals").update({
                 "state": "SL_HIT",
                 "status": "CLOSED",
                 "result": "LOSS",
                 "closed_at": candle["timestamp"]
-            }).eq("id", signal_id).execute()
+            }).eq("id", signal_id).eq("state", "ENTRY_HIT").execute()
             
-            logger.success(f"Signal {signal_id} → SL_HIT (LOSS)")
+            if not res.data:
+                return
+
+            logger.success(f"🛑 DB Update: Signal {signal_id} → SL_HIT (LOSS)")
+
+            # 2. NOTIFICATION
+            tg_id = signal.get("telegram_message_id")
+            if self.telegram and tg_id:
+                self.telegram.send_sl_hit(signal)
         
         except Exception as e:
-            logger.error(f"Failed to transition signal {signal_id} to SL_HIT: {e}")
-    
+            logger.error(f"❌ Failed to transition signal {signal_id} to SL_HIT: {e}")
+
     def transition_to_cancelled(self, signal: dict):
         """
         Transition: WAITING_FOR_ENTRY → CANCELLED
-        
-        Updates:
-        - state = CANCELLED
-        - result = CANCELLED
-        - closed_at = current time
+        Atomic DB-First approach.
         """
         signal_id = signal.get("id")
         
-        # 🛡️ GUARD: Re-verify state in DB to prevent duplicate notifications
-        if self._is_already_closed(signal_id):
-            logger.warning(f"⚠️ Signal {signal_id} is already CLOSED/CANCELLED. Skipping CANCELLED notification.")
-            return
-
         try:
-            # 1. Send Telegram notification First
-            tg_id = signal.get("telegram_message_id")
-            if self.telegram and tg_id:
-                msg_id = self.telegram.send_cancelled(signal)
-                if not msg_id:
-                     logger.error(f"❌ Aborting CANCELLED for {signal_id}: Telegram notification failed")
-                     return
-            elif self.telegram and not tg_id:
-                logger.info(f"ℹ️ Skipping Telegram notification for internal signal {signal_id} (No TG ID)")
-
-            # 2. Update DB
-            self.db.table("fx_signals").update({
+            # 1. ATOMIC DB UPDATE
+            res = self.db.table("fx_signals").update({
                 "state": "CANCELLED",
                 "status": "CLOSED",
                 "result": "CANCELLED",
                 "closed_at": datetime.now(timezone.utc).isoformat()
-            }).eq("id", signal_id).execute()
+            }).eq("id", signal_id).eq("state", "WAITING_FOR_ENTRY").execute()
             
-            logger.success(f"Signal {signal_id} → CANCELLED (expired)")
+            if not res.data:
+                return
+
+            logger.success(f"⚪ DB Update: Signal {signal_id} → CANCELLED")
+
+            # 2. NOTIFICATION
+            tg_id = signal.get("telegram_message_id")
+            if self.telegram and tg_id:
+                self.telegram.send_cancelled(signal)
         
         except Exception as e:
-            logger.error(f"Failed to transition signal {signal_id} to CANCELLED: {e}")
+            logger.error(f"❌ Failed to transition signal {signal_id} to CANCELLED: {e}")
 
     def transition_to_time_exit(self, signal: dict, candle: dict):
         """
         Transition: ENTRY_HIT → TIME_EXIT (CLOSED)
-        
-        Updates:
-        - state = TIME_EXIT
-        - status = CLOSED
-        - closed_at = current time
+        Atomic DB-First approach.
         """
         signal_id = signal.get("id")
         current_price = candle.get("close")
         
-        # 🛡️ GUARD: Re-verify state in DB to prevent duplicate notifications
-        if self._is_already_closed(signal_id):
-            logger.warning(f"⚠️ Signal {signal_id} is already CLOSED. Skipping TIME_EXIT notification.")
-            return
-
         try:
-            # 1. Send Telegram notification First
-            tg_id = signal.get("telegram_message_id")
-            if self.telegram and tg_id:
-                msg_id = self.telegram.send_time_exit(signal, current_price)
-                if not msg_id:
-                     logger.error(f"❌ Aborting TIME_EXIT for {signal_id}: Telegram notification failed")
-                     return
-            elif self.telegram and not tg_id:
-                logger.info(f"ℹ️ Skipping Telegram notification for internal signal {signal_id} (No TG ID)")
-
-            # 2. Update DB
-            self.db.table("fx_signals").update({
+            # 1. ATOMIC DB UPDATE
+            res = self.db.table("fx_signals").update({
                 "state": "TIME_EXIT",
                 "status": "CLOSED",
                 "result": "TIME_EXIT",
                 "closed_at": datetime.now(timezone.utc).isoformat()
-            }).eq("id", signal_id).execute()
+            }).eq("id", signal_id).eq("state", "ENTRY_HIT").execute()
             
-            logger.success(f"Signal {signal_id} → TIME_EXIT (Closed at {current_price})")
+            if not res.data:
+                return
+
+            logger.success(f"⏱️ DB Update: Signal {signal_id} → TIME_EXIT")
+
+            # 2. NOTIFICATION
+            tg_id = signal.get("telegram_message_id")
+            if self.telegram and tg_id:
+                self.telegram.send_time_exit(signal, current_price)
         
         except Exception as e:
-            logger.error(f"Failed to transition signal {signal_id} to TIME_EXIT: {e}")
+            logger.error(f"❌ Failed to transition signal {signal_id} to TIME_EXIT: {e}")
 
     def _is_already_closed(self, signal_id: str) -> bool:
         """Helper to check if a signal is already in a terminal state."""

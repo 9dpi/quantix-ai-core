@@ -6,6 +6,7 @@ detects when price touches entry/TP/SL levels, and performs atomic state transit
 """
 
 import time
+import requests
 from datetime import datetime, timezone
 from typing import List, Optional
 from loguru import logger

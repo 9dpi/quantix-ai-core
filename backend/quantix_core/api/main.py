@@ -120,4 +120,6 @@ async def root():
     }
 
 if __name__ == "__main__":
-    uvicorn.run("quantix_core.api.main:app", host=settings.API_HOST, port=settings.API_PORT, reload=settings.DEBUG)
+    import os
+    port = int(os.getenv("PORT", settings.API_PORT))
+    uvicorn.run("quantix_core.api.main:app", host=settings.API_HOST, port=port, reload=settings.DEBUG)

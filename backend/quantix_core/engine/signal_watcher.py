@@ -369,6 +369,18 @@ class SignalWatcher:
         """
         signal_id = signal.get("id")
         
+        # 🛡️ GUARD: Re-verify state in DB to prevent duplicate notifications from multiple workers
+        try:
+            from quantix_core.config.settings import settings
+            fresh_res = self.db.table(settings.TABLE_SIGNALS).select("state, entry_hit_at").eq("id", signal_id).execute()
+            if fresh_res.data:
+                fresh_sig = fresh_res.data[0]
+                if fresh_sig.get("state") == "ENTRY_HIT" or fresh_sig.get("entry_hit_at"):
+                    logger.warning(f"⚠️ Signal {signal_id} is already in ENTRY_HIT state. Skipping duplicate notification.")
+                    return
+        except Exception as db_err:
+            logger.error(f"Failed to verify current state for {signal_id}: {db_err}")
+        
         try:
             # 1. Send Telegram notification First (Single Source of Truth)
             msg_id = None

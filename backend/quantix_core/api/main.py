@@ -70,41 +70,8 @@ async def background_startup_tasks():
             
         # 🛡️ ARCHITECTURE ENFORCEMENT
         logger.info("🛡️ DATA LAYER: READ ONLY MODE ACTIVE")
-        logger.info("🚫 INGESTION BLOCKED in API Layer - Workers Only")
-
-        # 💓 START HEARTBEAT [T0 + Δ]
-        if settings.ENABLE_LIVE_SIGNAL:
-            logger.info("💓 Starting Continuous Market Heartbeat...")
-            analyzer = ContinuousAnalyzer()
-            asyncio.create_task(asyncio.to_thread(analyzer.start))
-            
-            logger.info("🔍 Starting Signal Watcher...")
-            # Initialize Watcher dependencies
-            td_client = TDClient(apikey=settings.TWELVE_DATA_API_KEY)
-            
-            # Optional Telegram Notifier for Watcher state transitions
-            watcher_notifier = None
-            if settings.TELEGRAM_BOT_TOKEN and settings.TELEGRAM_CHAT_ID:
-                try:
-                    from quantix_core.notifications.telegram_notifier_v2 import create_notifier
-                    watcher_notifier = create_notifier(
-                        settings.TELEGRAM_BOT_TOKEN, 
-                        settings.TELEGRAM_CHAT_ID,
-                        getattr(settings, 'TELEGRAM_ADMIN_CHAT_ID', None)
-                    )
-                    logger.info("✅ Watcher Notifier initialized")
-                except Exception as te:
-                    logger.warning(f"Watcher Notifier failed to init: {te}")
-
-            # Initialize Watcher
-            watcher = SignalWatcher(
-                supabase_client=db.client,
-                td_client=td_client,
-                check_interval=settings.WATCHER_CHECK_INTERVAL,
-                telegram_notifier=watcher_notifier
-            )
-            asyncio.create_task(asyncio.to_thread(watcher.run))
-            
+        logger.info("🚫 WORKER TASKS DECOUPLED: Please run analyzer and watcher as separate services.")
+        
     except Exception as e:
         logger.error(f"⚠️ Background task failed (non-critical): {e}")
         # App continues running even if background tasks fail

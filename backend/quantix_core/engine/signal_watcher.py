@@ -223,79 +223,42 @@ class SignalWatcher:
     def check_signal(self, signal: dict, candle: dict):
         """
         Check single signal for state transitions.
-        
-        Routes to appropriate checker based on current state.
+        Priority 1: 30m Absolute Life Timeout
+        Priority 2: State-specific checks (Entry/TP/SL Touches)
         """
         signal_id = signal.get("id")
         current_state = signal.get("state")
         
-        logger.debug(f"Checking signal {signal_id} (state={current_state})")
-        
+        # 1. SIMPLE LIVE WORKFLOW - 30m Absolute Timeout
+        # If signal is > 30 minutes old from birth, it MUST close.
+        generated_at_str = signal.get("generated_at")
+        if generated_at_str:
+            generated_at = datetime.fromisoformat(generated_at_str.replace("Z", "+00:00"))
+            now = datetime.now(timezone.utc)
+            life_duration_mins = (now - generated_at).total_seconds() / 60
+            
+            if life_duration_mins >= 30: # 30 Minute HARD LIMIT
+                logger.info(f"⏱️ Signal {signal_id} reached Life Timeout ({life_duration_mins:.1f}m)")
+                self.transition_to_time_exit(signal, candle)
+                return
+
+        # 2. State-specific checks
         if current_state == "WAITING_FOR_ENTRY":
             self.check_waiting_signal(signal, candle)
-        
         elif current_state == "ENTRY_HIT":
             self.check_entry_hit_signal(signal, candle)
-    
-    def check_waiting_signal(self, signal: dict, candle: dict):
-        """
-        Check WAITING_FOR_ENTRY signal for:
-        1. Entry touch (priority)
-        2. Expiry
-        """
-        signal_id = signal.get("id")
-        
-        # Priority 1: Check entry touch
-        if self.is_entry_touched(signal, candle):
-            logger.info(f"✅ Entry touched for signal {signal_id}")
-            self.transition_to_entry_hit(signal, candle)
-            return
-        
-        # Priority 2: Check expiry (DISABLED per user request to 'run full')
-        # current_time = datetime.now(timezone.utc)
-        # expiry_str = signal.get("expiry_at")
-        # 
-        # if expiry_str:
-        #     # Parse expiry time (handle both Z and +00:00 formats)
-        #     expiry_at = datetime.fromisoformat(
-        #         expiry_str.replace("Z", "+00:00")
-        #     )
-        #     
-        #     if current_time >= expiry_at:
-        #         logger.info(f"⚠️ Signal {signal_id} expired without entry")
-        #         self.transition_to_cancelled(signal)
-    
-    def check_entry_hit_signal(self, signal: dict, candle: dict):
-        """
-        Check ENTRY_HIT signal for:
-        1. TP touch (priority)
-        2. SL touch
-        """
-        signal_id = signal.get("id")
-        
-        # Priority 1: Check TP
-        if self.is_tp_touched(signal, candle):
-            logger.info(f"🎯 TP hit for signal {signal_id}")
-            self.transition_to_tp_hit(signal, candle)
-            return
-        
-        # Priority 2: Check SL
-        if self.is_sl_touched(signal, candle):
-            logger.info(f"🛑 SL hit for signal {signal_id}")
-            self.transition_to_sl_hit(signal, candle)
-            return
 
-        # Priority 3: Time-Based Exit (30m limit)
-        from quantix_core.config.settings import settings
-        entry_hit_str = signal.get("entry_hit_at")
-        if entry_hit_str:
-            entry_hit_at = datetime.fromisoformat(entry_hit_str.replace("Z", "+00:00"))
-            now = datetime.now(timezone.utc)
-            duration_mins = (now - entry_hit_at).total_seconds() / 60
-            
-            if duration_mins >= settings.MAX_TRADE_DURATION_MINUTES:
-                logger.info(f"⏱️ Signal {signal_id} reached max duration ({duration_mins:.1f}m)")
-                self.transition_to_time_exit(signal, candle)
+    def check_waiting_signal(self, signal: dict, candle: dict):
+        """Check if price touched entry level."""
+        if self.is_entry_touched(signal, candle):
+            self.transition_to_entry_hit(signal, candle)
+
+    def check_entry_hit_signal(self, signal: dict, candle: dict):
+        """Check if price touched TP or SL."""
+        if self.is_tp_touched(signal, candle):
+            self.transition_to_tp_hit(signal, candle)
+        elif self.is_sl_touched(signal, candle):
+            self.transition_to_sl_hit(signal, candle)
     # TOUCH DETECTION METHODS
     # ========================================
     

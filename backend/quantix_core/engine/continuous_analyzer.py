@@ -299,82 +299,51 @@ class ContinuousAnalyzer:
                     logger.debug(f"DB telemetry write failed: {e}")
 
             # ============================================
-            # v3 TWO-PHASE SIGNAL CREATION
+            # 🔁 QUANTIX LIVE WORKFLOW (ACTIVE MODE)
             # ============================================
 
-            # 1. PHASE 1: PREPARE (Invisible Audit Record)
-            signal_id = self.lock_signal(signal_base)
-            if not signal_id:
-                 logger.error("❌ Phase 1 Failed: Could not PREPARE signal in DB.")
-                 return
-
-            # 2. RELEASE GATE: Anti-Burst Check
-            is_allowed, gate_reason = self.check_release_gate(signal_base["asset"], signal_base["timeframe"])
-            
-            if release_score >= settings.MIN_CONFIDENCE and is_allowed:
-                logger.info(f"🎯 Release Score High ({release_score*100:.1f}%) -> Phase 2: NOTIFY")
+            # 1. Check Confidence Gate
+            if release_score >= settings.MIN_CONFIDENCE:
+                # 2. Check Anti-Burst Rule
+                is_allowed, gate_reason = self.check_release_gate(signal_base["asset"], signal_base["timeframe"])
                 
-                if not self.notifier:
-                    logger.warning(f"⚠️ Notifier NOT initialized. Signal {signal_id} stays PREPARED.")
-                    return
-
-                # Signal for Telegram needs the DB ID
-                signal_for_tg = signal_base.copy()
-                signal_for_tg["id"] = signal_id
-                
-                # EXECUTE TELEGRAM SEND
-                msg_id = self.push_to_telegram(signal_for_tg)
-                
-                if msg_id:
-                    # 3. PHASE 3: COMMIT (Promote to WAITING_FOR_ENTRY)
-                    try:
-                        self.last_pushed_at = datetime.now(timezone.utc)
-                        
-                        update_res = db.client.table(settings.TABLE_SIGNALS).update({
-                            "telegram_message_id": msg_id,
-                            "status": "PUBLISHED",
-                            "state": "WAITING_FOR_ENTRY"
-                        }).eq("id", signal_id).eq("state", "PREPARED").execute()
-                        
-                        if update_res.data:
-                            logger.success(f"⚓ [COMMIT_SUCCESS] Signal {signal_id} is now LIVE (TG: {msg_id})")
+                if is_allowed:
+                    logger.success(f"🎯 Threshold Passive ({release_score*100:.1f}%) -> BIRTH SIGNAL")
+                    
+                    # Update to LIVE status immediately
+                    signal_base["status"] = "PUBLISHED"
+                    signal_base["state"] = "WAITING_FOR_ENTRY"
+                    
+                    # 3. DB COMMIT (Single Phase)
+                    signal_id = self.lock_signal(signal_base)
+                    
+                    if signal_id:
+                        # 4. BROADCAST (Telegram)
+                        if self.notifier:
+                            signal_for_tg = signal_base.copy()
+                            signal_for_tg["id"] = signal_id
+                            
+                            msg_id = self.push_to_telegram(signal_for_tg)
+                            if msg_id:
+                                # Update signal with Telegram ID
+                                try:
+                                    db.client.table(settings.TABLE_SIGNALS).update({
+                                        "telegram_message_id": msg_id
+                                    }).eq("id", signal_id).execute()
+                                    self.last_pushed_at = datetime.now(timezone.utc)
+                                    logger.success(f"🚀 [LIVE] Signal {signal_id} is active (TG: {msg_id})")
+                                except Exception as e:
+                                    logger.error(f"Failed to link TG ID to signal {signal_id}: {e}")
+                            else:
+                                logger.warning(f"⚠️ Telegram broadcast failed for {signal_id}")
                         else:
-                            logger.error(f"❌ Atomic Commit Failed for {signal_id} (State mismatch?)")
-                    except Exception as e:
-                        logger.error(f"❌ Phase 3 Failed: {e}")
+                            logger.warning(f"⚠️ Notifier not initialized. Signal {signal_id} is LIVE in DB only.")
+                    else:
+                        logger.error("❌ Failed to create LIVE signal in DB.")
                 else:
-                    logger.warning(f"⚠️ Phase 2 Failed: Telegram push failed for {signal_id}. Stays PREPARED.")
+                    logger.warning(f"🛡️ [ANTI-BURST] Signal rejected by Gate: {gate_reason}")
             else:
-                if not is_allowed:
-                    logger.warning(f"🛡️ [ANTI-BURST] Signal {signal_id} rejected by Gate: {gate_reason}")
-                else:
-                    logger.info(f"🔍 Signal {signal_id} saved as Internal PREPARED (Score: {release_score:.2f})")
-            # 🧹 AGGRESSIVE ZOMBIE CLEANUP (Keep Path Clear)
-            try:
-                zombie_limit = (datetime.now(timezone.utc) - timedelta(minutes=15)).isoformat()
-                
-                # Step 1: Find Zombies (Invisible signals that never promoted)
-                zombies = db.client.table(settings.TABLE_SIGNALS)\
-                    .select("id")\
-                    .eq("state", "PREPARED")\
-                    .lt("generated_at", zombie_limit)\
-                    .execute()
-                
-                if zombies.data:
-                    zombie_ids = [z['id'] for z in zombies.data]
-                    logger.warning(f"🧟 Found {len(zombie_ids)} STALE PREPARED signals. Cleaned up.")
-                    
-                    # Step 2: Nuke them
-                    db.client.table(settings.TABLE_SIGNALS).update({
-                        "state": "CANCELLED",
-                        "status": "CLOSED",
-                        "result": "CANCELLED_STALE",
-                        "closed_at": datetime.now(timezone.utc).isoformat()
-                    }).in_("id", zombie_ids).execute()
-                    
-                    logger.success("🧹 Zombie Cleanup Complete. Path cleared.")
-            except Exception as e:
-                logger.debug(f"Zombie cleanup failed: {e}")
+                logger.info(f"🔍 Score below threshold ({release_score:.2f} < {settings.MIN_CONFIDENCE}) - No action.")
 
             # 6. Dashboard Telemetry Update (Learning Lab Preview)
             try:

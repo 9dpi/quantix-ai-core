@@ -383,12 +383,14 @@ class SignalWatcher:
         
         try:
             # 1. Send Telegram notification First (Single Source of Truth)
-            msg_id = None
-            if self.telegram:
+            tg_id = signal.get("telegram_message_id")
+            if self.telegram and tg_id:
                 msg_id = self.telegram.send_entry_hit(signal)
                 if not msg_id:
                      logger.error(f"❌ Aborting transition for signal {signal_id}: Telegram notification failed")
                      return
+            elif self.telegram and not tg_id:
+                logger.info(f"ℹ️ Skipping Telegram notification for internal signal {signal_id} (No TG ID)")
             
             # 2. ONLY update DB if notification succeeded (or if telegram is disabled)
             self.db.table("fx_signals").update({
@@ -420,11 +422,14 @@ class SignalWatcher:
 
         try:
             # 1. Send Telegram notification First
-            if self.telegram:
+            tg_id = signal.get("telegram_message_id")
+            if self.telegram and tg_id:
                 msg_id = self.telegram.send_tp_hit(signal)
                 if not msg_id:
                      logger.error(f"❌ Aborting TP_HIT for {signal_id}: Telegram notification failed")
                      return
+            elif self.telegram and not tg_id:
+                logger.info(f"ℹ️ Skipping Telegram notification for internal signal {signal_id} (No TG ID)")
 
             # 2. Update DB
             self.db.table("fx_signals").update({
@@ -457,11 +462,14 @@ class SignalWatcher:
 
         try:
             # 1. Send Telegram notification First
-            if self.telegram:
+            tg_id = signal.get("telegram_message_id")
+            if self.telegram and tg_id:
                 msg_id = self.telegram.send_sl_hit(signal)
                 if not msg_id:
                      logger.error(f"❌ Aborting SL_HIT for {signal_id}: Telegram notification failed")
                      return
+            elif self.telegram and not tg_id:
+                logger.info(f"ℹ️ Skipping Telegram notification for internal signal {signal_id} (No TG ID)")
 
             # 2. Update DB
             self.db.table("fx_signals").update({
@@ -494,11 +502,14 @@ class SignalWatcher:
 
         try:
             # 1. Send Telegram notification First
-            if self.telegram:
+            tg_id = signal.get("telegram_message_id")
+            if self.telegram and tg_id:
                 msg_id = self.telegram.send_cancelled(signal)
                 if not msg_id:
                      logger.error(f"❌ Aborting CANCELLED for {signal_id}: Telegram notification failed")
                      return
+            elif self.telegram and not tg_id:
+                logger.info(f"ℹ️ Skipping Telegram notification for internal signal {signal_id} (No TG ID)")
 
             # 2. Update DB
             self.db.table("fx_signals").update({
@@ -532,11 +543,14 @@ class SignalWatcher:
 
         try:
             # 1. Send Telegram notification First
-            if self.telegram:
+            tg_id = signal.get("telegram_message_id")
+            if self.telegram and tg_id:
                 msg_id = self.telegram.send_time_exit(signal, current_price)
                 if not msg_id:
                      logger.error(f"❌ Aborting TIME_EXIT for {signal_id}: Telegram notification failed")
                      return
+            elif self.telegram and not tg_id:
+                logger.info(f"ℹ️ Skipping Telegram notification for internal signal {signal_id} (No TG ID)")
 
             # 2. Update DB
             self.db.table("fx_signals").update({

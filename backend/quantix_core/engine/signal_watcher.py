@@ -8,6 +8,7 @@ detects when price touches entry/TP/SL levels, and performs atomic state transit
 import time
 import requests
 import os
+import threading
 from datetime import datetime, timezone
 from typing import List, Optional
 from loguru import logger
@@ -64,11 +65,16 @@ class SignalWatcher:
         logger.info("🔍 SignalWatcher started")
         
         # 🛡️ Safeguard: Local environment should not send Telegram signals unless explicitly enabled
-        # This prevents duplicate signals if the user also has a local instance running.
         is_local = settings.INSTANCE_NAME in ["LOCAL-MACHINE", "local", "dev"]
         if is_local and os.getenv("ENABLE_LOCAL_TELEGRAM", "false").lower() != "true":
             self.telegram = None
             logger.warning(f"🚫 {settings.INSTANCE_NAME} ENVIRONMENT: Telegram notifications DISABLED to prevent duplicates.")
+
+        # 🤖 Start Telegram Command Listener in background thread (Only if telegram is enabled)
+        if self.telegram:
+            cmd_thread = threading.Thread(target=self._listen_for_commands, daemon=True)
+            cmd_thread.start()
+            logger.info("🤖 Telegram command listener started in background")
 
         while self._running:
             try:

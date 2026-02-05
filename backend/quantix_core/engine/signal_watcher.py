@@ -64,9 +64,11 @@ class SignalWatcher:
         logger.info("🔍 SignalWatcher started")
         
         # 🛡️ Safeguard: Local environment should not send Telegram signals unless explicitly enabled
-        if settings.INSTANCE_NAME == "LOCAL-MACHINE" and os.getenv("ENABLE_LOCAL_TELEGRAM", "false").lower() != "true":
+        # This prevents duplicate signals if the user also has a local instance running.
+        is_local = settings.INSTANCE_NAME in ["LOCAL-MACHINE", "local", "dev"]
+        if is_local and os.getenv("ENABLE_LOCAL_TELEGRAM", "false").lower() != "true":
             self.telegram = None
-            logger.warning("🚫 LOCAL ENVIRONMENT: Telegram notifications DISABLED to prevent duplicate signals.")
+            logger.warning(f"🚫 {settings.INSTANCE_NAME} ENVIRONMENT: Telegram notifications DISABLED to prevent duplicates.")
 
         while self._running:
             try:
@@ -229,18 +231,30 @@ class SignalWatcher:
         signal_id = signal.get("id")
         current_state = signal.get("state")
         
-        # 1. SIMPLE LIVE WORKFLOW - 30m Absolute Timeout
-        # If signal is > 30 minutes old from birth, it MUST close.
-        generated_at_str = signal.get("generated_at")
-        if generated_at_str:
-            generated_at = datetime.fromisoformat(generated_at_str.replace("Z", "+00:00"))
-            now = datetime.now(timezone.utc)
-            life_duration_mins = (now - generated_at).total_seconds() / 60
-            
-            if life_duration_mins >= 30: # 30 Minute HARD LIMIT
-                logger.info(f"⏱️ Signal {signal_id} reached Life Timeout ({life_duration_mins:.1f}m)")
-                self.transition_to_time_exit(signal, candle)
-                return
+        # 1. TIMEOUT FAIL-SAFE (STRICT)
+        now = datetime.now(timezone.utc)
+        
+        if current_state == "WAITING_FOR_ENTRY":
+            # Pending Timeout: 30m from birth
+            generated_at_str = signal.get("generated_at")
+            if generated_at_str:
+                generated_at = datetime.fromisoformat(generated_at_str.replace("Z", "+00:00"))
+                pending_mins = (now - generated_at).total_seconds() / 60
+                if pending_mins >= settings.MAX_PENDING_DURATION_MINUTES:
+                    logger.info(f"⏱️ Signal {signal_id} EXPIRED (Pending > {settings.MAX_PENDING_DURATION_MINUTES}m)")
+                    self.transition_to_cancelled(signal)
+                    return
+
+        elif current_state == "ENTRY_HIT":
+            # Active Timeout: 90m from activation (or birth if activation time missing)
+            start_time_str = signal.get("entry_hit_at") or signal.get("generated_at")
+            if start_time_str:
+                start_time = datetime.fromisoformat(start_time_str.replace("Z", "+00:00"))
+                active_mins = (now - start_time).total_seconds() / 60
+                if active_mins >= settings.MAX_TRADE_DURATION_MINUTES:
+                    logger.info(f"⏱️ Signal {signal_id} CLOSED_TIMEOUT (Active > {settings.MAX_TRADE_DURATION_MINUTES}m)")
+                    self.transition_to_time_exit(signal, candle)
+                    return
 
         # 2. State-specific checks
         if current_state == "WAITING_FOR_ENTRY":
@@ -363,7 +377,7 @@ class SignalWatcher:
             # 1. ATOMIC DB UPDATE
             res = self.db.table("fx_signals").update({
                 "state": "TP_HIT",
-                "status": "CLOSED",
+                "status": "CLOSED_TP",
                 "result": "PROFIT",
                 "closed_at": candle["timestamp"]
             }).eq("id", signal_id).eq("state", "ENTRY_HIT").execute()
@@ -392,7 +406,7 @@ class SignalWatcher:
             # 1. ATOMIC DB UPDATE
             res = self.db.table("fx_signals").update({
                 "state": "SL_HIT",
-                "status": "CLOSED",
+                "status": "CLOSED_SL",
                 "result": "LOSS",
                 "closed_at": candle["timestamp"]
             }).eq("id", signal_id).eq("state", "ENTRY_HIT").execute()
@@ -421,8 +435,8 @@ class SignalWatcher:
             # 1. ATOMIC DB UPDATE
             res = self.db.table("fx_signals").update({
                 "state": "CANCELLED",
-                "status": "CLOSED",
-                "result": "CANCELLED",
+                "status": "EXPIRED",
+                "result": "NOT_TRIGGERED",
                 "closed_at": datetime.now(timezone.utc).isoformat()
             }).eq("id", signal_id).eq("state", "WAITING_FOR_ENTRY").execute()
             
@@ -451,7 +465,7 @@ class SignalWatcher:
             # 1. ATOMIC DB UPDATE
             res = self.db.table("fx_signals").update({
                 "state": "TIME_EXIT",
-                "status": "CLOSED",
+                "status": "CLOSED_TIMEOUT",
                 "result": "TIME_EXIT",
                 "closed_at": datetime.now(timezone.utc).isoformat()
             }).eq("id", signal_id).eq("state", "ENTRY_HIT").execute()

@@ -214,9 +214,9 @@ class ContinuousAnalyzer:
             
             rrr = 1.0  # Fixed 1:1 Risk/Reward Ratio
             
-            # Calculate expiry time (Extended to 4 hours per user request)
+            # Calculate expiry time (Entry timeout: 30 minutes)
             now = datetime.now(timezone.utc)
-            expiry_at = now + timedelta(minutes=240)
+            expiry_at = now + timedelta(minutes=settings.MAX_PENDING_DURATION_MINUTES)
 
             # Determine strength label for internal logic/filtering
             strength_label = "ULTRA" if state.confidence >= 0.95 else "HIGH" if state.confidence >= 0.85 else "NORMAL"

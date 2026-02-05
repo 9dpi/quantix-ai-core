@@ -58,6 +58,18 @@ async def run_diagnostics():
     except:
         results['pipe_cleanliness'] = False
 
+    # 4.1 Stuck Pending Signals (WAITING_FOR_ENTRY > 30 mins)
+    try:
+        stuck_pending_limit = (datetime.now(timezone.utc) - timedelta(minutes=30)).isoformat()
+        stuck_pending = db.client.table(settings.TABLE_SIGNALS)\
+            .select("id")\
+            .eq("state", "WAITING_FOR_ENTRY")\
+            .lt("generated_at", stuck_pending_limit)\
+            .execute()
+        results['stuck_pending'] = (len(stuck_pending.data) == 0)
+    except:
+        results['stuck_pending'] = False
+
     # 5. Fail-Closed Safety (Check if Heartbeat is recently active)
     try:
         # Check audit log timestamp (last 5 mins)
@@ -77,9 +89,9 @@ async def run_diagnostics():
     except:
         results['fail_closed'] = False
 
-    # 6. Trade Flow Integrity (Check for stuck active trades > 4 hours)
+    # 6. Trade Flow Integrity (Check for stuck active trades > 90 mins)
     try:
-        stuck_trade_limit = (datetime.now(timezone.utc) - timedelta(hours=4)).isoformat()
+        stuck_trade_limit = (datetime.now(timezone.utc) - timedelta(minutes=90)).isoformat()
         stuck_trades = db.client.table(settings.TABLE_SIGNALS)\
             .select("id")\
             .eq("state", "ENTRY_HIT")\
@@ -135,6 +147,7 @@ async def run_diagnostics():
     print(f"[{get_status_icon(results.get('state_invariants'))}] State Invariants")
     print(f"[{get_status_icon(results.get('atomic_transitions'))}] Atomic Transitions")
     print(f"[{get_status_icon(results.get('pipe_cleanliness'))}] Pipe Cleanliness")
+    print(f"[{get_status_icon(results.get('stuck_pending'))}] Stuck Pending Checker")
     print(f"[{get_status_icon(results.get('fail_closed'))}] Fail-Closed Safety")
     print(f"[{get_status_icon(results.get('trade_flow'))}] Trade Flow Integrity")
     print("-" * 25)

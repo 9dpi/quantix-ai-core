@@ -122,7 +122,9 @@ class TelegramNotifierV2:
             f"Stop Loss: {sl}\n\n"
             f"Confidence: {confidence}%\n"
             f"Valid Until: {expiry_str}\n\n"
-            f"⚠️ This signal is waiting for price to reach the entry level."
+            f"⏱ *Entry valid:* 30 minutes\n"
+            f"⏱ *Max trade duration:* 90 minutes\n\n"
+            f"⚠️ Signal will auto-expire if entry is not reached within 30m."
         )
         
         logger.info(f"Sending WAITING_FOR_ENTRY message for {asset}")
@@ -199,6 +201,7 @@ class TelegramNotifierV2:
             f"{dir_emoji} {direction}\n\n"
             f"Entry: {entry}\n"
             f"TP: {signal.get('tp')}\n\n"
+            f"Status: 🏁 CLOSED_TP\n"
             f"Result: 🟢 PROFIT\n"
             f"R:R: 1 : 1\n\n"
             f"Signal lifecycle completed."
@@ -242,6 +245,7 @@ class TelegramNotifierV2:
             f"{dir_emoji} {direction}\n\n"
             f"Entry: {entry}\n"
             f"SL: {signal.get('sl')}\n\n"
+            f"Status: 🏁 CLOSED_SL\n"
             f"Result: 🔴 LOSS\n\n"
             f"Signal lifecycle completed."
         )
@@ -284,13 +288,14 @@ class TelegramNotifierV2:
         test_tag = "[TEST] " if signal.get("is_test") else ""
         
         message = (
-            f"{test_tag}⏱️ *TIME-BASED EXIT*\n\n"
+            f"{test_tag}⏱️ *CLOSED (Timeout)*\n\n"
             f"{asset} | {timeframe}\n"
             f"{dir_emoji} {direction}\n\n"
             f"Entry: {entry}\n"
-            f"Exit (Current): {current_price}\n\n"
+            f"Exit (Market): {current_price}\n\n"
+            f"Status: 🏁 CLOSED_TIMEOUT\n"
             f"Result: {result_icon} {result_text}\n"
-            f"Status: CLOSED (30m Limit reached)\n\n"
+            f"Reason: Trade exceeded max duration (90m)\n\n"
             f"System released for new signals."
         )
         
@@ -319,12 +324,13 @@ class TelegramNotifierV2:
         test_tag = "[TEST] " if signal.get("is_test") else ""
         
         message = (
-            f"{test_tag}⚪ *SIGNAL EXPIRED*\n\n"
+            f"{test_tag}⚪ *EXPIRED*\n\n"
             f"{asset} | {timeframe}\n"
             f"{dir_emoji} {direction}\n\n"
-            f"Status: NOT TRIGGERED\n"
-            f"Entry price was not reached.\n\n"
-            f"No trade taken."
+            f"Status: 🏁 EXPIRED\n"
+            f"Result: ⚪ NOT_TRIGGERED\n"
+            f"Reason: Entry price was not reached within 30m.\n\n"
+            f"Signal removed from watchlist."
         )
         
         logger.info(f"Sending CANCELLED message for {asset}")

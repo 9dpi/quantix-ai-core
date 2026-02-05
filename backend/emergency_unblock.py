@@ -56,8 +56,8 @@ def unblock_global_lock():
             params={"id": f"in.({','.join(ids)})"},
             json={
                 "state": "CANCELLED",
-                "status": "CLOSED",
-                "result": "CANCELLED",
+                "status": "EXPIRED",
+                "result": "NOT_TRIGGERED",
                 "closed_at": datetime.now(timezone.utc).isoformat()
             }
         )
@@ -83,8 +83,8 @@ def nuke_prepared_zombies():
             params={"id": f"in.({','.join(ids)})"},
             json={
                 "state": "CANCELLED",
-                "status": "CLOSED",
-                "result": "CANCELLED",
+                "status": "EXPIRED",
+                "result": "NOT_TRIGGERED",
                 "closed_at": datetime.now(timezone.utc).isoformat()
             }
         )

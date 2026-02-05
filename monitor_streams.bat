@@ -1,11 +1,11 @@
 @echo off
-title 🌐 Quantix All-on-Cloud Monitor (v3.2)
+title 🌐 Quantix Decoupled-Cloud Monitor (v3.3)
 setlocal enabledelayedexpansion
 
 :: ========================================================
-:: QUANTIX STREAM MONITOR - CLOUD EDITION
-:: Architecture : All-on-Cloud (Railway + Supabase)
-:: Version      : 3.2
+:: QUANTIX STREAM MONITOR - DECOUPLED EDITION
+:: Architecture : Decoupled-Cloud (Railway + Supabase)
+:: Version      : 3.3
 :: Fail Policy  : FAIL-CLOSED
 :: Purpose      : Protect system truth & invariants
 :: ========================================================
@@ -13,8 +13,8 @@ setlocal enabledelayedexpansion
 echo.
 echo    #################################################
 echo    #                                               #
-echo    #      QUANTIX AI CORE - CLOUD MONITOR V3.2     #
-echo    #          Architecture: All-on-Cloud           #
+echo    #      QUANTIX AI CORE - CLOUD MONITOR V3.3     #
+echo    #        Architecture: Decoupled-Cloud          #
 echo    #          Fail Policy : FAIL-CLOSED            #
 echo    #                                               #
 echo    #################################################
@@ -51,6 +51,15 @@ del task_check.tmp
 :: ========================================================
 echo.
 echo [2/4] Fetching Cloud Health & Telemetry...
+
+:: New: Check Public API Status
+echo Checking Public API Endpoint...
+curl -s https://quantixaicore-production.up.railway.app/ | findstr /I "online" > nul
+if %errorlevel% equ 0 (
+    echo [OK] API Server (quantix_api_server) is ONLINE.
+) else (
+    echo [FAIL] API Server (quantix_api_server) is UNREACHABLE.
+)
 
 :: Clear current diag log
 echo. > logs\latest_diag.tmp

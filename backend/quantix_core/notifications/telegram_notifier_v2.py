@@ -462,6 +462,7 @@ class TelegramNotifierV2:
                     "🤖 QUANTIX ADMIN PANEL\n\n"
                     "📌 CÁC LỆNH ĐIỀU KHIỂN:\n"
                     "• /status - Kiểm tra sức khỏe & Stats\n"
+                    "• /log - Chẩn đoán hệ thống chi tiết\n"
                     "• /ping - Kiểm tra kết nối\n"
                     "• /signals - Số lượng tín hiệu đang canh\n"
                     "• /help - Hiện lại menu này\n\n"
@@ -531,6 +532,60 @@ class TelegramNotifierV2:
                 count = getattr(watcher, 'last_watched_count', 0) if watcher else 0
                 self._send_to_chat(target_chat_id, f"🔍 TRA CỨU: Hệ thống đang canh chừng {count} cặp tiền. Mọi thứ đều ổn định.", use_markdown=False)
             
+            elif cmd == "/log" or cmd == "/diag":
+                try:
+                    from quantix_core.database.connection import db
+                    from quantix_core.config.settings import settings
+                    from quantix_core.utils.market_hours import MarketHours
+                    import time
+
+                    # 1. DB Connectivity
+                    db_ok = "✅" if await db.health_check() else "❌"
+                    
+                    # 2. External APIs
+                    td_ok = "❌"
+                    try:
+                        url = f"https://api.twelvedata.com/time_series?symbol=EUR/USD&interval=1min&outputsize=1&apikey={settings.TWELVE_DATA_API_KEY}"
+                        res = requests.get(url, timeout=5)
+                        if res.status_code == 200 and res.json().get("status") == "ok":
+                            td_ok = "✅"
+                    except: td_ok = "❌"
+
+                    # 3. Market Status
+                    mkt_ok = "🟢 OPEN" if MarketHours.is_market_open() else "🔴 CLOSED"
+
+                    # 4. Invariants (Check for stuck signals)
+                    from datetime import timedelta
+                    stuck_pending_limit = (datetime.now(timezone.utc) - timedelta(minutes=30)).isoformat()
+                    stuck_pending = db.client.table(settings.TABLE_SIGNALS).select("id", count="exact").eq("state", "WAITING_FOR_ENTRY").lt("generated_at", stuck_pending_limit).execute()
+                    stuck_count = stuck_pending.count if stuck_pending else 0
+                    invariant_ok = "✅ CLEAN" if stuck_count == 0 else f"⚠️ {stuck_count} STUCK"
+
+                    # 5. Heartbeat Status
+                    last_log = db.client.table(settings.TABLE_ANALYSIS_LOG).select("timestamp").order("timestamp", desc=True).limit(1).execute()
+                    hb_ok = "❌ STALE"
+                    if last_log.data:
+                        last_ts = datetime.fromisoformat(last_log.data[0]['timestamp'].replace('Z', '+00:00'))
+                        if (datetime.now(timezone.utc) - last_ts).total_seconds() < 600:
+                            hb_ok = "✅ ACTIVE"
+
+                    log_text = (
+                        "📋 *QUANTIX SYSTEM DIAGNOSTICS*\n"
+                        "----------------------------------\n"
+                        f"🗄️ *Database:* {db_ok}\n"
+                        f"🌐 *Market Status:* {mkt_ok}\n"
+                        f"📊 *Analyzer Heartbeat:* {hb_ok}\n"
+                        f"🔑 *TwelveData API:* {td_ok}\n"
+                        f"🛡️ *Invariant Check:* {invariant_ok}\n"
+                        "----------------------------------\n"
+                        f"⏱️ *Diagnostic Time:* `{datetime.now(timezone.utc).strftime('%H:%M:%S')} UTC`\n"
+                        f"🖥️ *Instance:* `{instance}`"
+                    )
+                    self._send_to_chat(target_chat_id, log_text, use_markdown=True)
+                except Exception as log_err:
+                    logger.error(f"Diag command failed: {log_err}")
+                    self._send_to_chat(target_chat_id, f"❌ Diagnostic failed: {log_err}", use_markdown=False)
+
             else:
                 self._send_to_chat(target_chat_id, f"❓ Lệnh không hợp lệ: {cmd}. Gõ /help để xem danh sách.", use_markdown=False)
                 logger.info(f"Unknown command: {cmd}")

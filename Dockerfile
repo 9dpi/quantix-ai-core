@@ -16,5 +16,4 @@ COPY backend/ .
 ENV PYTHONPATH=/app
 
 # Railway dùng biến môi trường PORT
-# Use exec form with sh -c to allow $PORT substitution
 CMD ["sh", "-c", "uvicorn quantix_core.api.main:app --host 0.0.0.0 --port ${PORT:-8080}"]

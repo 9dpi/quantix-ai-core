@@ -1,5 +1,5 @@
 """
-Quantix AI Core - Main FastAPI Application
+Quantix AI Core - Main FastAPI Application (Fresh Deploy Trigger)
 """
 
 from fastapi import FastAPI

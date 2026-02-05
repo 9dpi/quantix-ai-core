@@ -54,22 +54,19 @@ echo [2/4] Fetching Cloud Health & Telemetry...
 
 :: New: Check Public API Status
 echo Checking Public API Endpoint...
-curl -s https://quantixaicore-production.up.railway.app/ | findstr /I "online" > nul
+curl.exe -s --max-time 10 https://quantixaicore-production.up.railway.app/ | findstr /I "online" > nul
 if %errorlevel% equ 0 (
     echo [OK] API Server (quantix_api_server) is ONLINE.
 ) else (
-    echo [FAIL] API Server (quantix_api_server) is UNREACHABLE.
+    echo [FAIL] API Server is UNREACHABLE or reported ERROR (502).
+    echo [INFO] Check Railway Dashboard if this persists.
 )
 
 :: Clear current diag log
-echo. > logs\latest_diag.tmp
-
-cd backend
 echo Running System Diagnostics...
+echo. > logs\latest_diag.tmp
+cd backend
 ..\.venv\Scripts\python.exe diagnose_production.py >> ..\logs\latest_diag.tmp 2>&1
-echo. >> ..\logs\latest_diag.tmp
-echo Running Detailed Telemetry Report... >> ..\logs\latest_diag.tmp
-..\.venv\Scripts\python.exe check_detailed_telemetry.py >> ..\logs\latest_diag.tmp 2>&1
 cd ..
 
 :: ========================================================

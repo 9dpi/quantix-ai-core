@@ -1,11 +1,11 @@
 @echo off
-title 🌐 Quantix All-on-Cloud Monitor (v3.1)
+title 🌐 Quantix All-on-Cloud Monitor (v3.2)
 setlocal enabledelayedexpansion
 
 :: ========================================================
 :: QUANTIX STREAM MONITOR - CLOUD EDITION
 :: Architecture : All-on-Cloud (Railway + Supabase)
-:: Version      : 3.1
+:: Version      : 3.2
 :: Fail Policy  : FAIL-CLOSED
 :: Purpose      : Protect system truth & invariants
 :: ========================================================
@@ -13,7 +13,7 @@ setlocal enabledelayedexpansion
 echo.
 echo    #################################################
 echo    #                                               #
-echo    #      QUANTIX AI CORE - CLOUD MONITOR V3.1     #
+echo    #      QUANTIX AI CORE - CLOUD MONITOR V3.2     #
 echo    #          Architecture: All-on-Cloud           #
 echo    #          Fail Policy : FAIL-CLOSED            #
 echo    #                                               #
@@ -27,7 +27,7 @@ if not exist logs mkdir logs
 :: 0. Declare Pipeline Context (AUDIT IMPORTANT)
 :: ========================================================
 echo PIPELINE_MODE=PRODUCTION
-echo ARCH_VERSION=3.1
+echo ARCH_VERSION=3.2
 echo FAIL_POLICY=FAIL_CLOSED
 echo.
 
@@ -47,21 +47,27 @@ if %errorlevel% equ 0 (
 del task_check.tmp
 
 :: ========================================================
-:: 2. Run Production Diagnostics (Source of Truth)
+:: 2. Run Production Diagnostics & Telemetry
 :: ========================================================
 echo.
-echo [2/4] Fetching Cloud Health Data...
-echo Running Remote Diagnostics (Railway + Supabase + External APIs)...
+echo [2/4] Fetching Cloud Health & Telemetry...
+
+:: Clear current diag log
+echo. > logs\latest_diag.tmp
 
 cd backend
-..\.venv\Scripts\python.exe diagnose_production.py > ..\logs\latest_diag.tmp 2>&1
+echo Running System Diagnostics...
+..\.venv\Scripts\python.exe diagnose_production.py >> ..\logs\latest_diag.tmp 2>&1
+echo. >> ..\logs\latest_diag.tmp
+echo Running Detailed Telemetry Report... >> ..\logs\latest_diag.tmp
+..\.venv\Scripts\python.exe check_detailed_telemetry.py >> ..\logs\latest_diag.tmp 2>&1
 cd ..
 
 :: ========================================================
-:: 3. Display Raw Diagnostic Output
+:: 3. Display Integrated Diagnostic Output
 :: ========================================================
 echo.
-echo [3/4] Diagnostic Output:
+echo [3/4] Integrated Diagnostic Output:
 echo --------------------------------------------------------
 type logs\latest_diag.tmp
 echo --------------------------------------------------------
@@ -88,14 +94,16 @@ if %errorlevel% equ 0 (
 :: Persistent Audit Log (Immutable History)
 :: ========================================================
 echo.
-echo Writing audit history...
+echo Writing audit history to logs\monitor_history.log...
 
-echo -------------------------------------------------------- >> logs\monitor_history.log
-echo [%date% %time%] Diagnostic Run >> logs\monitor_history.log
+echo ======================================================== >> logs\monitor_history.log
+echo [%date% %time%] Integrated Diagnostic Run (v3.2) >> logs\monitor_history.log
 echo PIPELINE_MODE=PRODUCTION >> logs\monitor_history.log
-echo ARCH_VERSION=3.1 >> logs\monitor_history.log
+echo ARCH_VERSION=3.2 >> logs\monitor_history.log
 echo FAIL_POLICY=FAIL_CLOSED >> logs\monitor_history.log
+echo. >> logs\monitor_history.log
 type logs\latest_diag.tmp >> logs\monitor_history.log
+echo. >> logs\monitor_history.log
 
 :: ========================================================
 :: Footer
@@ -103,6 +111,5 @@ type logs\latest_diag.tmp >> logs\monitor_history.log
 echo.
 echo [INFO] Full audit history saved to: logs\monitor_history.log
 echo [RULE] Monitor protects TRUTH, not performance.
-echo [TIP ] Restart local miner ONLY if Railway TwelveData fails persistently.
 echo.
 pause

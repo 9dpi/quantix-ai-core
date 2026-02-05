@@ -148,6 +148,44 @@ class ContinuousAnalyzer:
                 logger.error(f"❌ Failed to LOCK signal in [T1]: {e}")
         return None
 
+    def janitor_cleanup(self):
+        """
+        🧹 AUTO-JANITOR (Fail-Safe)
+        Self-cleans the pipeline if signals exceed their TTL + buffer.
+        Ensures the Analyzer is NEVER blocked even if Watcher service fails.
+        """
+        try:
+            now = datetime.now(timezone.utc)
+            
+            # 1. Clear Stuck Pending (WAITING > 35m)
+            # Buffer: MAX_PENDING (30) + 5m grace
+            limit_pending = (now - timedelta(minutes=settings.MAX_PENDING_DURATION_MINUTES + 5)).isoformat()
+            res_p = db.client.table(settings.TABLE_SIGNALS).update({
+                "state": "CANCELLED", 
+                "status": "EXPIRED", 
+                "result": "CANCELLED", 
+                "closed_at": now.isoformat()
+            }).eq("state", "WAITING_FOR_ENTRY").lt("generated_at", limit_pending).execute()
+            
+            if res_p.data:
+                logger.warning(f"🧹 Janitor cleared {len(res_p.data)} stuck pending signals.")
+
+            # 2. Clear Stuck Active (ENTRY_HIT > 95m)
+            # Buffer: MAX_TRADE (90) + 5m grace
+            limit_active = (now - timedelta(minutes=settings.MAX_TRADE_DURATION_MINUTES + 5)).isoformat()
+            res_a = db.client.table(settings.TABLE_SIGNALS).update({
+                "state": "TIME_EXIT", 
+                "status": "CLOSED_TIMEOUT", 
+                "result": "CANCELLED", 
+                "closed_at": now.isoformat()
+            }).eq("state", "ENTRY_HIT").lt("generated_at", limit_active).execute()
+            
+            if res_a.data:
+                logger.warning(f"🧹 Janitor cleared {len(res_a.data)} stuck active signals.")
+
+        except Exception as e:
+            logger.error(f"Janitor cleanup failed: {e}")
+
     def run_cycle(self):
         """One analysis cycle [T0 + Δ]"""
         # 🛡️ Market Hours Safety Check
@@ -156,6 +194,10 @@ class ContinuousAnalyzer:
 
         try:
             self.cycle_count += 1
+            
+            # 🔥 EMERGENCY JANITOR: Self-unblock before scanning
+            self.janitor_cleanup()
+            
             # 1. Continuous Feed [T0]
             raw_data = self.td_client.get_time_series(symbol="EUR/USD", interval="15min", outputsize=100)
             df = self.convert_to_df(raw_data)

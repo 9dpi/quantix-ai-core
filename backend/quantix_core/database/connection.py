@@ -168,7 +168,7 @@ class SupabaseConnection:
             self._initialize_client()
         return self._client
 
-    async def health_check(self) -> bool:
+    def health_check(self) -> bool:
         try:
             # Try to query the signals table as a heartbeat
             self._client.table(settings.TABLE_SIGNALS).select("id").limit(1).execute()

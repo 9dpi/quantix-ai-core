@@ -62,7 +62,7 @@ async def background_startup_tasks():
         logger.info("🔍 Running background connectivity checks...")
         
         # Kiểm tra DB ngầm
-        is_healthy = await db.health_check()
+        is_healthy = db.health_check()
         if is_healthy:
             logger.info("✅ Database connection verified in background")
         else:

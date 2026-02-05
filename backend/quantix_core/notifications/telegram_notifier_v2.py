@@ -540,7 +540,7 @@ class TelegramNotifierV2:
                     import time
 
                     # 1. DB Connectivity
-                    db_ok = "✅" if await db.health_check() else "❌"
+                    db_ok = "✅" if db.health_check() else "❌"
                     
                     # 2. External APIs
                     td_ok = "❌"

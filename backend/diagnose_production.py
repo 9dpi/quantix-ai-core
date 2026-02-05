@@ -36,44 +36,49 @@ async def run_diagnostics():
         results['state_invariants'] = False
 
     # 3. Atomic Transitions (Check for signals stuck in PREPARED phase)
+    stuck_prepared_ids = []
     try:
         stuck_prepared_limit = (datetime.now(timezone.utc) - timedelta(minutes=10)).isoformat()
         stuck_prepared = db.client.table(settings.TABLE_SIGNALS)\
-            .select("id")\
+            .select("id, asset")\
             .eq("state", "PREPARED")\
             .lt("generated_at", stuck_prepared_limit)\
             .execute()
-        results['atomic_transitions'] = (len(stuck_prepared.data) == 0)
+        stuck_prepared_ids = stuck_prepared.data if stuck_prepared.data else []
+        results['atomic_transitions'] = (len(stuck_prepared_ids) == 0)
     except:
         results['atomic_transitions'] = False
 
     # 4. Pipe Cleanliness (WAITING_FOR_ENTRY but no Telegram ID)
+    zombie_ids = []
     try:
         zombies = db.client.table(settings.TABLE_SIGNALS)\
-            .select("id")\
+            .select("id, asset")\
             .eq("state", "WAITING_FOR_ENTRY")\
             .is_("telegram_message_id", "null")\
             .execute()
-        results['pipe_cleanliness'] = (len(zombies.data) == 0)
+        zombie_ids = zombies.data if zombies.data else []
+        results['pipe_cleanliness'] = (len(zombie_ids) == 0)
     except:
         results['pipe_cleanliness'] = False
 
     # 4.1 Stuck Pending Signals (WAITING_FOR_ENTRY > 30 mins)
+    stuck_pending_ids = []
     try:
         stuck_pending_limit = (datetime.now(timezone.utc) - timedelta(minutes=30)).isoformat()
         stuck_pending = db.client.table(settings.TABLE_SIGNALS)\
-            .select("id")\
+            .select("id, asset, generated_at")\
             .eq("state", "WAITING_FOR_ENTRY")\
             .lt("generated_at", stuck_pending_limit)\
             .execute()
-        results['stuck_pending'] = (len(stuck_pending.data) == 0)
+        stuck_pending_ids = stuck_pending.data if stuck_pending.data else []
+        results['stuck_pending'] = (len(stuck_pending_ids) == 0)
     except:
         results['stuck_pending'] = False
 
     # 5. Fail-Closed Safety (Check if Heartbeat is recently active)
+    last_hb_ts = "N/A"
     try:
-        # Check audit log timestamp (last 5 mins)
-        recent_limit = (datetime.now(timezone.utc) - timedelta(minutes=5)).isoformat()
         logs = db.client.table(settings.TABLE_ANALYSIS_LOG)\
             .select("timestamp")\
             .order("timestamp", desc=True)\
@@ -81,7 +86,8 @@ async def run_diagnostics():
             .execute()
         
         if logs.data:
-            last_ts = datetime.fromisoformat(logs.data[0]['timestamp'].replace('Z', '+00:00'))
+            last_hb_ts = logs.data[0]['timestamp']
+            last_ts = datetime.fromisoformat(last_hb_ts.replace('Z', '+00:00'))
             is_active = (datetime.now(timezone.utc) - last_ts).total_seconds() < 300
             results['fail_closed'] = is_active
         else:
@@ -90,27 +96,31 @@ async def run_diagnostics():
         results['fail_closed'] = False
 
     # 6. Trade Flow Integrity (Check for stuck active trades > 90 mins)
+    stuck_trade_ids = []
     try:
         stuck_trade_limit = (datetime.now(timezone.utc) - timedelta(minutes=90)).isoformat()
         stuck_trades = db.client.table(settings.TABLE_SIGNALS)\
-            .select("id")\
+            .select("id, asset")\
             .eq("state", "ENTRY_HIT")\
             .lt("generated_at", stuck_trade_limit)\
             .execute()
-        results['trade_flow'] = (len(stuck_trades.data) == 0)
+        stuck_trade_ids = stuck_trades.data if stuck_trades.data else []
+        results['trade_flow'] = (len(stuck_trade_ids) == 0)
     except:
         results['trade_flow'] = False
 
     # 7. Signal Age Distribution (Is the latest signal too old?)
     age_warn = False
+    last_sig_text = "N/A"
     try:
         latest = db.client.table(settings.TABLE_SIGNALS)\
-            .select("generated_at")\
+            .select("generated_at, asset")\
             .order("generated_at", desc=True)\
             .limit(1)\
             .execute()
         if latest.data:
             last_sig_ts = datetime.fromisoformat(latest.data[0]['generated_at'].replace('Z', '+00:00'))
+            last_sig_text = f"{latest.data[0]['asset']} at {last_sig_ts.strftime('%H:%M UTC')}"
             age_hours = (datetime.now(timezone.utc) - last_sig_ts).total_seconds() / 3600
             if age_hours > 24:
                 age_warn = True
@@ -142,22 +152,38 @@ async def run_diagnostics():
 
     # OUTPUT
     print("\nQUANTIX SYSTEM DIAGNOSTICS")
-    print("=" * 25)
+    print("=" * 60)
     print(f"[{get_status_icon(results.get('db_conn'))}] Database Connectivity")
     print(f"[{get_status_icon(results.get('state_invariants'))}] State Invariants")
-    print(f"[{get_status_icon(results.get('atomic_transitions'))}] Atomic Transitions")
-    print(f"[{get_status_icon(results.get('pipe_cleanliness'))}] Pipe Cleanliness")
-    print(f"[{get_status_icon(results.get('stuck_pending'))}] Stuck Pending Checker")
-    print(f"[{get_status_icon(results.get('fail_closed'))}] Fail-Closed Safety")
-    print(f"[{get_status_icon(results.get('trade_flow'))}] Trade Flow Integrity")
-    print("-" * 25)
+    
+    print(f"[{get_status_icon(results.get('atomic_transitions'))}] Atomic Transitions (PREPARED < 10m)")
+    if stuck_prepared_ids:
+        for s in stuck_prepared_ids: print(f"    -> STUCK PREPARED: {s['asset']} ({s['id']})")
+        
+    print(f"[{get_status_icon(results.get('pipe_cleanliness'))}] Pipe Cleanliness (WAITING but no TG_ID)")
+    if zombie_ids:
+        for s in zombie_ids: print(f"    -> ZOMBIE: {s['asset']} ({s['id']})")
+        
+    print(f"[{get_status_icon(results.get('stuck_pending'))}] Stuck Pending Checker (WAITING > 30m)")
+    if stuck_pending_ids:
+        for s in stuck_pending_ids: print(f"    -> STUCK PENDING: {s['asset']} ({s['id']})")
+        
+    print(f"[{get_status_icon(results.get('fail_closed'))}] Fail-Closed Safety (Heartbeat < 5m)")
+    print(f"    -> Last Heartbeat: {last_hb_ts}")
+    
+    print(f"[{get_status_icon(results.get('trade_flow'))}] Trade Flow Integrity (ACTIVE > 90m)")
+    if stuck_trade_ids:
+        for s in stuck_trade_ids: print(f"    -> STUCK TRADE: {s['asset']} ({s['id']})")
+        
+    print("-" * 60)
     print(f"[{'WARN' if age_warn else 'OK'}] Signal Age Distribution")
-    print("-" * 25)
+    print(f"    -> Latest Signal: {last_sig_text}")
+    print("-" * 60)
     print(f"[INFO] External API Status: {'OK' if api_ok else 'FAIL'}")
     
     avg_latency = sum(latencies.values()) / len(latencies) if latencies else 0
     print(f"[INFO] System Latency: {avg_latency:.0f}ms")
-    print("=" * 25)
+    print("=" * 60)
     
     # Verdict Calculation for v3.1 Monitor Orchestration
     # Critical Invariants: DB Connection, State Integrity, Fail-Closed Safety

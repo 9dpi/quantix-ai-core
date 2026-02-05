@@ -65,7 +65,9 @@ class ConfidenceRefiner:
         v_factor = self.get_volatility_factor(df)
         sp_factor = self.get_spread_factor("EURUSD")
         
-        release_score = raw_confidence * s_weight * v_factor * sp_factor
+        # Cap at 1.0 (100%) for UI/Mathematical consistency, 
+        # while preserving the boost for threshold gating.
+        release_score = min(1.0, raw_confidence * s_weight * v_factor * sp_factor)
         
         reason = (
             f"Raw: {raw_confidence:.2f} | "

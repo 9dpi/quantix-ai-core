@@ -1,5 +1,5 @@
 
-import urllib.request
+import requests
 import json
 from datetime import datetime, timezone
 
@@ -15,14 +15,19 @@ def force_close():
         "closed_at": datetime.now(timezone.utc).isoformat()
     }
     
-    req = urllib.request.Request(URL, data=json.dumps(data).encode(), method="PATCH")
-    req.add_header("apikey", API_KEY)
-    req.add_header("Authorization", AUTH)
-    req.add_header("Content-Type", "application/json")
+    headers = {
+        "apikey": API_KEY,
+        "Authorization": AUTH,
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal"
+    }
     
     try:
-        with urllib.request.urlopen(req) as response:
-            print(f"Status: {response.status}")
+        response = requests.patch(URL, headers=headers, json=data)
+        print(f"Status: {response.status_code}")
+        if response.status_code >= 400:
+            print(f"Error Body: {response.text}")
+        else:
             print("✅ Signal successfully force-closed.")
     except Exception as e:
         print(f"Error: {e}")

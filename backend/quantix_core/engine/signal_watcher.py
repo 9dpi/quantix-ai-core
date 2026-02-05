@@ -445,7 +445,7 @@ class SignalWatcher:
             res = self.db.table("fx_signals").update({
                 "state": "CANCELLED",
                 "status": "EXPIRED",
-                "result": "NOT_TRIGGERED",
+                "result": "CANCELLED",
                 "closed_at": datetime.now(timezone.utc).isoformat()
             }).eq("id", signal_id).eq("state", "WAITING_FOR_ENTRY").execute()
             
@@ -475,7 +475,7 @@ class SignalWatcher:
             res = self.db.table("fx_signals").update({
                 "state": "TIME_EXIT",
                 "status": "CLOSED_TIMEOUT",
-                "result": "TIME_EXIT",
+                "result": "CANCELLED",
                 "closed_at": datetime.now(timezone.utc).isoformat()
             }).eq("id", signal_id).eq("state", "ENTRY_HIT").execute()
             

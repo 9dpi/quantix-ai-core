@@ -463,6 +463,7 @@ class TelegramNotifierV2:
                     "📌 CÁC LỆNH ĐIỀU KHIỂN:\n"
                     "• /status - Kiểm tra sức khỏe & Stats\n"
                     "• /log - Chẩn đoán hệ thống chi tiết\n"
+                    "• /unblock - GIẢI PHÓNG HỆ THỐNG (Khẩn cấp)\n"
                     "• /ping - Kiểm tra kết nối\n"
                     "• /signals - Số lượng tín hiệu đang canh\n"
                     "• /help - Hiện lại menu này\n\n"
@@ -585,6 +586,45 @@ class TelegramNotifierV2:
                 except Exception as log_err:
                     logger.error(f"Diag command failed: {log_err}")
                     self._send_to_chat(target_chat_id, f"❌ Diagnostic failed: {log_err}", use_markdown=False)
+
+            elif cmd == "/unblock" or cmd == "/clear":
+                try:
+                    from quantix_core.database.connection import db
+                    from quantix_core.config.settings import settings
+                    from datetime import timedelta
+                    
+                    self._send_to_chat(target_chat_id, "⚙️ Đang quét và giải phóng hệ thống...", use_markdown=False)
+                    
+                    # 1. Clear Stuck Pending (WAITING > 30m)
+                    limit_30 = (datetime.now(timezone.utc) - timedelta(minutes=30)).isoformat()
+                    res_p = db.client.table(settings.TABLE_SIGNALS).update({
+                        "state": "CANCELLED", "status": "EXPIRED", "result": "CANCELLED", "closed_at": datetime.now(timezone.utc).isoformat()
+                    }).eq("state", "WAITING_FOR_ENTRY").lt("generated_at", limit_30).execute()
+                    count_p = len(res_p.data) if res_p.data else 0
+                    
+                    # 2. Clear Stuck Active (ENTRY_HIT > 90m)
+                    limit_90 = (datetime.now(timezone.utc) - timedelta(minutes=90)).isoformat()
+                    res_a = db.client.table(settings.TABLE_SIGNALS).update({
+                        "state": "TIME_EXIT", "status": "CLOSED_TIMEOUT", "result": "CANCELLED", "closed_at": datetime.now(timezone.utc).isoformat()
+                    }).eq("state", "ENTRY_HIT").lt("generated_at", limit_90).execute()
+                    count_a = len(res_a.data) if res_a.data else 0
+                    
+                    total = count_p + count_a
+                    if total > 0:
+                        report = (
+                            f"✅ *HỆ THỐNG ĐÃ ĐƯỢC GIẢI PHÓNG*\n\n"
+                            f"• Đã đóng {count_p} lệnh chờ quá hạn (30m)\n"
+                            f"• Đã đóng {count_a} lệnh chạy quá hạn (90m)\n\n"
+                            f"🚀 Tổng cộng: `{total}` vật cản đã được dọn dẹp.\n"
+                            f"Máy chủ `{instance}` đã sẵn sàng bắn tín hiệu mới."
+                        )
+                    else:
+                        report = "ℹ️ *THÔNG BÁO*\n\nHệ thống hiện tại sạch sẽ, không có tín hiệu nào bị kẹt. Không cần xử lý."
+                        
+                    self._send_to_chat(target_chat_id, report, use_markdown=True)
+                except Exception as unblock_err:
+                    logger.error(f"Unblock command failed: {unblock_err}")
+                    self._send_to_chat(target_chat_id, f"❌ Lỗi giải phóng: {unblock_err}", use_markdown=False)
 
             else:
                 self._send_to_chat(target_chat_id, f"❓ Lệnh không hợp lệ: {cmd}. Gõ /help để xem danh sách.", use_markdown=False)

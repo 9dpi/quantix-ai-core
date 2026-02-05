@@ -132,21 +132,21 @@ class SignalWatcher:
         
         logger.info(f"Watching {len(signals)} active signals")
         
-        # 2. Get latest market data
+        # 2. Get latest market data (Optional for timeouts, required for touches)
         candle = self.fetch_latest_candle()
         
-        if not candle:
-            logger.warning("Failed to fetch market data, skipping cycle")
-            return
-        
-        logger.debug(
-            f"Latest candle: {candle['timestamp']} "
-            f"H:{candle['high']} L:{candle['low']} C:{candle['close']}"
-        )
+        if candle:
+            logger.debug(
+                f"Latest candle: {candle['timestamp']} "
+                f"H:{candle['high']} L:{candle['low']} C:{candle['close']}"
+            )
+        else:
+            logger.warning("Failed to fetch market data - skipping touch detection but proceeding with timeout checks")
         
         # 3. Check each signal
         for signal in signals:
             try:
+                # We always check for timeouts, price only needed for touch detection
                 self.check_signal(signal, candle)
             except Exception as e:
                 logger.error(
@@ -256,7 +256,10 @@ class SignalWatcher:
                     self.transition_to_time_exit(signal, candle)
                     return
 
-        # 2. State-specific checks
+        # 2. State-specific checks (Only if candle is available)
+        if not candle:
+            return
+
         if current_state == "WAITING_FOR_ENTRY":
             self.check_waiting_signal(signal, candle)
         elif current_state == "ENTRY_HIT":

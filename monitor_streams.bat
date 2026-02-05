@@ -1,121 +1,81 @@
 @echo off
-title 🌐 Quantix Decoupled-Cloud Monitor (v3.3)
+title 🌐 Quantix Decoupled-Cloud Monitor (v3.3.5)
 setlocal enabledelayedexpansion
 
-:: ========================================================
-:: QUANTIX STREAM MONITOR - DECOUPLED EDITION
-:: Architecture : Decoupled-Cloud (Railway + Supabase)
-:: Version      : 3.3
-:: Fail Policy  : FAIL-CLOSED
-:: Purpose      : Protect system truth & invariants
-:: ========================================================
-
-echo.
-echo    #################################################
-echo    #                                               #
-echo    #      QUANTIX AI CORE - CLOUD MONITOR V3.3     #
-echo    #        Architecture: Decoupled-Cloud          #
-echo    #          Fail Policy : FAIL-CLOSED            #
-echo    #                                               #
-echo    #################################################
+echo #################################################
+echo #                                               #
+echo #      QUANTIX AI CORE - MONITOR V3.3.5         #
+echo #        Mode: Decoupled-Cloud (Railway)        #
+echo #                                               #
+echo #################################################
 echo.
 
-:: Ensure logs directory exists
+:: 1. Kiểm tra thư mục cần thiết
+echo [1/4] Checking Local Environment...
 if not exist logs mkdir logs
-
-:: ========================================================
-:: 0. Declare Pipeline Context (AUDIT IMPORTANT)
-:: ========================================================
-echo PIPELINE_MODE=PRODUCTION
-echo ARCH_VERSION=3.2
-echo FAIL_POLICY=FAIL_CLOSED
-echo.
-
-:: ========================================================
-:: 1. Check Local Safeguard (Architectural Invariant)
-:: ========================================================
-echo [1/4] Checking Local Safeguard...
-tasklist /FI "IMAGENAME eq python.exe" /FO CSV > task_check.tmp
-findstr /I "python.exe" task_check.tmp > nul
-if %errorlevel% equ 0 (
-    echo [WARN] Local Python processes detected!
-    echo [WARN] This violates ALL-ON-CLOUD invariant.
-    echo [WARN] Recommended: taskkill /F /IM python.exe
-) else (
-    echo [OK] Local miners are OFF. Cloud-only flow confirmed.
+if not exist backend (
+    echo [ERROR] Folder 'backend' not found!
+    echo Please run this file from the project root.
+    pause
+    exit /b
 )
-del task_check.tmp
+echo [OK] Project structure verified.
 
-:: ========================================================
-:: 2. Run Production Diagnostics & Telemetry
-:: ========================================================
+:: 2. Kiểm tra API Server Online
 echo.
-echo [2/4] Fetching Cloud Health & Telemetry...
+echo [2/4] Checking Cloud API Status...
+set "URL=https://quantixaicore-production.up.railway.app/"
+echo Requesting: %URL%
 
-:: New: Check Public API Status
-echo Checking Public API Endpoint...
-curl.exe -s --max-time 10 https://quantixaicore-production.up.railway.app/ | findstr /I "online" > nul
+:: Ghi thẳng vào file để tránh lỗi ký tự đặc biệt
+curl.exe -s --max-time 15 %URL% > logs\api_resp.tmp
+
+findstr /I "online" logs\api_resp.tmp > nul
 if %errorlevel% equ 0 (
-    echo [OK] API Server (quantix_api_server) is ONLINE.
+    echo [OK] API Server is ONLINE.
 ) else (
-    echo [FAIL] API Server is UNREACHABLE or reported ERROR (502).
-    echo [INFO] Check Railway Dashboard if this persists.
+    echo [FAIL] API Server is UNREACHABLE or ERROR 502.
+    echo [INFO] Server Response:
+    type logs\api_resp.tmp
+    echo.
 )
 
-:: Clear current diag log
-echo Running System Diagnostics...
+:: 3. Chạy chẩn đoán Database & Invariants
+echo.
+echo [3/4] Running Deep Diagnostics (Supabase)...
+if not exist .venv\Scripts\python.exe (
+    echo [ERROR] Virtual environment (.venv) not found!
+    pause
+    exit /b
+)
+
+:: Xóa log cũ
 echo. > logs\latest_diag.tmp
-cd backend
-..\.venv\Scripts\python.exe diagnose_production.py >> ..\logs\latest_diag.tmp 2>&1
-cd ..
 
-:: ========================================================
-:: 3. Display Integrated Diagnostic Output
-:: ========================================================
-echo.
-echo [3/4] Integrated Diagnostic Output:
+:: Chạy script chẩn đoán
+pushd backend
+..\.venv\Scripts\python.exe diagnose_production.py >> ..\logs\latest_diag.tmp 2>&1
+popd
+
 echo --------------------------------------------------------
 type logs\latest_diag.tmp
 echo --------------------------------------------------------
 
-:: ========================================================
-:: 4. Invariant Verdict Check (Machine-Readable)
-:: ========================================================
+:: 4. Kết luận
 echo.
-echo [4/4] Evaluating System Verdict...
-
-:: Expect diagnose_production.py to emit:
-:: SYSTEM_VERDICT=PASS | FAIL_INVARIANT | FAIL_SAFETY
-
+echo [4/4] System Verdict:
 findstr /C:"SYSTEM_VERDICT=FAIL" logs\latest_diag.tmp > nul
 if %errorlevel% equ 0 (
-    echo [CRITICAL] SYSTEM VERDICT: FAIL
-    echo [CRITICAL] One or more architectural invariants breached.
+    echo [CRITICAL] VERDICT: FAIL - Check invariants!
 ) else (
-    echo [OK] SYSTEM VERDICT: PASS
-    echo [OK] All Quantix invariants satisfied.
+    echo [OK] VERDICT: PASS - Cloud Truth is intact.
 )
 
-:: ========================================================
-:: Persistent Audit Log (Immutable History)
-:: ========================================================
 echo.
-echo Writing audit history to logs\monitor_history.log...
-
-echo ======================================================== >> logs\monitor_history.log
-echo [%date% %time%] Integrated Diagnostic Run (v3.2) >> logs\monitor_history.log
-echo PIPELINE_MODE=PRODUCTION >> logs\monitor_history.log
-echo ARCH_VERSION=3.2 >> logs\monitor_history.log
-echo FAIL_POLICY=FAIL_CLOSED >> logs\monitor_history.log
-echo. >> logs\monitor_history.log
+echo Audit log saved to: logs\monitor_history.log
+date /t >> logs\monitor_history.log
+time /t >> logs\monitor_history.log
 type logs\latest_diag.tmp >> logs\monitor_history.log
-echo. >> logs\monitor_history.log
-
-:: ========================================================
-:: Footer
-:: ========================================================
 echo.
-echo [INFO] Full audit history saved to: logs\monitor_history.log
-echo [RULE] Monitor protects TRUTH, not performance.
-echo.
-pause
+echo Done. Press any key to exit.
+pause > nul

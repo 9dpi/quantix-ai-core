@@ -193,7 +193,7 @@ class SignalWatcher:
             params = {
                 "symbol": "EURUSDT",
                 "interval": "15m",
-                "limit": 1
+                "limit": 2
             }
             
             response = requests.get(url, params=params, timeout=5)
@@ -203,8 +203,17 @@ class SignalWatcher:
                 logger.warning("No candle data returned from Binance")
                 return None
             
-            # Binance kline format: [Open time, Open, High, Low, Close, Volume, Close time, ...]
-            latest = data[0]
+            # Aggregate last 2 candles to ensure we don't miss touches during rollover gaps
+            # Logic: If poll runs at 10:01, and hit was 9:59 (prev candle), checking only latest (10:00) would miss it.
+            
+            latest = data[-1]
+            high = float(latest[2])
+            low = float(latest[3])
+            
+            if len(data) > 1:
+                prev = data[-2]
+                high = max(high, float(prev[2]))
+                low = min(low, float(prev[3]))
             
             # Convert Open time (ms) to string
             dt = datetime.fromtimestamp(latest[0]/1000, tz=timezone.utc)
@@ -212,8 +221,8 @@ class SignalWatcher:
             return {
                 "timestamp": dt.strftime('%Y-%m-%d %H:%M:%S'),
                 "open": float(latest[1]),
-                "high": float(latest[2]),
-                "low": float(latest[3]),
+                "high": high,
+                "low": low,
                 "close": float(latest[4])
             }
         

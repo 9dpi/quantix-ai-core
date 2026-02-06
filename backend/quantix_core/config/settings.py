@@ -48,7 +48,7 @@ class Settings(BaseSettings):
     MIN_CONFIDENCE: float = 0.65
     MAX_SIGNALS_PER_ASSET: int = 3
     MAX_PENDING_DURATION_MINUTES: int = 30  # Auto-expire if entry not hit within 30 mins
-    MAX_TRADE_DURATION_MINUTES: int = 90    # Auto-exit after 90 mins in trade
+    MAX_TRADE_DURATION_MINUTES: int = 35    # Auto-exit after 35 mins in trade
     
     # 🔒 ANTI-BURST RULES
     MIN_RELEASE_INTERVAL_MINUTES: int = 30

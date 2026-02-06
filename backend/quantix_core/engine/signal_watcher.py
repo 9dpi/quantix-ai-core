@@ -181,51 +181,44 @@ class SignalWatcher:
     
     def fetch_latest_candle(self) -> Optional[dict]:
         """
-        Fetch latest M15 candle from TwelveData.
+        Fetch latest M15 candle proxy from Binance (EURUSDT).
         
         Returns:
             Candle dict with timestamp, open, high, low, close
             or None if fetch fails
         """
         try:
-            # Use direct API call instead of pandas
-            # TwelveData REST API endpoint
-            from quantix_core.config.settings import settings
-            
-            api_key = settings.TWELVE_DATA_API_KEY
-            url = "https://api.twelvedata.com/time_series"
-            
+            # EURUSDT on Binance acts as a 1:1 proxy for EURUSD with zero-latency
+            url = "https://api.binance.com/api/v3/klines"
             params = {
-                "symbol": "EUR/USD",
-                "interval": "15min",
-                "outputsize": 1,
-                "apikey": api_key
+                "symbol": "EURUSDT",
+                "interval": "15m",
+                "limit": 1
             }
             
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, timeout=5)
             data = response.json()
             
-            if data.get("status") == "error":
-                logger.warning(f"TwelveData API error: {data.get('message')}")
+            if not data or not isinstance(data, list):
+                logger.warning("No candle data returned from Binance")
                 return None
             
-            if "values" not in data or not data["values"]:
-                logger.warning("No candle data returned from TwelveData")
-                return None
+            # Binance kline format: [Open time, Open, High, Low, Close, Volume, Close time, ...]
+            latest = data[0]
             
-            # Get latest candle (first in values array)
-            latest = data["values"][0]
+            # Convert Open time (ms) to string
+            dt = datetime.fromtimestamp(latest[0]/1000, tz=timezone.utc)
             
             return {
-                "timestamp": latest.get("datetime"),
-                "open": float(latest.get("open", 0)),
-                "high": float(latest.get("high", 0)),
-                "low": float(latest.get("low", 0)),
-                "close": float(latest.get("close", 0))
+                "timestamp": dt.strftime('%Y-%m-%d %H:%M:%S'),
+                "open": float(latest[1]),
+                "high": float(latest[2]),
+                "low": float(latest[3]),
+                "close": float(latest[4])
             }
         
         except Exception as e:
-            logger.error(f"Error fetching candle: {e}")
+            logger.error(f"Error fetching Binance candle: {e}")
             return None
     
     def check_signal(self, signal: dict, candle: dict):

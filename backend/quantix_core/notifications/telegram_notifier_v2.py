@@ -201,7 +201,7 @@ class TelegramNotifierV2:
             f"{dir_emoji} {direction}\n\n"
             f"Entry: {entry}\n"
             f"TP: {signal.get('tp')}\n\n"
-            f"Status: 🏁 CLOSED_TP\n"
+            f"Status: 🏁 CLOSED\_TP\n"
             f"Result: 🟢 PROFIT\n"
             f"R:R: 1 : 1\n\n"
             f"Signal lifecycle completed."
@@ -245,7 +245,7 @@ class TelegramNotifierV2:
             f"{dir_emoji} {direction}\n\n"
             f"Entry: {entry}\n"
             f"SL: {signal.get('sl')}\n\n"
-            f"Status: 🏁 CLOSED_SL\n"
+            f"Status: 🏁 CLOSED\_SL\n"
             f"Result: 🔴 LOSS\n\n"
             f"Signal lifecycle completed."
         )
@@ -264,45 +264,27 @@ class TelegramNotifierV2:
         Send TIME_EXIT message (State 5).
         
         Triggered when an active signal exceeds its maximum duration.
-        
-        Args:
-            signal: Signal dict with entry_price, tp, sl, confidence, expiry_at
-            current_price: The current market price at the time of exit.
         """
         asset = signal.get("asset", "EURUSD").replace("/", "")
         timeframe = signal.get("timeframe", "M15")
         direction = signal.get("direction", "BUY")
         entry = signal.get("entry_price", 0)
-        
-        # Direction emoji
         dir_emoji = "🟢" if direction == "BUY" else "🔴"
         
         test_tag = "[TEST] " if signal.get("is_test") else ""
         
         # Calculate result (profit/loss)
-        result_text = "N/A"
-        result_icon = "⚪"
+        result_text = "BREAKEVEN"
+        result_icon = "🔵"
+        diff = float(current_price) - float(entry)
+        if direction == "SELL": diff = -diff
         
-        if direction == "BUY":
-            if current_price > entry:
-                result_text = "PROFIT"
-                result_icon = "✅"
-            elif current_price < entry:
-                result_text = "LOSS"
-                result_icon = "❌"
-            else:
-                result_text = "BREAKEVEN"
-                result_icon = "➖"
-        elif direction == "SELL":
-            if current_price < entry:
-                result_text = "PROFIT"
-                result_icon = "✅"
-            elif current_price > entry:
-                result_text = "LOSS"
-                result_icon = "❌"
-            else:
-                result_text = "BREAKEVEN"
-                result_icon = "➖"
+        if diff > 0.00001:
+            result_text = "PROFIT (Time Exit)"
+            result_icon = "🟢"
+        elif diff < -0.00001:
+            result_text = "LOSS (Time Exit)"
+            result_icon = "🔴"
         
         message = (
             f"{test_tag}⏱️ *CLOSED (Timeout)*\n\n"
@@ -310,7 +292,7 @@ class TelegramNotifierV2:
             f"{dir_emoji} {direction}\n\n"
             f"Entry: {entry}\n"
             f"Exit (Market): {current_price}\n\n"
-            f"Status: 🏁 CLOSED_TIMEOUT\n"
+            f"Status: 🏁 CLOSED\_TIMEOUT\n"
             f"Result: {result_icon} {result_text}\n"
             f"Reason: Trade exceeded max duration (35m)\n\n"
             f"System released for new signals."
@@ -327,18 +309,10 @@ class TelegramNotifierV2:
     def send_cancelled(self, signal: dict) -> Optional[int]:
         """
         Send CANCELLED message (State 6).
-        
-        Triggered when a signal expires without the entry price being hit.
-        
-        Args:
-            signal: Signal dict with entry_price, tp, sl, confidence, expiry_at
         """
         asset = signal.get("asset", "EURUSD").replace("/", "")
         timeframe = signal.get("timeframe", "M15")
         direction = signal.get("direction", "BUY")
-        entry = signal.get("entry_price", 0)
-        
-        # Direction emoji
         dir_emoji = "🟢" if direction == "BUY" else "🔴"
         
         test_tag = "[TEST] " if signal.get("is_test") else ""
@@ -348,14 +322,13 @@ class TelegramNotifierV2:
             f"{asset} | {timeframe}\n"
             f"{dir_emoji} {direction}\n\n"
             f"Status: 🏁 EXPIRED\n"
-            f"Result: ⚪ NOT_TRIGGERED\n"
+            f"Result: ⚪ NOT\_TRIGGERED\n"
             f"Reason: Entry price was not reached within 35m.\n\n"
             f"Signal removed from watchlist."
         )
         
         logger.info(f"Sending CANCELLED message for {asset}")
         
-        # If we have a telegram_message_id, reply to it
         msg_id = signal.get("telegram_message_id")
         if msg_id:
             return self.reply_to_message(msg_id, message)

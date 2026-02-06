@@ -39,12 +39,12 @@ def get_stuck_signals():
             
             is_stuck = False
             reason = ""
-            if state == "WAITING_FOR_ENTRY" and age_mins > 30:
+            if state == "WAITING_FOR_ENTRY" and age_mins > 35:
                 is_stuck = True
-                reason = f"Pending > 30m ({age_mins:.1f}m)"
-            elif state == "ENTRY_HIT" and age_mins > 90:
+                reason = f"Pending > 35m ({age_mins:.1f}m)"
+            elif state == "ENTRY_HIT" and age_mins > 35:
                 is_stuck = True
-                reason = f"Active > 90m ({age_mins:.1f}m)"
+                reason = f"Active > 35m ({age_mins:.1f}m)"
                 
             if is_stuck:
                 stuck_ids.append({"id": sig_id, "reason": reason, "asset": s.get('asset')})

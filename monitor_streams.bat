@@ -55,6 +55,10 @@ echo [DETAILED TELEMETRY] >> ..\logs\latest_diag.tmp
 ..\.venv\Scripts\python.exe check_detailed_telemetry.py >> ..\logs\latest_diag.tmp 2>&1
 
 echo. >> ..\logs\latest_diag.tmp
+echo [LIFECYCLE MONITORING] >> ..\logs\latest_diag.tmp
+..\.venv\Scripts\python.exe check_signal_lifecycle.py >> ..\logs\latest_diag.tmp 2>&1
+
+echo. >> ..\logs\latest_diag.tmp
 echo [TODAY SIGNALS] >> ..\logs\latest_diag.tmp
 ..\.venv\Scripts\python.exe check_today_signals.py >> ..\logs\latest_diag.tmp 2>&1
 popd

@@ -18,6 +18,13 @@ const UI_MANAGER = {
 
         navLinks.forEach(link => {
             const href = link.getAttribute('href');
+            
+            // Handle external links (like Tele Signal)
+            if (href.startsWith('http')) {
+                link.classList.remove('active');
+                return;
+            }
+
             const linkPage = href.split('/').pop();
 
             // Check if current page matches the link's target page

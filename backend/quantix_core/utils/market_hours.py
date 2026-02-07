@@ -39,9 +39,9 @@ class MarketHours:
             return False
             
         now = datetime.now(timezone.utc)
-        # Friday safety buffer (2 hours before close)
-        if now.weekday() == 4 and now.hour >= 20:
-            logger.warning("🕒 Market near weekend close. Skipping new signal generation.")
+        # Friday safety buffer (Market gets thin after 17:00 UTC)
+        if now.weekday() == 4 and now.hour >= 17:
+            logger.warning("🕒 Market liquidity dropping near weekend. Skipping new signal generation.")
             return False
             
         return True

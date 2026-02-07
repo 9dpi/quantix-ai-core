@@ -7,9 +7,9 @@ from quantix_core.config.settings import settings
 async def purge_all_mock():
     print("🧹 PURGING ALL MOCK/TEST DATA FROM SUPABASE...")
     try:
-        # 1. Clean fx_signals
-        db.client.table(settings.TABLE_SIGNALS).delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
-        print(f"✅ Supabase signals table cleaned.")
+        # 1. Clean fx_signals (ONLY is_test=True)
+        db.client.table(settings.TABLE_SIGNALS).delete().eq("is_test", True).execute()
+        print(f"✅ Supabase signals table cleaned (is_test=True only).")
         
         # 2. Clean fx_analysis_log
         db.client.table(settings.TABLE_ANALYSIS_LOG).delete().neq("id", 0).execute()

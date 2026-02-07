@@ -289,6 +289,7 @@ class ContinuousAnalyzer:
                 "ai_confidence": state.confidence,
                 "generated_at": now.isoformat(),
                 "explainability": f"Structure {state.state.upper()} | Strength {int(state.strength*100)}% | Entry offset: {offset_pips:.1f} pips",
+                "is_test": False,
             }
             
             # --- RELEASE CONFIDENCE REFINEMENT ---

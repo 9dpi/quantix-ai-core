@@ -124,8 +124,8 @@ class TelegramNotifierV2:
             f"Confidence: {confidence}%\n"
             f"Valid Until: {expiry_str}\n\n"
             f"⏱ *Entry valid:* 35 minutes\n"
-            f"⏱ *Max trade duration:* 35 minutes\n\n"
-            f"⚠️ Signal will auto-expire if entry is not reached within 35m."
+            f"⏱ *Max trade duration:* 90 minutes\n\n"
+            f"⚠️ Signal will auto-close if TP/SL not hit within 90m."
         )
         
         logger.info(f"Sending WAITING_FOR_ENTRY message for {asset}")

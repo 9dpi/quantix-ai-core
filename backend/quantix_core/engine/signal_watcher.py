@@ -33,7 +33,7 @@ class SignalWatcher:
         self,
         supabase_client: Client,
         td_client,
-        check_interval: int = 60,
+        check_interval: Optional[int] = None,
         telegram_notifier=None
     ):
         """
@@ -42,12 +42,12 @@ class SignalWatcher:
         Args:
             supabase_client: Supabase database client
             td_client: TwelveData API client for market data
-            check_interval: Seconds between checks (default 60)
+            check_interval: Seconds between checks (defaults to settings.WATCHER_CHECK_INTERVAL)
             telegram_notifier: Optional Telegram notification handler
         """
         self.db = supabase_client
         self.td_client = td_client
-        self.check_interval = check_interval
+        self.check_interval = check_interval or settings.WATCHER_CHECK_INTERVAL
         self.telegram = telegram_notifier
         self._running = False
         
@@ -232,46 +232,59 @@ class SignalWatcher:
     
     def check_signal(self, signal: dict, candle: dict):
         """
-        Check single signal for state transitions.
-        Priority 1: 30m Absolute Life Timeout
-        Priority 2: State-specific checks (Entry/TP/SL Touches)
+        Check single signal for state transitions based on OFFICIAL TIMING MAP v3.1
+        Strict Priority Order: 
+        WAITING: Entry Window -> Entry Hit
+        ACTIVE: TP/SL Hit -> 90m Duration Timeout
         """
         signal_id = signal.get("id")
         current_state = signal.get("state")
-        
-        # 1. TIMEOUT FAIL-SAFE (STRICT)
         now = datetime.now(timezone.utc)
         
         if current_state == "WAITING_FOR_ENTRY":
-            # Pending Timeout: 30m from birth
-            generated_at_str = signal.get("generated_at")
-            if generated_at_str:
-                generated_at = datetime.fromisoformat(generated_at_str.replace("Z", "+00:00"))
-                pending_mins = (now - generated_at).total_seconds() / 60
-                if pending_mins >= settings.MAX_PENDING_DURATION_MINUTES:
-                    logger.info(f"⏱️ Signal {signal_id} EXPIRED (Pending > {settings.MAX_PENDING_DURATION_MINUTES}m)")
-                    self.transition_to_cancelled(signal)
-                    return
+            # [1] ENTRY WINDOW CHECK
+            # Use 'valid_until' if present, fallback to generated_at + 35m
+            is_expired = False
+            valid_until_str = signal.get("valid_until")
+            if valid_until_str:
+                valid_until = datetime.fromisoformat(valid_until_str.replace("Z", "+00:00"))
+                if now > valid_until:
+                    is_expired = True
+            else:
+                gen_at_str = signal.get("generated_at")
+                if gen_at_str:
+                    gen_at = datetime.fromisoformat(gen_at_str.replace("Z", "+00:00"))
+                    if (now - gen_at).total_seconds() / 60 >= settings.MAX_PENDING_DURATION_MINUTES:
+                        is_expired = True
+            
+            if is_expired:
+                logger.info(f"⏱️ Signal {signal_id} CANCELLED (Entry Window Expired)")
+                self.transition_to_cancelled(signal)
+                return
 
+            # [2] ENTRY HIT CHECK
+            if candle and self.is_entry_touched(signal, candle):
+                self.transition_to_entry_hit(signal, candle)
+        
         elif current_state == "ENTRY_HIT":
-            # Active Timeout: 90m from activation (or birth if activation time missing)
+            # [3] TP / SL CHECK
+            if candle:
+                if self.is_tp_touched(signal, candle):
+                    self.transition_to_tp_hit(signal, candle)
+                    return
+                elif self.is_sl_touched(signal, candle):
+                    self.transition_to_sl_hit(signal, candle)
+                    return
+            
+            # [4] TRADE TIMEOUT (90m)
+            # Checked after TP/SL to ensure we don't miss a winner on the same candle
             start_time_str = signal.get("entry_hit_at") or signal.get("generated_at")
             if start_time_str:
                 start_time = datetime.fromisoformat(start_time_str.replace("Z", "+00:00"))
-                active_mins = (now - start_time).total_seconds() / 60
-                if active_mins >= settings.MAX_TRADE_DURATION_MINUTES:
-                    logger.info(f"⏱️ Signal {signal_id} CLOSED_TIMEOUT (Active > {settings.MAX_TRADE_DURATION_MINUTES}m)")
+                if (now - start_time).total_seconds() / 60 >= settings.MAX_TRADE_DURATION_MINUTES:
+                    logger.info(f"⏱️ Signal {signal_id} TIME_EXIT (Reached {settings.MAX_TRADE_DURATION_MINUTES}m limit)")
                     self.transition_to_time_exit(signal, candle)
                     return
-
-        # 2. State-specific checks (Only if candle is available)
-        if not candle:
-            return
-
-        if current_state == "WAITING_FOR_ENTRY":
-            self.check_waiting_signal(signal, candle)
-        elif current_state == "ENTRY_HIT":
-            self.check_entry_hit_signal(signal, candle)
 
     def check_waiting_signal(self, signal: dict, candle: dict):
         """Check if price touched entry level."""

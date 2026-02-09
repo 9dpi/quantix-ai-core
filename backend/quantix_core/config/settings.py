@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     
     # Heartbeat [T0+Δ]
     MONITOR_INTERVAL_SECONDS: int = 180  # Optimized for 800 req/day quota (1 req/180s)
-    WATCHER_CHECK_INTERVAL: int = 300   # Optimized for 800 req/day quota (1 req/300s)
+    WATCHER_CHECK_INTERVAL: int = 120   # Optimized for 120s scan per v3.1 rules
     
     # Supabase Database
     SUPABASE_URL: Optional[str] = None
@@ -48,7 +48,7 @@ class Settings(BaseSettings):
     MIN_CONFIDENCE: float = 0.65
     MAX_SIGNALS_PER_ASSET: int = 3
     MAX_PENDING_DURATION_MINUTES: int = 35  # Auto-expire if entry not hit within 35 mins
-    MAX_TRADE_DURATION_MINUTES: int = 35    # Auto-exit after 35 mins in trade
+    MAX_TRADE_DURATION_MINUTES: int = 90    # Auto-exit after 90 mins per v3.1 rules
     
     # 🔒 ANTI-BURST RULES
     MIN_RELEASE_INTERVAL_MINUTES: int = 30

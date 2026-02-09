@@ -131,21 +131,7 @@ class ContinuousAnalyzer:
                 self.last_execution_date = datetime.now(timezone.utc).date()
                 return res.data[0]['id']
         except Exception as e:
-            # 🛡️ Fallback for missing columns (Schema Resilience)
-            error_msg = str(e)
-            if "PGRST204" in error_msg and ("refinement_reason" in error_msg or "release_confidence" in error_msg):
-                logger.warning("⚠️ Supabase schema mismatch (missing refinement columns). Retrying without them...")
-                fallback_data = {k: v for k, v in signal_data.items() 
-                                 if k not in ["refinement_reason", "release_confidence"]}
-                try:
-                    res = db.client.table(settings.TABLE_SIGNALS).insert(fallback_data).execute()
-                    if res.data:
-                        logger.success("✅ Signal LOCKED (Fallback mode)")
-                        return res.data[0]['id']
-                except Exception as e2:
-                    logger.error(f"❌ Fallback LOCK also failed: {e2}")
-            else:
-                logger.error(f"❌ Failed to LOCK signal in [T1]: {e}")
+            logger.error(f"❌ Failed to LOCK signal in [T1]: {e}")
         return None
 
     def janitor_cleanup(self):
@@ -274,7 +260,10 @@ class ContinuousAnalyzer:
                 "status": "PREPARED",
                 "state": "PREPARED",  # Phase 1: Invisible to Watcher/UI
                 "entry_price": entry_price,     # Future entry (NOT market)
-                "expiry_at": expiry_at.isoformat(),  # 15 min expiry
+                "valid_until": expiry_at.isoformat(), # OFFICIAL TIMING v3.1
+                "expiry_at": expiry_at.isoformat(),   # Legacy support
+                "activation_limit_mins": settings.MAX_PENDING_DURATION_MINUTES,
+                "max_monitoring_mins": settings.MAX_TRADE_DURATION_MINUTES,
                 
                 # Legacy fields (for backward compatibility)
                 "entry_low": entry_price,

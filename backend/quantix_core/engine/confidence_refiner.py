@@ -10,7 +10,7 @@ class ConfidenceRefiner:
     
     def __init__(self):
         # Session Windows (UTC)
-        self.LONDON_OPEN = 8
+        self.LONDON_OPEN = 6
         self.LONDON_NY_OVERLAP_START = 13
         self.LONDON_CLOSE = 17
         self.NY_CLOSE = 22

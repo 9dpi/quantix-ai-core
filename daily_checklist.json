@@ -1,0 +1,22 @@
+{
+    "system_status": "OK",
+    "health_flags": {
+        "data_ok": true,
+        "core_ok": true,
+        "immutability_ok": true,
+        "agent_ok": true,
+        "feed_ok": true
+    },
+    "signal_stats": {
+        "total": 2,
+        "active": 0,
+        "expired": 2,
+        "tp_hit": 0,
+        "sl_hit": 0,
+        "auto_closed": 2,
+        "invalid": 0
+    },
+    "signal_flow": "NORMAL",
+    "last_check": "2026-02-10T08:18:16+07:00",
+    "not_ok_reason": ""
+}

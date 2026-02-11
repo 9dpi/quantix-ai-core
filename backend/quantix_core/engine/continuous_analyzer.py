@@ -122,10 +122,22 @@ class ContinuousAnalyzer:
     def lock_signal(self, signal_data: dict) -> Optional[str]:
         """LOCK signal with timestamp in Immutable Record [T1]"""
         try:
-            # Removed the mandatory telegram_message_id check to allow 'Database First' candidates
-            # Audit integrity requires saving even before we have a public proof anchor.
-                
-            res = db.client.table(settings.TABLE_SIGNALS).insert(signal_data).execute()
+            # Create a copy for DB insertion to avoid modifying the original dictionary used by Telegram
+            db_payload = signal_data.copy()
+            
+            # --- SCHEMA SANITIZATION ---
+            # 1. Preserve refinement explanation in explainability field
+            if "refinement_reason" in db_payload and db_payload.get("refinement_reason"):
+                # Append if not already present (check to avoid duplication)
+                if str(db_payload["refinement_reason"]) not in str(db_payload.get("explainability", "")):
+                    db_payload["explainability"] = f"{db_payload.get('explainability', '')} | {db_payload['refinement_reason']}"
+
+            # 2. Remove fields not in DB schema to prevent PGRST204 errors
+            for key in ["valid_until", "activation_limit_mins", "max_monitoring_mins", "refinement_reason"]:
+                if key in db_payload:
+                    del db_payload[key]
+
+            res = db.client.table(settings.TABLE_SIGNALS).insert(db_payload).execute()
             if res.data:
                 logger.info(f"🔒 Signal LOCKED in [T1]: {res.data[0]['id']} | Telegram: {signal_data.get('telegram_message_id', 'None')}")
                 self.last_execution_date = datetime.now(timezone.utc).date()

@@ -1,0 +1,323 @@
+Rule bất biến (IMMUTABLE RULE)
+
+Mọi kênh hiển thị (Web, Telegram, API)
+chỉ được phép đọc release_confidence từ Database
+→ không recompute, không fallback.
+
+Sau khi fix
+
+Telegram = Web = History = 1 giá trị duy nhất
+
+Confidence trở thành immutable evidence
+
+================================================================================
+QUANTIX ECOSYSTEM – OFFICIAL TIMING & RESPONSIBILITY MAP (v3.1 – UPDATED)
+================================================================================
+
+[TIME BASE]
+- Market Data: Binance EURUSDT (proxy EURUSD)
+- Candle Resolution: M15
+- Analyzer Scan Interval: 180s (3 minutes)
+- Watcher Scan Interval: 240s (4 minutes)
+- Entry Validity Window: 35 minutes (absolute)
+- Trade Max Duration (after entry): 90 minutes
+- Confidence: IMMUTABLE at RELEASE
+- London Session Start: 06:00 UTC (Early European liquidity)
+- London-NY Overlap: 13:00-17:00 UTC
+- Minimum Release Confidence: 65%
+
+--------------------------------------------------------------------------------
+1. QUANTIX AI CORE (Analyzer Layer)
+--------------------------------------------------------------------------------
+Trigger:
+- Runs on NEW CLOSED M15 candle
+- Uses HISTORICAL + CURRENT structure data
+
+Timing:
+- t0 = Candle Close (e.g. 12:00, 12:15, 12:30...)
+
+Process:
+- Pattern Detection
+- Structure Validation
+- Raw AI Confidence computed (0–100)
+- Apply filters:
+  - Session
+  - Volatility
+  - Risk Guard
+
+Output (ONCE ONLY):
+- release_confidence (final)
+- entry_price
+- tp
+- sl
+- valid_until = t0 + 35 minutes
+
+State Created:
+- WAITING_FOR_ENTRY
+
+Persistence:
+- Signal is WRITTEN to Database (immutable record)
+- Analyzer NEVER touches this signal again
+
+--------------------------------------------------------------------------------
+2. SIGNAL DATABASE (Source of Truth)
+--------------------------------------------------------------------------------
+At t0 + ε seconds:
+
+Stored fields (REQUIRED):
+- state = WAITING_FOR_ENTRY
+- release_confidence
+- generated_at
+- valid_until
+- entry / tp / sl
+- direction
+
+Rules:
+- No recompute
+- No overwrite
+- release_confidence is FINAL
+
+--------------------------------------------------------------------------------
+3. SIGNAL WATCHER (Live Market Observer)
+--------------------------------------------------------------------------------
+Loop:
+- Runs every 120 seconds
+- Uses Binance LIVE price (last 2 M15 candles = 30m window)
+
+Observes ONLY:
+- Price
+- Time
+
+DOES NOT:
+- Recalculate confidence
+- Modify entry/tp/sl
+
+Logic Priority (STRICT ORDER):
+
+[1] ENTRY WINDOW CHECK
+- If now > valid_until
+- AND state == WAITING_FOR_ENTRY
+→ Transition: CANCELLED (EXPIRED_NO_ENTRY)
+
+[2] ENTRY HIT CHECK
+- If price touches entry (using merged High/Low of last 2 candles)
+→ Transition: ENTRY_HIT
+→ entry_hit_at = now
+
+[3] TP / SL CHECK (only after ENTRY_HIT)
+- If TP touched → TP_HIT → CLOSE
+- If SL touched → SL_HIT → CLOSE
+
+[4] TRADE TIMEOUT
+- If ENTRY_HIT and now > entry_hit_at + 90m
+→ TIME_EXIT → CLOSE
+
+--------------------------------------------------------------------------------
+4. TELEGRAM SIGNAL BOT
+--------------------------------------------------------------------------------
+Trigger:
+- LISTENS to DB state transitions (or watcher callbacks)
+
+Timing:
+- Entry Signal:
+  - Sent immediately after DB confirms WAITING_FOR_ENTRY
+
+- Entry Hit:
+  - Sent immediately after state == ENTRY_HIT
+
+- Close Events:
+  - TP_HIT / SL_HIT / TIME_EXIT / CANCELLED
+
+Rules:
+- Telegram NEVER calculates confidence
+- Telegram ONLY reads release_confidence from DB
+- Telegram is NOT a source of truth
+
+--------------------------------------------------------------------------------
+5. SIGNALGENIUSAI.COM (Dashboard / History)
+--------------------------------------------------------------------------------
+Update Loop:
+- Polls Database every N seconds (or via realtime)
+
+Displays:
+- ONLY release_confidence
+- NEVER raw_ai_confidence
+
+UI Timing Rules:
+- When state == WAITING_FOR_ENTRY:
+    Show confidence + entry info
+
+- When state == ENTRY_HIT:
+    Show confidence (frozen at release)
+
+- When state IN (CANCELLED, TP_HIT, SL_HIT, TIME_EXIT):
+    Hide or grey confidence
+    Show CLOSE_REASON instead
+
+IMPORTANT:
+- Dashboard must NEVER infer or recompute anything
+
+--------------------------------------------------------------------------------
+6. HISTORY / TELEINDEX / PUBLIC INDEX
+--------------------------------------------------------------------------------
+Timing:
+- Updated AFTER signal reaches terminal state
+
+Stores:
+- release_confidence
+- entry_hit_at (if any)
+- close_reason
+- close_time
+
+DOES NOT:
+- Aggregate win rate
+- Show performance metrics
+- Rank signals
+
+Purpose:
+- Evidence
+- Audit
+- Immutability proof
+
+--------------------------------------------------------------------------------
+7. TELEINDEX LOOP (Public / External)
+--------------------------------------------------------------------------------
+Trigger:
+- On signal CLOSE only
+
+Timing:
+- t_close + aggregation delay
+
+Consumes:
+- FINAL signal record only
+
+Never uses:
+- Raw AI score
+- Live watcher data
+- Telegram cache
+
+--------------------------------------------------------------------------------
+END STATE GUARANTEE
+--------------------------------------------------------------------------------
+At any time:
+- Telegram == Dashboard https://github.com/9dpi/telesignal == https://github.com/9dpi/quantix-live-execution == History https://github.com/9dpi/telesignal == https://github.com/9dpi/quantix-live-execution
+- 1 signal → 1 confidence → immutable
+- No timing race between candle close & watcher scan
+- No UI shows "100%" unless it was truly released as 100%
+
+================================================================================
+```text
+8. DATA INTEGRITY AUDIT
+--------------------------------------------------------------------------------
+- Automated cross-check: Signal Store ↔ TeleIndex ↔ Dashboard.
+- Discrepancy > 0% triggers Critical System Alert.
+
+9. VERSIONING & RETROACTIVITY
+--------------------------------------------------------------------------------
+- Engine logic updates NEVER apply retroactively to closed signals.
+- History = Immutable truth
+
+10. SCHEMA VALIDATION & SANITIZATION
+--------------------------------------------------------------------------------
+Database Schema (fx_signals table):
+REQUIRED FIELDS:
+- id (uuid, auto-generated)
+- asset (text)
+- direction (text: BUY/SELL)
+- timeframe (text: M15)
+- status (text: PUBLISHED/EXPIRED/ACTIVE)
+- state (text: WAITING_FOR_ENTRY/ENTRY_HIT/TP_HIT/SL_HIT/TIME_EXIT/CANCELLED)
+- entry_price (numeric)
+- tp (numeric)
+- sl (numeric)
+- ai_confidence (numeric, 0-1)
+- release_confidence (numeric, 0-1) ← IMMUTABLE
+- generated_at (timestamp)
+- expiry_at (timestamp)
+- is_test (boolean)
+
+OPTIONAL FIELDS:
+- strength (numeric)
+- reward_risk_ratio (numeric)
+- entry_low (numeric)
+- entry_high (numeric)
+- entry_hit_at (timestamp)
+- closed_at (timestamp)
+- result (text)
+- telegram_message_id (integer)
+- explainability (text)
+- strategy (text)
+- confidence_grade (text)
+- disclaimer (text)
+
+FIELDS NOT IN SCHEMA (must be filtered before DB insert):
+- valid_until (use expiry_at instead)
+- activation_limit_mins (meta field, not stored)
+- max_monitoring_mins (meta field, not stored)
+- refinement_reason (append to explainability field)
+
+Sanitization Rules:
+1. Copy signal_data before DB operations to preserve original for Telegram
+2. Remove all non-schema fields from DB payload
+3. Merge refinement_reason into explainability if present
+4. Ensure all REQUIRED fields are present
+5. Validate numeric ranges (confidence: 0-1, prices > 0)
+
+11. ERROR HANDLING & RECOVERY
+--------------------------------------------------------------------------------
+Database Insert Failures:
+- Log error with full context (signal_id, timestamp, error message)
+- DO NOT retry automatically (prevents duplicate signals)
+- Alert admin via Telegram if critical
+- Preserve original signal data for manual recovery
+
+Schema Mismatch Errors (PGRST204):
+- Indicates field not in database schema
+- Trigger: Immediate schema validation audit
+- Action: Update sanitization logic to filter the field
+- Prevention: Maintain schema documentation in sync with code
+
+Telegram Broadcast Failures:
+- Signal is already in DB (Database First approach)
+- Log warning but do not block pipeline
+- Retry once after 5 seconds
+- If still fails: Mark signal with telegram_message_id = NULL
+- Admin can manually resend via /resend command
+
+Market Data Fetch Failures:
+- Watcher: Skip touch detection, proceed with timeout checks only
+- Analyzer: Skip cycle, wait for next interval
+- Alert if failures exceed 3 consecutive cycles
+
+Constraint Violations:
+- chk_state_valid: Ensure state matches allowed values
+- Status must be PUBLISHED for WAITING_FOR_ENTRY state
+- Validate before insert, not after
+
+Recovery Procedures:
+1. Stuck Pipeline: Run janitor_cleanup() to auto-expire old signals
+2. Missing Signals: Check analyzer logs for lock_signal errors
+3. Duplicate Signals: Verify anti-burst gate is active
+4. Zero Confidence Display: Verify release_confidence is not NULL in DB
+
+12. MONITORING & ALERTING
+--------------------------------------------------------------------------------
+Critical Alerts (Telegram Admin):
+- DB connection failure
+- Schema mismatch errors
+- Signal lock failures > 2 consecutive
+- TwelveData API quota exceeded
+- Watcher stopped unexpectedly
+
+Daily Health Checks:
+- Verify at least 1 analysis log per hour during market hours
+- Check no signals stuck in WAITING_FOR_ENTRY > 35 mins
+- Confirm release_confidence is never NULL for PUBLISHED signals
+- Validate Telegram == Dashboard == History confidence values
+
+Performance Metrics:
+- Analyzer cycle time: < 10 seconds
+- Watcher cycle time: < 5 seconds
+- DB query latency: < 500ms
+- Signal generation rate: 1-5 per day (quality over quantity)
+

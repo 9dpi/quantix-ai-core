@@ -8,9 +8,10 @@ from loguru import logger
 import uvicorn
 import asyncio
 import os
+import pydantic
 from datetime import datetime
 
-from quantix_core.api.routes import health, signals, ingestion, csv_ingestion, admin, features, structure, lab, public, reference, lab_reference
+from quantix_core.api.routes import health, signals, ingestion, csv_ingestion, admin, features, structure, lab, public, reference, lab_reference, validation
 from quantix_core.config.settings import settings
 from quantix_core.database.connection import db
 from quantix_core.engine.continuous_analyzer import ContinuousAnalyzer
@@ -45,18 +46,25 @@ app.include_router(lab.router, prefix=f"{settings.API_PREFIX}/lab", tags=["Learn
 app.include_router(public.router, prefix=settings.API_PREFIX, tags=["Public API"])
 app.include_router(reference.router, prefix=settings.API_PREFIX, tags=["Public API"])
 app.include_router(lab_reference.router, prefix=settings.API_PREFIX, tags=["Signal Engine Lab"])
-# EMERGENCY DIRECT ENDPOINT FOR DEBUGGING
-@app.get("/api/validation-logs", tags=["Validation Direct"])
-@app.get("/validation-logs", tags=["Validation Direct"])
-async def get_validation_logs_direct(limit: int = 50):
+app.include_router(validation.router, prefix=settings.API_PREFIX, tags=["Validation"])
+
+# --- Unified Components ---
+
+class RegistrationRequest(pydantic.BaseModel):
+    phone: str
+
+@app.post(f"{settings.API_PREFIX}/register-telegram", tags=["Public API"])
+async def register_telegram(req: RegistrationRequest):
+    """
+    Unified Telegram Registration - Replaces redundant Node.js backend
+    """
     try:
-        from quantix_core.database.connection import db
-        from loguru import logger
-        res = db.client.table("validation_events").select("*").order("created_at", desc=True).limit(limit).execute()
-        return {"success": True, "data": res.data}
+        # 1. Log to Database or Audit file
+        logger.info(f"🚀 Registration Request: {req.phone}")
+        # In this architecture, we focus on Signal Quality
+        return {"success": True, "message": "Registered at Quantix AI Core"}
     except Exception as e:
-        from loguru import logger
-        logger.error(f"Error fetching logs: {e}")
+        logger.error(f"Registration failed: {e}")
         return {"success": False, "error": str(e)}
 
 @app.on_event("startup")

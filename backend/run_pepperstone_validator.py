@@ -119,48 +119,51 @@ class PepperstoneValidator:
     
     def fetch_pepperstone_feed(self) -> Optional[Dict]:
         """
-        Fetch current market data from Pepperstone feed
-        
-        TODO: Implement actual Pepperstone API connection
-        Options:
-        1. MT5 API (MetaTrader5 Python package)
-        2. cTrader Open API
-        3. FIX API (advanced)
-        
-        For now, using Binance as proxy (same as main system)
+        Fetch current market data from Pepperstone feed (Binance proxy)
+        Tries multiple endpoints to avoid regional blocks.
         """
-        try:
-            import requests
-            
-            # Binance EURUSDT as proxy (replace with Pepperstone API)
-            url = "https://api.binance.com/api/v3/klines"
-            params = {
-                "symbol": "EURUSDT",
-                "interval": "1m",  # Use 1m for precise validation
-                "limit": 5
-            }
-            
-            response = requests.get(url, params=params, timeout=5)
-            data = response.json()
-            
-            if not data:
-                return None
-            
-            # Get latest candle
-            latest = data[-1]
-            
-            return {
-                "timestamp": datetime.fromtimestamp(latest[0]/1000, tz=timezone.utc),
-                "open": float(latest[1]),
-                "high": float(latest[2]),
-                "low": float(latest[3]),
-                "close": float(latest[4]),
-                "source": self.feed_source
-            }
+        import requests
         
-        except Exception as e:
-            logger.error(f"Error fetching Pepperstone feed: {e}")
-            return None
+        # List of endpoints to try
+        endpoints = [
+            "https://api.binance.com/api/v3/klines",       # Global
+            "https://api.binance.us/api/v3/klines",        # US (Railway)
+            "https://data-api.binance.vision/api/v3/klines" # Developer API
+        ]
+        
+        params = {
+            "symbol": "EURUSDT",
+            "interval": "1m",
+            "limit": 5
+        }
+        
+        for url in endpoints:
+            try:
+                response = requests.get(url, params=params, timeout=5)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    if not data:
+                        continue
+                    
+                    # Get latest candle
+                    latest = data[-1]
+                    
+                    return {
+                        "timestamp": datetime.fromtimestamp(latest[0]/1000, tz=timezone.utc),
+                        "open": float(latest[1]),
+                        "high": float(latest[2]),
+                        "low": float(latest[3]),
+                        "close": float(latest[4]),
+                        "source": f"binance_proxy ({url})"
+                    }
+            except Exception as e:
+                logger.warning(f"Failed to fetch from {url}: {e}")
+                continue
+        
+        logger.error("All Binance endpoints failed.")
+        return None
     
     def validate_signal(self, signal: Dict, market_data: Dict):
         """

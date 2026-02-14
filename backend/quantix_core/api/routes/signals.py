@@ -117,6 +117,30 @@ async def list_signals(
         logger.error(f"Failed to list signals: {e}")
         return []
 
+@router.get("/latest")
+async def get_latest_unified():
+    """
+    Unified Endpoint for all Frontends (Telesignal & Live Execution)
+    Returns { active: single_obj, history: list }
+    """
+    try:
+        # 1. Fetch Active
+        active_query = "SELECT * FROM fx_signals WHERE state IN ('WAITING_FOR_ENTRY', 'ENTRY_HIT') AND telegram_message_id IS NOT NULL ORDER BY generated_at DESC LIMIT 1"
+        active_res = await db.fetch(active_query)
+        
+        # 2. Fetch History
+        hist_query = "SELECT * FROM fx_signals WHERE state NOT IN ('WAITING_FOR_ENTRY', 'ENTRY_HIT') AND telegram_message_id IS NOT NULL ORDER BY generated_at DESC LIMIT 50"
+        hist_res = await db.fetch(hist_query)
+        
+        return {
+            "success": True,
+            "active": active_res[0] if active_res else None,
+            "history": hist_res
+        }
+    except Exception as e:
+        logger.error(f"Failed to fetch latest unified: {e}")
+        return {"success": False, "error": str(e)}
+
 @router.get("/active", response_model=List[SignalOutput])
 async def get_active_signals():
     """

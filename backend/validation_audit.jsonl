@@ -110,3 +110,7 @@
 2026-02-14 14:00:19 | ERROR | Error fetching signals: 'NoneType' object has no attribute 'table'
 2026-02-14 14:01:19 | WARNING | ⚠️ SUPABASE_URL or Key is missing!
 2026-02-14 14:01:19 | ERROR | Error fetching signals: 'NoneType' object has no attribute 'table'
+2026-02-14 14:02:19 | WARNING | ⚠️ SUPABASE_URL or Key is missing!
+2026-02-14 14:02:19 | ERROR | Error fetching signals: 'NoneType' object has no attribute 'table'
+2026-02-14 14:03:19 | WARNING | ⚠️ SUPABASE_URL or Key is missing!
+2026-02-14 14:03:19 | ERROR | Error fetching signals: 'NoneType' object has no attribute 'table'

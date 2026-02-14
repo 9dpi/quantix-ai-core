@@ -175,7 +175,6 @@ class PepperstoneValidator:
         """
         signal_id = signal.get("id")
         state = signal.get("state")
-        direction = signal.get("direction")
         
         # Initialize tracking if new signal
         if signal_id not in self.tracked_signals:
@@ -215,23 +214,34 @@ class PepperstoneValidator:
         # Compare with main system's state
         main_system_triggered = (signal.get("state") == "ENTRY_HIT")
         
+        # CASE 1: Mismatch detected
         if pepperstone_triggered != main_system_triggered:
             discrepancy = {
                 "type": "ENTRY_MISMATCH",
                 "signal_id": signal["id"],
+                "asset": signal.get("asset", "EURUSD"),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "pepperstone_says": "TRIGGERED" if pepperstone_triggered else "NOT_TRIGGERED",
                 "main_system_says": "TRIGGERED" if main_system_triggered else "NOT_TRIGGERED",
                 "entry_price": entry_price,
+                "market_price": market_data["close"],
                 "market_high": market_data["high"],
                 "market_low": market_data["low"],
-                "direction": direction
+                "direction": direction,
+                "details": {
+                    "entry_price": entry_price,
+                    "market_high": market_data["high"],
+                    "market_low": market_data["low"]
+                }
             }
             
             tracking["discrepancies"].append(discrepancy)
-            self.log_discrepancy(discrepancy)
+            self.log_discrepancy(discrepancy, market_data)
         
-        tracking["entry_validated"] = True
+        # CASE 2: Positive Confirmation (Both agree it triggered)
+        elif pepperstone_triggered and main_system_triggered:
+            self.log_validation_checkpoint(signal, "ENTRY", market_data)
+            tracking["entry_validated"] = True
     
     def validate_tp_sl(self, signal: Dict, market_data: Dict, tracking: Dict):
         """Validate TP/SL hits"""
@@ -258,16 +268,23 @@ class PepperstoneValidator:
             discrepancy = {
                 "type": "TP_MISMATCH",
                 "signal_id": signal["id"],
+                "asset": signal.get("asset", "EURUSD"),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "pepperstone_says": "TP_HIT",
                 "main_system_says": main_state,
                 "tp_price": tp,
+                "market_price": market_data["close"],
                 "market_high": market_data["high"],
-                "market_low": market_data["low"]
+                "market_low": market_data["low"],
+                "details": {"tp": tp, "high": market_data["high"], "low": market_data["low"]}
             }
             
             tracking["discrepancies"].append(discrepancy)
-            self.log_discrepancy(discrepancy)
+            self.log_discrepancy(discrepancy, market_data)
+            tracking["tp_validated"] = True
+            
+        elif pepperstone_tp_hit and main_state == "TP_HIT" and not tracking["tp_validated"]:
+            self.log_validation_checkpoint(signal, "TP", market_data)
             tracking["tp_validated"] = True
         
         # SL validation
@@ -275,30 +292,74 @@ class PepperstoneValidator:
             discrepancy = {
                 "type": "SL_MISMATCH",
                 "signal_id": signal["id"],
+                "asset": signal.get("asset", "EURUSD"),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "pepperstone_says": "SL_HIT",
                 "main_system_says": main_state,
                 "sl_price": sl,
+                "market_price": market_data["close"],
                 "market_high": market_data["high"],
-                "market_low": market_data["low"]
+                "market_low": market_data["low"],
+                "details": {"sl": sl, "high": market_data["high"], "low": market_data["low"]}
             }
             
             tracking["discrepancies"].append(discrepancy)
-            self.log_discrepancy(discrepancy)
+            self.log_discrepancy(discrepancy, market_data)
+            tracking["sl_validated"] = True
+            
+        elif pepperstone_sl_hit and main_state == "SL_HIT" and not tracking["sl_validated"]:
+            self.log_validation_checkpoint(signal, "SL", market_data)
             tracking["sl_validated"] = True
     
-    def log_discrepancy(self, discrepancy: Dict):
-        """Log discrepancy to JSONL file or database"""
+    def log_discrepancy(self, discrepancy: Dict, candle_data: Dict = None):
+        """Log discrepancy to Database (for Self-Learning) and Logs"""
+        # 1. Log to Console/File (Fast Alert)
         logger.warning(f"⚠️  DISCREPANCY: {discrepancy['type']} for signal {discrepancy['signal_id']}")
         
-        # For Railway: Log to stdout (Railway captures this)
         if IS_RAILWAY:
             logger.info(f"DISCREPANCY_DATA: {json.dumps(discrepancy)}")
         else:
-            # For Local: Write to JSONL file
             discrepancy_file = Path(__file__).parent / "validation_discrepancies.jsonl"
             with open(discrepancy_file, "a") as f:
                 f.write(json.dumps(discrepancy) + "\n")
+
+        # 2. Log to Database (Deep Learning Feed)
+        try:
+            event_data = {
+                "signal_id": discrepancy.get("signal_id"),
+                "asset": discrepancy.get("asset", "EURUSD"),
+                "feed_source": candle_data.get("source", "unknown") if candle_data else "unknown",
+                "validator_price": candle_data.get("close", 0) if candle_data else 0,
+                "validator_candle": candle_data,
+                "check_type": discrepancy.get("type", "UNKNOWN"),
+                "main_system_state": discrepancy.get("main_system_says", "UNKNOWN"),
+                "is_discrepancy": True,
+                "discrepancy_type": discrepancy.get("type"),
+                "meta_data": discrepancy.get("details", {})
+            }
+            
+            self.db.client.table("validation_events").insert(event_data).execute()
+            logger.success(f"💾 Discrepancy saved to DB for AI Learning (Signal {discrepancy['signal_id']})")
+        except Exception as e:
+            logger.error(f"❌ Failed to save learning data to DB: {e}")
+
+    def log_validation_checkpoint(self, signal: Dict, check_type: str, candle: Dict):
+        """Log successful validation checkpoints (Positive Reinforcement Learning)"""
+        try:
+            event_data = {
+                "signal_id": signal.get("id"),
+                "asset": signal.get("asset", "EURUSD"),
+                "feed_source": candle.get("source", "unknown"),
+                "validator_price": candle.get("close", 0),
+                "validator_candle": candle,
+                "check_type": check_type,
+                "main_system_state": signal.get("state"),
+                "is_discrepancy": False,
+                "meta_data": {"confidence": "HIGH", "match": True}
+            }
+            self.db.client.table("validation_events").insert(event_data).execute()
+        except Exception as e:
+            pass  # Silent fail for positive checks
 
 
 def main():
@@ -308,9 +369,8 @@ def main():
     print("=" * 80)
     print()
     print("This layer runs in parallel with the main system.")
-    print("It validates signals using Pepperstone feed and logs discrepancies.")
-    print()
-    print("Press Ctrl+C to stop.")
+    print("It validates signals against Pepperstone feed.")
+    print("DATA PERSISTENCE: Enabled (saving to Supabase for Self-Learning)")
     print()
     
     validator = PepperstoneValidator(feed_source="binance_proxy")

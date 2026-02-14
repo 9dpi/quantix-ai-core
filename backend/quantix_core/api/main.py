@@ -10,7 +10,7 @@ import asyncio
 import os
 from datetime import datetime
 
-from quantix_core.api.routes import health, signals, ingestion, csv_ingestion, admin, features, structure, lab, public, reference, lab_reference, validation
+from quantix_core.api.routes import health, signals, ingestion, csv_ingestion, admin, features, structure, lab, public, reference, lab_reference
 from quantix_core.config.settings import settings
 from quantix_core.database.connection import db
 from quantix_core.engine.continuous_analyzer import ContinuousAnalyzer
@@ -45,7 +45,19 @@ app.include_router(lab.router, prefix=f"{settings.API_PREFIX}/lab", tags=["Learn
 app.include_router(public.router, prefix=settings.API_PREFIX, tags=["Public API"])
 app.include_router(reference.router, prefix=settings.API_PREFIX, tags=["Public API"])
 app.include_router(lab_reference.router, prefix=settings.API_PREFIX, tags=["Signal Engine Lab"])
-app.include_router(validation.router, prefix=settings.API_PREFIX, tags=["Validation"])
+# EMERGENCY DIRECT ENDPOINT FOR DEBUGGING
+@app.get("/api/validation-logs", tags=["Validation Direct"])
+@app.get("/validation-logs", tags=["Validation Direct"])
+async def get_validation_logs_direct(limit: int = 50):
+    try:
+        from quantix_core.database.connection import db
+        from loguru import logger
+        res = db.client.table("validation_events").select("*").order("created_at", desc=True).limit(limit).execute()
+        return {"success": True, "data": res.data}
+    except Exception as e:
+        from loguru import logger
+        logger.error(f"Error fetching logs: {e}")
+        return {"success": False, "error": str(e)}
 
 @app.on_event("startup")
 async def startup_event():

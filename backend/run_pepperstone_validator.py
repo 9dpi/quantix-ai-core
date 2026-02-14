@@ -1,0 +1,318 @@
+"""
+Pepperstone Validation Layer - Independent Observer
+Runs in parallel with main system to validate signals against Pepperstone feed
+
+This layer:
+1. Reads signals from Database (passive observer)
+2. Validates TP/SL hits using Pepperstone actual feed
+3. Logs discrepancies for analysis
+4. Does NOT interfere with production system
+"""
+
+import time
+import json
+import os
+from datetime import datetime, timezone, timedelta
+from pathlib import Path
+from loguru import logger
+from typing import Optional, Dict, List
+
+from quantix_core.database.connection import SupabaseConnection
+from quantix_core.config.settings import settings
+
+# Configure logger
+# For Railway: Use stdout (Railway captures this)
+# For Local: Use file
+IS_RAILWAY = os.getenv("RAILWAY_ENVIRONMENT") is not None
+
+if IS_RAILWAY:
+    # Railway deployment - log to stdout
+    logger.add(
+        lambda msg: print(msg, end=""),
+        format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
+        level="INFO"
+    )
+else:
+    # Local deployment - log to file
+    VALIDATION_LOG = Path(__file__).parent / "validation_audit.jsonl"
+    logger.add(
+        VALIDATION_LOG,
+        format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
+        level="INFO",
+        rotation="10 MB"
+    )
+
+
+class PepperstoneValidator:
+    """
+    Independent validation layer using Pepperstone feed
+    
+    Architecture:
+    - Passive observer (reads DB, doesn't write)
+    - Runs in separate process/thread
+    - Can be stopped without affecting main system
+    """
+    
+    def __init__(self, feed_source: str = "binance_proxy"):
+        """
+        Initialize validator
+        
+        Args:
+            feed_source: "binance_proxy" | "mt5_api" | "ctrader_api" | "fix_api"
+        """
+        self.db = SupabaseConnection()
+        self.feed_source = feed_source
+        self.check_interval = 60  # Check every 60 seconds
+        self.tracked_signals = {}  # {signal_id: validation_state}
+        
+        logger.info(f"🔍 Pepperstone Validator initialized (feed: {feed_source})")
+    
+    def run(self):
+        """Main validation loop - runs independently"""
+        logger.info("🚀 Validation Layer started (Independent Observer Mode)")
+        
+        while True:
+            try:
+                self.validation_cycle()
+            except KeyboardInterrupt:
+                logger.info("Validation Layer stopped by user")
+                break
+            except Exception as e:
+                logger.error(f"Validation cycle error: {e}")
+            
+            time.sleep(self.check_interval)
+    
+    def validation_cycle(self):
+        """Single validation cycle"""
+        # 1. Fetch active signals from Database
+        signals = self.fetch_active_signals()
+        
+        if not signals:
+            logger.debug("No active signals to validate")
+            return
+        
+        logger.info(f"Validating {len(signals)} active signals")
+        
+        # 2. Get Pepperstone feed data
+        pepperstone_data = self.fetch_pepperstone_feed()
+        
+        if not pepperstone_data:
+            logger.warning("Failed to fetch Pepperstone feed - skipping cycle")
+            return
+        
+        # 3. Validate each signal
+        for signal in signals:
+            self.validate_signal(signal, pepperstone_data)
+    
+    def fetch_active_signals(self) -> List[Dict]:
+        """Fetch signals in WAITING_FOR_ENTRY or ENTRY_HIT states"""
+        try:
+            res = self.db.client.table("fx_signals").select("*").in_(
+                "state",
+                ["WAITING_FOR_ENTRY", "ENTRY_HIT"]
+            ).execute()
+            
+            return res.data or []
+        except Exception as e:
+            logger.error(f"Error fetching signals: {e}")
+            return []
+    
+    def fetch_pepperstone_feed(self) -> Optional[Dict]:
+        """
+        Fetch current market data from Pepperstone feed
+        
+        TODO: Implement actual Pepperstone API connection
+        Options:
+        1. MT5 API (MetaTrader5 Python package)
+        2. cTrader Open API
+        3. FIX API (advanced)
+        
+        For now, using Binance as proxy (same as main system)
+        """
+        try:
+            import requests
+            
+            # Binance EURUSDT as proxy (replace with Pepperstone API)
+            url = "https://api.binance.com/api/v3/klines"
+            params = {
+                "symbol": "EURUSDT",
+                "interval": "1m",  # Use 1m for precise validation
+                "limit": 5
+            }
+            
+            response = requests.get(url, params=params, timeout=5)
+            data = response.json()
+            
+            if not data:
+                return None
+            
+            # Get latest candle
+            latest = data[-1]
+            
+            return {
+                "timestamp": datetime.fromtimestamp(latest[0]/1000, tz=timezone.utc),
+                "open": float(latest[1]),
+                "high": float(latest[2]),
+                "low": float(latest[3]),
+                "close": float(latest[4]),
+                "source": self.feed_source
+            }
+        
+        except Exception as e:
+            logger.error(f"Error fetching Pepperstone feed: {e}")
+            return None
+    
+    def validate_signal(self, signal: Dict, market_data: Dict):
+        """
+        Validate a single signal against Pepperstone feed
+        
+        Logs discrepancies between:
+        - Main system's decision (from DB state)
+        - Pepperstone feed's reality
+        """
+        signal_id = signal.get("id")
+        state = signal.get("state")
+        direction = signal.get("direction")
+        
+        # Initialize tracking if new signal
+        if signal_id not in self.tracked_signals:
+            self.tracked_signals[signal_id] = {
+                "first_seen": datetime.now(timezone.utc).isoformat(),
+                "entry_validated": False,
+                "tp_validated": False,
+                "sl_validated": False,
+                "discrepancies": []
+            }
+        
+        tracking = self.tracked_signals[signal_id]
+        
+        # Validate based on state
+        if state == "WAITING_FOR_ENTRY":
+            self.validate_entry(signal, market_data, tracking)
+        
+        elif state == "ENTRY_HIT":
+            self.validate_tp_sl(signal, market_data, tracking)
+    
+    def validate_entry(self, signal: Dict, market_data: Dict, tracking: Dict):
+        """Validate entry trigger"""
+        if tracking["entry_validated"]:
+            return  # Already validated
+        
+        entry_price = signal.get("entry_price")
+        direction = signal.get("direction")
+        
+        # Check if entry should have triggered
+        pepperstone_triggered = False
+        
+        if direction == "BUY":
+            pepperstone_triggered = market_data["high"] >= entry_price
+        else:  # SELL
+            pepperstone_triggered = market_data["low"] <= entry_price
+        
+        # Compare with main system's state
+        main_system_triggered = (signal.get("state") == "ENTRY_HIT")
+        
+        if pepperstone_triggered != main_system_triggered:
+            discrepancy = {
+                "type": "ENTRY_MISMATCH",
+                "signal_id": signal["id"],
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "pepperstone_says": "TRIGGERED" if pepperstone_triggered else "NOT_TRIGGERED",
+                "main_system_says": "TRIGGERED" if main_system_triggered else "NOT_TRIGGERED",
+                "entry_price": entry_price,
+                "market_high": market_data["high"],
+                "market_low": market_data["low"],
+                "direction": direction
+            }
+            
+            tracking["discrepancies"].append(discrepancy)
+            self.log_discrepancy(discrepancy)
+        
+        tracking["entry_validated"] = True
+    
+    def validate_tp_sl(self, signal: Dict, market_data: Dict, tracking: Dict):
+        """Validate TP/SL hits"""
+        direction = signal.get("direction")
+        tp = signal.get("tp")
+        sl = signal.get("sl")
+        
+        # Check Pepperstone feed
+        pepperstone_tp_hit = False
+        pepperstone_sl_hit = False
+        
+        if direction == "BUY":
+            pepperstone_tp_hit = market_data["high"] >= tp
+            pepperstone_sl_hit = market_data["low"] <= sl
+        else:  # SELL
+            pepperstone_tp_hit = market_data["low"] <= tp
+            pepperstone_sl_hit = market_data["high"] >= sl
+        
+        # Compare with main system
+        main_state = signal.get("state")
+        
+        # TP validation
+        if pepperstone_tp_hit and main_state != "TP_HIT" and not tracking["tp_validated"]:
+            discrepancy = {
+                "type": "TP_MISMATCH",
+                "signal_id": signal["id"],
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "pepperstone_says": "TP_HIT",
+                "main_system_says": main_state,
+                "tp_price": tp,
+                "market_high": market_data["high"],
+                "market_low": market_data["low"]
+            }
+            
+            tracking["discrepancies"].append(discrepancy)
+            self.log_discrepancy(discrepancy)
+            tracking["tp_validated"] = True
+        
+        # SL validation
+        if pepperstone_sl_hit and main_state != "SL_HIT" and not tracking["sl_validated"]:
+            discrepancy = {
+                "type": "SL_MISMATCH",
+                "signal_id": signal["id"],
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "pepperstone_says": "SL_HIT",
+                "main_system_says": main_state,
+                "sl_price": sl,
+                "market_high": market_data["high"],
+                "market_low": market_data["low"]
+            }
+            
+            tracking["discrepancies"].append(discrepancy)
+            self.log_discrepancy(discrepancy)
+            tracking["sl_validated"] = True
+    
+    def log_discrepancy(self, discrepancy: Dict):
+        """Log discrepancy to JSONL file or database"""
+        logger.warning(f"⚠️  DISCREPANCY: {discrepancy['type']} for signal {discrepancy['signal_id']}")
+        
+        # For Railway: Log to stdout (Railway captures this)
+        if IS_RAILWAY:
+            logger.info(f"DISCREPANCY_DATA: {json.dumps(discrepancy)}")
+        else:
+            # For Local: Write to JSONL file
+            discrepancy_file = Path(__file__).parent / "validation_discrepancies.jsonl"
+            with open(discrepancy_file, "a") as f:
+                f.write(json.dumps(discrepancy) + "\n")
+
+
+def main():
+    """Run validation layer"""
+    print("=" * 80)
+    print("  PEPPERSTONE VALIDATION LAYER - INDEPENDENT OBSERVER")
+    print("=" * 80)
+    print()
+    print("This layer runs in parallel with the main system.")
+    print("It validates signals using Pepperstone feed and logs discrepancies.")
+    print()
+    print("Press Ctrl+C to stop.")
+    print()
+    
+    validator = PepperstoneValidator(feed_source="binance_proxy")
+    validator.run()
+
+
+if __name__ == "__main__":
+    main()

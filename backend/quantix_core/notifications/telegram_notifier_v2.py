@@ -428,6 +428,16 @@ class TelegramNotifierV2:
             self._send_to_chat(target_chat_id, "❓ *Lệnh không hợp lệ.*\n\n"
                                                 "Các lệnh được hỗ trợ: `/status`, `/echo <text>`, `/unblock`", use_markdown=True)
 
+    def handle_commands(self, watcher_instance=None):
+        """
+        Public interface for polling commands.
+        Compatible with SignalWatcher.
+        
+        Args:
+            watcher_instance: Optional reference to SignalWatcher (unused for now but kept for compatibility)
+        """
+        self._get_updates()
+
     def _get_updates(self):
         """
         Poll for new updates (messages) from Telegram.

@@ -65,7 +65,10 @@ class PepperstoneValidator:
         self.check_interval = 60  # Check every 60 seconds
         self.tracked_signals = {}  # {signal_id: validation_state}
         
-        logger.info(f"🔍 Pepperstone Validator initialized (feed: {feed_source})")
+        # ⚠️ SPREAD BUFFER (0.3 pips for EURUSD)
+        self.spread_buffer = 0.00003 
+        
+        logger.info(f"🔍 Pepperstone Validator initialized (feed: {feed_source}, spread_buffer: {self.spread_buffer})")
     
     def run(self):
         """Main validation loop - runs independently"""
@@ -249,16 +252,26 @@ class PepperstoneValidator:
         tp = signal.get("tp")
         sl = signal.get("sl")
         
-        # Check Pepperstone feed
+        # Check Pepperstone feed with Spread Buffer
         pepperstone_tp_hit = False
         pepperstone_sl_hit = False
         
+        # Buffer calculation:
+        # BUY: TP needs high to be > TP + buffer; SL needs low to be < SL + buffer
+        # SELL: TP needs low to be < TP - buffer; SL needs high to be > SL - buffer
+        
         if direction == "BUY":
-            pepperstone_tp_hit = market_data["high"] >= tp
-            pepperstone_sl_hit = market_data["low"] <= sl
+            pepperstone_tp_hit = market_data["high"] >= (tp + self.spread_buffer)
+            pepperstone_sl_hit = market_data["low"] <= (sl + self.spread_buffer)
         else:  # SELL
-            pepperstone_tp_hit = market_data["low"] <= tp
-            pepperstone_sl_hit = market_data["high"] >= sl
+            pepperstone_tp_hit = market_data["low"] <= (tp - self.spread_buffer)
+            pepperstone_sl_hit = market_data["high"] >= (sl - self.spread_buffer)
+            
+        # 🛡️ RECORD WHICH OCCURRED FIRST
+        # In a 1m candle, if both hit, we assume SL first (Conservative approach)
+        if pepperstone_tp_hit and pepperstone_sl_hit:
+            logger.warning(f"⚠️ DOUBLE HIT in same candle for signal {signal['id']}. Prioritizing SL validation.")
+            pepperstone_tp_hit = False # Counter-intuitive but safer for 'Proof' layer
         
         # Compare with main system
         main_state = signal.get("state")

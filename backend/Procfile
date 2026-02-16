@@ -1,2 +1,3 @@
 watcher: python run_signal_watcher.py
 analyzer: python -m quantix_core.engine.continuous_analyzer
+validator: python run_pepperstone_validator.py

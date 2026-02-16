@@ -23,3 +23,21 @@ async def get_validation_logs(limit: int = 50):
     except Exception as e:
         logger.error(f"Error fetching validation logs: {e}")
         return {"success": False, "error": str(e)}
+
+@router.get("/analysis-logs")
+async def get_analysis_logs(limit: int = 20):
+    """
+    Fetch AI Heartbeat (Analysis) logs from Supabase
+    Used by Frontend to show 'Thinking' activity
+    """
+    try:
+        res = db.client.table("fx_analysis_log")\
+            .select("*")\
+            .order("timestamp", desc=True)\
+            .limit(limit)\
+            .execute()
+            
+        return {"success": True, "data": res.data}
+    except Exception as e:
+        logger.error(f"Error fetching analysis logs: {e}")
+        return {"success": False, "error": str(e)}

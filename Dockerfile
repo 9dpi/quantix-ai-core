@@ -16,4 +16,4 @@ COPY backend/ .
 ENV PYTHONPATH=/app
 
 # Railway dùng biến môi trường PORT
-CMD ["sh", "-c", "uvicorn quantix_core.api.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
+CMD ["sh", "-c", "uvicorn quantix_core.api.main:app --host 0.0.0.0 --port $PORT --proxy-headers"]

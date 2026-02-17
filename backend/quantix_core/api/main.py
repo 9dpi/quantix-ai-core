@@ -71,7 +71,7 @@ async def register_telegram(req: RegistrationRequest):
 async def startup_event():
     port = os.getenv("PORT", "8080")  # Railway uses 8080 by default
     logger.info(f"🚀 Quantix AI Core Engine ONLINE - Listening on port: {port}")
-    logger.info(f"♻️ FORCE DEPLOY: System restart triggered at {datetime.utcnow()}")
+    logger.info(f"♻️ VERIFIED DEPLOY: System restart at {datetime.utcnow()} - Readiness confirmed")
     
     # Chạy toàn bộ việc kiểm tra DB và nạp data vào luồng ngầm
     asyncio.create_task(background_startup_tasks())

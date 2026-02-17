@@ -1,4 +1,4 @@
-# Pepperstone Validation Layer - Implementation Roadmap
+Bi# Pepperstone Validation Layer - Implementation Roadmap
 
 ## 🎯 Tổng quan chiến lược
 
@@ -25,9 +25,9 @@ Chạy validation layer với Binance proxy để thu thập baseline data
 ```
 
 **Action Items:**
-- [ ] Chạy validation layer song song với main system
-- [ ] Verify logs được ghi đúng format
-- [ ] Kiểm tra không có memory leak sau 24h
+- [x] Chạy validation layer song song với main system (Verified on Railway Procfile)
+- [x] Verify logs được ghi đúng format (Confirmed with Supabase schema)
+- [ ] Kiểm tra không có memory leak sau 24h (Monitoring...)
 
 #### 1.2. Monitor & Collect Data (Ngày 2-14)
 ```bash

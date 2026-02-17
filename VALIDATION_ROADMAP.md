@@ -29,17 +29,18 @@ Chạy validation layer với Binance proxy để thu thập baseline data
 - [x] Verify logs được ghi đúng format (Confirmed with Supabase schema)
 - [ ] Kiểm tra không có memory leak sau 24h (Monitoring...)
 
-#### 1.2. Monitor & Collect Data (Ngày 2-14)
+#### 1.2. Monitor & Collect Data (Ngày 2-14) - [IN PROGRESS 🟢]
 ```bash
-# Chạy liên tục 2 tuần
-START_VALIDATION_LAYER.bat
+# Chạy liên tục trên Railway (Procfile: validator)
+# Để xem report tự động:
+python backend/analyze_validation_results.py
 ```
 
-**Metrics cần thu thập:**
-- [ ] Tổng số signals được validate
-- [ ] Số lượng discrepancies (Entry/TP/SL)
-- [ ] Spread impact (nếu có)
-- [ ] System resource usage (CPU/RAM)
+**Metrics đang được thu thập:**
+- [x] Tổng số signals được validate (Tracking auto)
+- [x] Số lượng discrepancies (Entry/TP/SL) (Tracking auto)
+- [x] Spread impact (nếu có) (Calculated via drift)
+- [x] System resource usage (CPU/RAM) (Logged via psutil)
 
 #### 1.3. Analysis Report (Ngày 15)
 ```python

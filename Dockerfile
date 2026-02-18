@@ -15,5 +15,5 @@ COPY . .
 # Set PYTHONPATH để Python tìm thấy quantix_core trong thư mục backend
 ENV PYTHONPATH=/app/backend
 
-# Railway dùng biến môi trường PORT
-CMD ["sh", "-c", "uvicorn quantix_core.api.main:app --host 0.0.0.0 --port $PORT --proxy-headers"]
+# Railway dùng biến môi trường PORT. Dùng shell form để $PORT được expand.
+CMD uvicorn quantix_core.api.main:app --host 0.0.0.0 --port $PORT --proxy-headers

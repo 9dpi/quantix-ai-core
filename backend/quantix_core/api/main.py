@@ -10,6 +10,11 @@ import asyncio
 import os
 import pydantic
 from datetime import datetime
+import sys
+
+# DEBUG FOR RAILWAY PATHS
+logger.info(f"CWD: {os.getcwd()}")
+logger.info(f"SYS.PATH: {sys.path}")
 
 from quantix_core.api.routes import health, signals, ingestion, csv_ingestion, admin, features, structure, lab, public, reference, lab_reference, validation
 from quantix_core.config.settings import settings

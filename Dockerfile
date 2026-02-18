@@ -6,7 +6,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y curl gcc && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements và cài đặt trước để tận dụng cache
-COPY backend/requirements.txt .
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy toàn bộ dự án

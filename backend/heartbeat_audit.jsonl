@@ -1,0 +1,2 @@
+{"timestamp": "2026-02-18T15:57:28.724186+00:00", "status": "SYSTEM_STARTUP", "message": "Quantix AI Core Heartbeat Thread Initialized"}
+{"timestamp": "2026-02-18T15:57:29.439271+00:00", "asset": "EURUSD", "price": 1.18194, "direction": "SELL", "strength": 0.62, "confidence": 0.62, "release_confidence": 0.744, "refinement": "Raw: 0.62 | Session: 1.2 | Vol: 1.0 | Spread: 1.0", "status": "ANALYZED"}

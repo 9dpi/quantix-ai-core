@@ -11,5 +11,5 @@ print(f"--- Quantix Analyzer Launcher ---")
 print(f"CWD: {os.getcwd()}")
 print(f"PYTHONPATH: {os.environ['PYTHONPATH']}")
 
-cmd = ["python", "-m", "quantix_core.engine.continuous_analyzer"]
+cmd = [sys.executable, "-m", "quantix_core.engine.continuous_analyzer"]
 subprocess.run(cmd)

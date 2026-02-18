@@ -12,5 +12,5 @@ print(f"CWD: {os.getcwd()}")
 
 # Watcher is a script in backend folder
 script_path = os.path.join(backend_path, "run_signal_watcher.py")
-cmd = ["python", script_path]
+cmd = [sys.executable, script_path]
 subprocess.run(cmd)

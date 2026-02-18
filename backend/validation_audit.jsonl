@@ -140,3 +140,8 @@
 2026-02-14 14:15:19 | ERROR | Error fetching signals: 'NoneType' object has no attribute 'table'
 2026-02-14 14:16:19 | WARNING | ⚠️ SUPABASE_URL or Key is missing!
 2026-02-14 14:16:19 | ERROR | Error fetching signals: 'NoneType' object has no attribute 'table'
+2026-02-18 22:57:18 | WARNING | ⚠️ SUPABASE_URL or Key is missing!
+2026-02-18 22:57:18 | INFO | 🔍 Pepperstone Validator initialized (feed: binance_proxy, spread_buffer: 3e-05)
+2026-02-18 22:57:18 | INFO | 🚀 Validation Layer started (Independent Observer Mode)
+2026-02-18 22:57:18 | WARNING | ⚠️ SUPABASE_URL or Key is missing!
+2026-02-18 22:57:18 | ERROR | Error fetching signals: 'NoneType' object has no attribute 'table'

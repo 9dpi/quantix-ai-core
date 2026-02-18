@@ -39,15 +39,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/", tags=["Health"])
-async def root():
-    return {"status": "online", "message": "Quantix AI Core Engine is active"}
+
 
 # Include Routers
 app.include_router(health.router, prefix=settings.API_PREFIX, tags=["Health"])
 app.include_router(structure.router, prefix=settings.API_PREFIX, tags=["Structure"])
 app.include_router(features.router, prefix=settings.API_PREFIX, tags=["Features"])
-app.include_router(signals.router, prefix=settings.API_PREFIX, tags=["Signals"])
+app.include_router(signals.router, prefix=f"{settings.API_PREFIX}/signals", tags=["Signals"])
 app.include_router(ingestion.router, prefix=settings.API_PREFIX, tags=["Ingestion"])
 app.include_router(csv_ingestion.router, prefix=f"{settings.API_PREFIX}/ingestion", tags=["CSV Ingestion"])
 app.include_router(admin.router, prefix=settings.API_PREFIX, tags=["Admin"])
@@ -107,15 +105,17 @@ async def background_startup_tasks():
         # App continues running even if background tasks fail
 
 
-@app.get("/")
+@app.get("/", tags=["Health"])
 async def root():
     return {
         "app": settings.APP_NAME,
         "status": "online",
-        "utc_time": datetime.utcnow().isoformat()
+        "utc_time": datetime.utcnow().isoformat(),
+        "message": "Quantix AI Core Engine is active"
     }
 
 if __name__ == "__main__":
     import os
     port = int(os.getenv("PORT", settings.API_PORT))
-    uvicorn.run("quantix_core.api.main:app", host=settings.API_HOST, port=port, reload=settings.DEBUG)
+    # Disable reload in production for stability
+    uvicorn.run("quantix_core.api.main:app", host=settings.API_HOST, port=port, reload=False)

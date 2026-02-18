@@ -145,3 +145,8 @@
 2026-02-18 22:57:18 | INFO | 🚀 Validation Layer started (Independent Observer Mode)
 2026-02-18 22:57:18 | WARNING | ⚠️ SUPABASE_URL or Key is missing!
 2026-02-18 22:57:18 | ERROR | Error fetching signals: 'NoneType' object has no attribute 'table'
+2026-02-18 23:11:17 | INFO | 🔍 Pepperstone Validator initialized (feed: binance_proxy, spread_buffer: 3e-05)
+2026-02-18 23:11:17 | INFO | 🚀 Validation Layer started (Independent Observer Mode)
+2026-02-18 23:11:18 | INFO | Validating 1 active signals
+2026-02-18 23:11:18 | WARNING | ⚠️  DISCREPANCY: ENTRY_MISMATCH for signal 34e8798f-15b9-442d-aebf-f8a68deefc8b
+2026-02-18 23:11:18 | ERROR | ❌ Failed to save learning data to DB: Object of type datetime is not JSON serializable

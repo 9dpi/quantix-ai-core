@@ -64,6 +64,7 @@ class PepperstoneValidator:
         self.feed_source = feed_source
         self.check_interval = 60  # Check every 60 seconds
         self.tracked_signals = {}  # {signal_id: validation_state}
+        self.cycle_count = 0
         
         # ⚠️ SPREAD BUFFER (0.3 pips for EURUSD)
         self.spread_buffer = 0.00003 
@@ -83,6 +84,11 @@ class PepperstoneValidator:
             except Exception as e:
                 logger.error(f"Validation cycle error: {e}")
             
+            self.cycle_count += 1
+            # 💓 Validator Heartbeat (Every 5 cycles / 5 mins)
+            if self.cycle_count % 5 == 0:
+                self.log_validator_heartbeat()
+                
             time.sleep(self.check_interval)
     
     def validation_cycle(self):
@@ -373,6 +379,24 @@ class PepperstoneValidator:
             self.db.client.table("validation_events").insert(event_data).execute()
         except Exception as e:
             pass  # Silent fail for positive checks
+
+    def log_validator_heartbeat(self):
+        """Log that the validator is alive to the telemetry table"""
+        try:
+            hb = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "asset": "VALIDATOR",
+                "price": 0,
+                "direction": "HEARTBEAT",
+                "confidence": 1.0,
+                "status": "ONLINE",
+                "strength": 1.0,
+                "refinement": f"Validation Layer active. Monitoring {len(self.tracked_signals)} signals."
+            }
+            # Attempt insert - will fallback gracefully if columns missing
+            self.db.client.table(settings.TABLE_ANALYSIS_LOG).insert(hb).execute()
+        except:
+            pass
 
 
 def main():

@@ -7,6 +7,9 @@ CREATE TABLE IF NOT EXISTS fx_analysis_log (
     price DOUBLE PRECISION NOT NULL,
     direction TEXT NOT NULL,
     confidence DOUBLE PRECISION NOT NULL,
+    release_confidence DOUBLE PRECISION,
+    refinement TEXT,
+    strength DOUBLE PRECISION,
     status TEXT NOT NULL
 );
 

@@ -160,7 +160,7 @@ class PepperstoneValidator:
                     latest = data[-1]
                     
                     return {
-                        "timestamp": datetime.fromtimestamp(latest[0]/1000, tz=timezone.utc),
+                        "timestamp": datetime.fromtimestamp(latest[0]/1000, tz=timezone.utc).isoformat(),
                         "open": float(latest[1]),
                         "high": float(latest[2]),
                         "low": float(latest[3]),

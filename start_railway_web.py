@@ -14,4 +14,5 @@ print(f"PYTHONPATH: {os.environ['PYTHONPATH']}")
 print(f"Starting uvicorn on port {port}...")
 
 cmd = [sys.executable, "-m", "uvicorn", "quantix_core.api.main:app", "--host", "0.0.0.0", "--port", port, "--proxy-headers"]
-subprocess.run(cmd)
+# Explicitly pass the environment
+subprocess.run(cmd, env=os.environ.copy())

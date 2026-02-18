@@ -13,4 +13,4 @@ print(f"CWD: {os.getcwd()}")
 # Validator is a script in backend folder
 script_path = os.path.join(backend_path, "run_pepperstone_validator.py")
 cmd = [sys.executable, script_path]
-subprocess.run(cmd)
+subprocess.run(cmd, env=os.environ.copy())

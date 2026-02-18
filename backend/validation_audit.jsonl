@@ -150,3 +150,53 @@
 2026-02-18 23:11:18 | INFO | Validating 1 active signals
 2026-02-18 23:11:18 | WARNING | ⚠️  DISCREPANCY: ENTRY_MISMATCH for signal 34e8798f-15b9-442d-aebf-f8a68deefc8b
 2026-02-18 23:11:18 | ERROR | ❌ Failed to save learning data to DB: Object of type datetime is not JSON serializable
+2026-02-18 23:11:57 | INFO | 🔍 Pepperstone Validator initialized (feed: binance_proxy, spread_buffer: 3e-05)
+2026-02-18 23:11:57 | INFO | 🚀 Validation Layer started (Independent Observer Mode)
+2026-02-18 23:11:57 | INFO | Validating 1 active signals
+2026-02-18 23:11:57 | WARNING | ⚠️  DISCREPANCY: ENTRY_MISMATCH for signal 34e8798f-15b9-442d-aebf-f8a68deefc8b
+2026-02-18 23:11:58 | SUCCESS | 💾 Discrepancy saved to DB for AI Learning (Signal 34e8798f-15b9-442d-aebf-f8a68deefc8b)
+2026-02-18 23:12:19 | INFO | Validating 1 active signals
+2026-02-18 23:12:19 | WARNING | ⚠️  DISCREPANCY: ENTRY_MISMATCH for signal 34e8798f-15b9-442d-aebf-f8a68deefc8b
+2026-02-18 23:12:19 | ERROR | ❌ Failed to save learning data to DB: Object of type datetime is not JSON serializable
+2026-02-18 23:12:58 | INFO | Validating 1 active signals
+2026-02-18 23:12:58 | WARNING | ⚠️  DISCREPANCY: ENTRY_MISMATCH for signal 34e8798f-15b9-442d-aebf-f8a68deefc8b
+2026-02-18 23:12:59 | SUCCESS | 💾 Discrepancy saved to DB for AI Learning (Signal 34e8798f-15b9-442d-aebf-f8a68deefc8b)
+2026-02-18 23:13:19 | INFO | Validating 1 active signals
+2026-02-18 23:13:19 | WARNING | ⚠️  DISCREPANCY: ENTRY_MISMATCH for signal 34e8798f-15b9-442d-aebf-f8a68deefc8b
+2026-02-18 23:13:19 | ERROR | ❌ Failed to save learning data to DB: Object of type datetime is not JSON serializable
+2026-02-18 23:13:59 | INFO | Validating 1 active signals
+2026-02-18 23:13:59 | WARNING | ⚠️  DISCREPANCY: ENTRY_MISMATCH for signal 34e8798f-15b9-442d-aebf-f8a68deefc8b
+2026-02-18 23:13:59 | SUCCESS | 💾 Discrepancy saved to DB for AI Learning (Signal 34e8798f-15b9-442d-aebf-f8a68deefc8b)
+2026-02-18 23:14:20 | INFO | Validating 1 active signals
+2026-02-18 23:14:20 | WARNING | ⚠️  DISCREPANCY: ENTRY_MISMATCH for signal 34e8798f-15b9-442d-aebf-f8a68deefc8b
+2026-02-18 23:14:20 | ERROR | ❌ Failed to save learning data to DB: Object of type datetime is not JSON serializable
+2026-02-18 23:15:00 | INFO | Validating 1 active signals
+2026-02-18 23:15:00 | WARNING | ⚠️  DISCREPANCY: ENTRY_MISMATCH for signal 34e8798f-15b9-442d-aebf-f8a68deefc8b
+2026-02-18 23:15:00 | SUCCESS | 💾 Discrepancy saved to DB for AI Learning (Signal 34e8798f-15b9-442d-aebf-f8a68deefc8b)
+2026-02-18 23:15:21 | INFO | Validating 1 active signals
+2026-02-18 23:15:21 | WARNING | ⚠️  DISCREPANCY: ENTRY_MISMATCH for signal 34e8798f-15b9-442d-aebf-f8a68deefc8b
+2026-02-18 23:15:21 | ERROR | ❌ Failed to save learning data to DB: Object of type datetime is not JSON serializable
+2026-02-18 23:16:01 | INFO | Validating 1 active signals
+2026-02-18 23:16:01 | WARNING | ⚠️  DISCREPANCY: ENTRY_MISMATCH for signal 34e8798f-15b9-442d-aebf-f8a68deefc8b
+2026-02-18 23:16:01 | SUCCESS | 💾 Discrepancy saved to DB for AI Learning (Signal 34e8798f-15b9-442d-aebf-f8a68deefc8b)
+2026-02-18 23:16:22 | INFO | Validating 1 active signals
+2026-02-18 23:16:22 | WARNING | ⚠️  DISCREPANCY: ENTRY_MISMATCH for signal 34e8798f-15b9-442d-aebf-f8a68deefc8b
+2026-02-18 23:16:22 | ERROR | ❌ Failed to save learning data to DB: Object of type datetime is not JSON serializable
+2026-02-18 23:17:02 | INFO | Validating 1 active signals
+2026-02-18 23:17:02 | WARNING | ⚠️  DISCREPANCY: ENTRY_MISMATCH for signal 34e8798f-15b9-442d-aebf-f8a68deefc8b
+2026-02-18 23:17:02 | SUCCESS | 💾 Discrepancy saved to DB for AI Learning (Signal 34e8798f-15b9-442d-aebf-f8a68deefc8b)
+2026-02-18 23:17:22 | INFO | Validating 1 active signals
+2026-02-18 23:17:22 | WARNING | ⚠️  DISCREPANCY: ENTRY_MISMATCH for signal 34e8798f-15b9-442d-aebf-f8a68deefc8b
+2026-02-18 23:17:23 | ERROR | ❌ Failed to save learning data to DB: Object of type datetime is not JSON serializable
+2026-02-18 23:18:03 | INFO | Validating 1 active signals
+2026-02-18 23:18:03 | WARNING | ⚠️  DISCREPANCY: ENTRY_MISMATCH for signal 34e8798f-15b9-442d-aebf-f8a68deefc8b
+2026-02-18 23:18:03 | SUCCESS | 💾 Discrepancy saved to DB for AI Learning (Signal 34e8798f-15b9-442d-aebf-f8a68deefc8b)
+2026-02-18 23:18:23 | INFO | Validating 1 active signals
+2026-02-18 23:18:23 | WARNING | ⚠️  DISCREPANCY: ENTRY_MISMATCH for signal 34e8798f-15b9-442d-aebf-f8a68deefc8b
+2026-02-18 23:18:23 | ERROR | ❌ Failed to save learning data to DB: Object of type datetime is not JSON serializable
+2026-02-18 23:19:04 | INFO | Validating 1 active signals
+2026-02-18 23:19:04 | WARNING | ⚠️  DISCREPANCY: ENTRY_MISMATCH for signal 34e8798f-15b9-442d-aebf-f8a68deefc8b
+2026-02-18 23:19:04 | SUCCESS | 💾 Discrepancy saved to DB for AI Learning (Signal 34e8798f-15b9-442d-aebf-f8a68deefc8b)
+2026-02-18 23:19:23 | INFO | Validating 1 active signals
+2026-02-18 23:19:24 | WARNING | ⚠️  DISCREPANCY: ENTRY_MISMATCH for signal 34e8798f-15b9-442d-aebf-f8a68deefc8b
+2026-02-18 23:19:24 | ERROR | ❌ Failed to save learning data to DB: Object of type datetime is not JSON serializable

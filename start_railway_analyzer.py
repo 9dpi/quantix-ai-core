@@ -12,4 +12,4 @@ print(f"CWD: {os.getcwd()}")
 print(f"PYTHONPATH: {os.environ['PYTHONPATH']}")
 
 cmd = [sys.executable, "-m", "quantix_core.engine.continuous_analyzer"]
-subprocess.run(cmd)
+subprocess.run(cmd, env=os.environ.copy())

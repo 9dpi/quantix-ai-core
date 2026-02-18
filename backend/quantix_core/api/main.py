@@ -34,6 +34,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/", tags=["Health"])
+async def root():
+    return {"status": "online", "message": "Quantix AI Core Engine is active"}
+
 # Include Routers
 app.include_router(health.router, prefix=settings.API_PREFIX, tags=["Health"])
 app.include_router(structure.router, prefix=settings.API_PREFIX, tags=["Structure"])

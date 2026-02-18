@@ -1,4 +1,4 @@
-web: uvicorn quantix_core.api.main:app --host 0.0.0.0 --port ${PORT:-8080}
+web: uvicorn quantix_core.api.main:app --host 0.0.0.0 --port $PORT --proxy-headers
 watcher: python run_signal_watcher.py
 analyzer: python -m quantix_core.engine.continuous_analyzer
 validator: python run_pepperstone_validator.py

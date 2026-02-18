@@ -104,16 +104,9 @@ async def background_startup_tasks():
 
 @app.get("/")
 async def root():
-    try:
-        db_status = "connected" if db.health_check() else "db_error"
-    except:
-        db_status = "db_unavailable"
-        
     return {
         "app": settings.APP_NAME,
-        "version": settings.APP_VERSION,
         "status": "online",
-        "database": db_status,
         "utc_time": datetime.utcnow().isoformat()
     }
 

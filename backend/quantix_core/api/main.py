@@ -14,8 +14,8 @@ from datetime import datetime
 from quantix_core.api.routes import health, signals, ingestion, csv_ingestion, admin, features, structure, lab, public, reference, lab_reference, validation
 from quantix_core.config.settings import settings
 from quantix_core.database.connection import db
-from quantix_core.engine.continuous_analyzer import ContinuousAnalyzer
-from quantix_core.engine.signal_watcher import SignalWatcher
+# from quantix_core.engine.continuous_analyzer import ContinuousAnalyzer
+# from quantix_core.engine.signal_watcher import SignalWatcher
 from twelvedata import TDClient
 
 app = FastAPI(

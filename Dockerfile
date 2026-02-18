@@ -9,11 +9,11 @@ RUN apt-get update && apt-get install -y curl gcc && rm -rf /var/lib/apt/lists/*
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy nội dung thư mục backend vào /app
-COPY backend/ .
+# Copy toàn bộ dự án
+COPY . .
 
-# Explicitly set PYTHONPATH to /app so Python can find quantix_core
-ENV PYTHONPATH=/app
+# Set PYTHONPATH để Python tìm thấy quantix_core trong thư mục backend
+ENV PYTHONPATH=/app/backend
 
 # Railway dùng biến môi trường PORT
 CMD ["sh", "-c", "uvicorn quantix_core.api.main:app --host 0.0.0.0 --port $PORT --proxy-headers"]

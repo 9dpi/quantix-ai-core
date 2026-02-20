@@ -161,7 +161,7 @@ class ContinuousAnalyzer:
             res_p = db.client.table(settings.TABLE_SIGNALS).update({
                 "state": "CANCELLED", 
                 "status": "EXPIRED", 
-                "result": "CANCELLED", 
+                "result": "EXPIRED",   # ← was "CANCELLED" — now semantically correct
                 "closed_at": now.isoformat()
             }).eq("state", "WAITING_FOR_ENTRY").lt("generated_at", limit_pending).execute()
             
@@ -218,11 +218,13 @@ class ContinuousAnalyzer:
             direction = direction_map.get(state.state, "BUY") # Default to BUY if structure is ambiguous
             
             # ============================================
-            # v2 FUTURE ENTRY LOGIC (5 pips offset)
+            # v2 FUTURE ENTRY LOGIC (2 pips offset)
             # ============================================
             
             # Calculate future entry price (NOT market price)
-            entry_calc = EntryCalculator(offset_pips=5.0)
+            # 2-pip offset from market for realistic fill rate on EURUSD M15
+            # (5-pip offset caused 100% EXPIRED rate — price rarely retraced that far)
+            entry_calc = EntryCalculator(offset_pips=2.0)
             entry_price, is_valid, validation_msg = entry_calc.calculate_and_validate(
                 market_price=price,
                 direction=direction

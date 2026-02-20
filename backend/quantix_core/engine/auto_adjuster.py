@@ -264,19 +264,18 @@ class AutoAdjuster(SpreadAdjuster):
         if not self.db:
             return
         try:
-            import json
             self.db.client.table("fx_analysis_log").insert({
                 "timestamp":  self._last_learned_at.isoformat(),
                 "asset":      "AUTO_ADJUSTER",
                 "price":      self._current_atr_pips,
                 "direction":  "LEARN_CYCLE",
                 "confidence": self._atr_mult,
-                "status":     "ONLINE",
+                "status":     f"cycles={self._learn_cycles} atr={self._current_atr_pips:.2f}",
                 "strength":   self._learn_cycles,
-                "refinement": json.dumps(summary, ensure_ascii=False)[:2000],
             }).execute()
         except Exception as e:
             logger.debug(f"[AutoAdjuster] Persist failed (non-critical): {e}")
+
 
     def _load_persisted_config(self):
         """Try to restore the previous learned state from DB on startup."""

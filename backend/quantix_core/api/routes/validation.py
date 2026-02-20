@@ -111,7 +111,7 @@ async def get_validation_status(days: int = Query(default=7, ge=1, le=90)):
         # 2. Last heartbeat (VALIDATOR asset in analysis log)
         hb_rows = (
             db.client.table("fx_analysis_log")
-            .select("timestamp, refinement")
+            .select("timestamp, status, strength")
             .eq("asset", "VALIDATOR")
             .order("timestamp", desc=True)
             .limit(1)
@@ -119,7 +119,7 @@ async def get_validation_status(days: int = Query(default=7, ge=1, le=90)):
         ).data or []
 
         last_heartbeat   = hb_rows[0]["timestamp"] if hb_rows else None
-        heartbeat_detail = hb_rows[0].get("refinement", "") if hb_rows else ""
+        heartbeat_detail = hb_rows[0].get("status", "") if hb_rows else ""
 
         # Heartbeat age
         hb_age_minutes = None

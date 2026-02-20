@@ -389,17 +389,16 @@ class PepperstoneValidator:
                 "price":      0,
                 "direction":  "HEARTBEAT",
                 "confidence": 1.0,
-                "status":     "ONLINE",
-                "strength":   1.0,
-                "refinement": (
-                    f"Validation Layer alive. "
-                    f"Feed={self.feed_source}. "
-                    f"Monitoring {len(self.tracked_signals)} signal(s). "
-                    f"Cycle #{self.cycle_count}."
+                "status":     (
+                    f"ONLINE | feed={self.feed_source} | "
+                    f"tracking={len(self.tracked_signals)} | "
+                    f"cycle={self.cycle_count}"
                 ),
+                "strength":   1.0,
             }).execute()
         except Exception:
             pass  # Heartbeat is best-effort
+
 
 
 # ---------------------------------------------------------------------------

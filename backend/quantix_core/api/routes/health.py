@@ -69,12 +69,15 @@ async def get_threads():
     ]
     validator_alive = any(t["name"] == "ValidationLayer" and t["alive"] for t in threads)
     adjuster_alive  = any("AutoAdjuster" in t["name"] and t["alive"] for t in threads)
+    analyzer_alive  = any("AnalyzerLayer" in t["name"] and t["alive"] for t in threads)
 
     return {
         "validator_thread_alive":    validator_alive,
         "auto_adjuster_alive":       adjuster_alive,
+        "analyzer_thread_alive":     analyzer_alive,
         "railway_env":              os.getenv("RAILWAY_ENVIRONMENT"),
         "validator_enabled":        os.getenv("VALIDATOR_ENABLED", "auto"),
+        "analyzer_enabled":         os.getenv("ANALYZER_ENABLED", "auto"),
         "validator_feed":           os.getenv("VALIDATOR_FEED", "binance_proxy"),
         "threads":                  threads,
     }

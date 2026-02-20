@@ -49,3 +49,33 @@ async def get_audit_log():
 async def ping():
     """Lightweight ping endpoint for quick availability checks"""
     return {"ping": "pong"}
+
+
+@router.get("/health/threads")
+async def get_threads():
+    """
+    Returns all active background threads.
+    Use this to confirm ValidationLayer and AutoAdjuster are running on Railway.
+    """
+    import threading, os
+    threads = [
+        {
+            "name":    t.name,
+            "alive":   t.is_alive(),
+            "daemon":  t.daemon,
+            "ident":   t.ident,
+        }
+        for t in threading.enumerate()
+    ]
+    validator_alive = any(t["name"] == "ValidationLayer" and t["alive"] for t in threads)
+    adjuster_alive  = any("AutoAdjuster" in t["name"] and t["alive"] for t in threads)
+
+    return {
+        "validator_thread_alive":    validator_alive,
+        "auto_adjuster_alive":       adjuster_alive,
+        "railway_env":              os.getenv("RAILWAY_ENVIRONMENT"),
+        "validator_enabled":        os.getenv("VALIDATOR_ENABLED", "auto"),
+        "validator_feed":           os.getenv("VALIDATOR_FEED", "binance_proxy"),
+        "threads":                  threads,
+    }
+

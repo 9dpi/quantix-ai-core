@@ -76,33 +76,99 @@ async def register_telegram(req: RegistrationRequest):
 
 @app.on_event("startup")
 async def startup_event():
-    port = os.getenv("PORT", "8080")  # Railway uses 8080 by default
+    port = os.getenv("PORT", "8080")
     logger.info(f"🚀 Quantix AI Core Engine ONLINE - Listening on port: {port}")
     logger.info(f"♻️ VERIFIED DEPLOY: System restart at {datetime.utcnow()} - Readiness confirmed")
-    
-    # Chạy toàn bộ việc kiểm tra DB và nạp data vào luồng ngầm
+
+    # Background tasks (non-blocking)
     asyncio.create_task(background_startup_tasks())
+
 
 async def background_startup_tasks():
     """Background tasks that should NOT block app startup"""
+    import threading
+
+    await asyncio.sleep(2)  # Let server stabilise first
+
     try:
-        await asyncio.sleep(1)  # Đợi server ổn định
+        # ── DB health check ───────────────────────────────────────────────
         logger.info("🔍 Running background connectivity checks...")
-        
-        # Kiểm tra DB ngầm
         is_healthy = db.health_check()
         if is_healthy:
-            logger.info("✅ Database connection verified in background")
+            logger.info("✅ Database connection verified")
         else:
-            logger.warning("⚠️ Database check failed - check your Railway Variables")
-            
-        # 🛡️ ARCHITECTURE ENFORCEMENT
-        logger.info("🛡️ DATA LAYER: READ ONLY MODE ACTIVE")
-        logger.info("🚫 WORKER TASKS DECOUPLED: Please run analyzer and watcher as separate services.")
-        
+            logger.warning("⚠️ Database check failed — check Railway Variables")
+
+        # ── Validation Layer (auto-start on Railway) ──────────────────────
+        IS_RAILWAY = os.getenv("RAILWAY_ENVIRONMENT") is not None
+        validator_enabled = os.getenv("VALIDATOR_ENABLED", "auto")
+
+        should_run_validator = (
+            validator_enabled == "true"
+            or (validator_enabled == "auto" and IS_RAILWAY)
+        )
+
+        if should_run_validator:
+            logger.info("🛡️ Starting Validation Layer as background worker...")
+
+            def _run_validator():
+                """Blocking validator loop — runs in its own daemon thread."""
+                import time
+                # Wait 5s before first cycle so main API is fully ready
+                time.sleep(5)
+                try:
+                    # Add backend to sys.path for the thread
+                    backend_dir = os.path.join(os.getcwd(), "backend")
+                    if backend_dir not in sys.path:
+                        sys.path.insert(0, backend_dir)
+
+                    from run_pepperstone_validator import PepperstoneValidator
+
+                    feed_source = os.getenv("VALIDATOR_FEED", "binance_proxy")
+                    validator = PepperstoneValidator(feed_source=feed_source)
+
+                    logger.info(
+                        f"✅ Validation Layer ONLINE [feed={feed_source}] "
+                        f"[env={'railway' if IS_RAILWAY else 'local'}]"
+                    )
+                    validator.run()  # Blocking loop — no problem in daemon thread
+
+                except Exception as e:
+                    logger.error(f"❌ Validation Layer crashed: {e}")
+                    logger.exception(e)
+
+            vt = threading.Thread(target=_run_validator, daemon=True, name="ValidationLayer")
+            vt.start()
+            logger.info("🛡️ Validation Layer thread launched")
+
+        else:
+            logger.info("ℹ️ Validator not started (set VALIDATOR_ENABLED=true to enable)")
+
+        # ── Auto-Adjuster learning schedule ───────────────────────────────
+        adj_enabled = os.getenv("AUTO_ADJUSTER_ENABLED", "auto")
+        should_run_adj = (
+            adj_enabled == "true"
+            or (adj_enabled == "auto" and IS_RAILWAY)
+        )
+
+        if should_run_adj:
+            try:
+                from quantix_core.engine.auto_adjuster import AutoAdjuster
+
+                adj = AutoAdjuster(db=db, feed=None)
+                learn_interval = int(os.getenv("AUTO_ADJUSTER_INTERVAL", "3600"))
+                adj.schedule(interval=learn_interval)
+                logger.info(
+                    f"🧠 Auto-Adjuster learning scheduled every {learn_interval}s"
+                )
+            except Exception as e:
+                logger.warning(f"⚠️ Auto-Adjuster init failed (non-critical): {e}")
+
     except Exception as e:
-        logger.error(f"⚠️ Background task failed (non-critical): {e}")
+        logger.error(f"⚠️ Background startup task failed: {e}")
         # App continues running even if background tasks fail
+
+
 
 
 @app.get("/", tags=["Health"])

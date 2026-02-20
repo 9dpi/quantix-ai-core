@@ -350,3 +350,20 @@ Brokers:
 **Result: FULLY DEPLOYED & AUTOMATED**
 
 ---
+
+| Phase 7 | ? COMPLETED | 2026-02-20 |
+
+---
+
+## Phase 7: Signal Quality & Fill Rate Optimization (2026-02-20)
+
+- [x] Validator BUY logic fix (bid<=entry, not ask>=entry)
+- [x] Entry offset 5pip->2pip (fill rate improvement)
+- [x] Skip neutral/ranging market (no more false BUY defaults)
+- [x] SELL signals enabled (bearish direction now works)
+- [x] TP/SL 10pip->15pip (intraday M15 per Rules.txt)
+- [x] Janitor result=EXPIRED fix
+- [x] Frontend UTC display (GMT+0)
+- [x] Frontend migrated to Quantix Core API
+- [x] calcConfidence + utils restored
+

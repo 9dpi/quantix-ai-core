@@ -210,12 +210,21 @@ class ContinuousAnalyzer:
             # 3. Prepare Common Data
             price = float(df.iloc[-1]["close"])
             
-            # Map market state to standard trading actions
+            # Map market state to trading direction
+            # STRICT RULE: Only trade clear structure — skip neutral/sideways
             direction_map = {
                 "bullish": "BUY",
                 "bearish": "SELL"
             }
-            direction = direction_map.get(state.state, "BUY") # Default to BUY if structure is ambiguous
+            direction = direction_map.get(state.state)
+            
+            if direction is None:
+                # Market is neutral/ranging/sideways → No signal, wait for clarity
+                logger.info(
+                    f"⏸️ Market structure is '{state.state}' (neutral/ranging). "
+                    f"Skipping signal — waiting for directional confirmation."
+                )
+                return
             
             # ============================================
             # v2 FUTURE ENTRY LOGIC (2 pips offset)
@@ -242,10 +251,12 @@ class ContinuousAnalyzer:
                 f"offset={offset_pips:.1f} pips, direction={direction}"
             )
             
-            # FIXED RISK/REWARD RULE (AUTO v0)
-            # TP = 10 pips, SL = 10 pips from ENTRY (not market)
-            FIXED_TP_PIPS = 0.0010  # 10 pips
-            FIXED_SL_PIPS = 0.0010  # 10 pips
+            # FIXED RISK/REWARD RULE (AUTO v1)
+            # TP = 15 pips, SL = 15 pips from ENTRY (intraday M15 range)
+            # Rationale: 10 pips was too tight for M15 noise — caused premature exits
+            # Rules.txt defines system as Type B: Intraday (15-40 pip SL)
+            FIXED_TP_PIPS = 0.0015  # 15 pips
+            FIXED_SL_PIPS = 0.0015  # 15 pips
             
             if direction == "BUY":
                 tp = round(entry_price + FIXED_TP_PIPS, 5)

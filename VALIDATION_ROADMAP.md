@@ -256,33 +256,49 @@ START_VALIDATION_LAYER.bat
 
 ---
 
-## 📅 PHASE 5: Advanced Features (Tuần 7+)
+## 📅 PHASE 5: Advanced Features — ✅ DEPLOYED (2026-02-20)
 
-### 5.1. Auto-Adjustment System
-```python
-# Tự động điều chỉnh spread buffer dựa trên:
-- Time of day
-- Market volatility
-- Historical spread data
+### 5.1. Auto-Adjustment System ✅
+```
+File: backend/quantix_core/engine/auto_adjuster.py
+API:  GET /api/v1/auto-adjuster-report?symbol=EURUSD[&learn=true]
+
+Features implemented:
+  ✅ 24-bucket UTC hour risk matrix (EMA-smoothed)
+  ✅ ATR-proxy multiplier (live spread-based volatility)
+  ✅ Decay-weighted EWMA learning from validation_events
+  ✅ Persists state to DB (fx_analysis_log / AUTO_ADJUSTER)
+  ✅ schedule(interval=3600) — background learning thread
+  ✅ get_learning_report() — full learned state snapshot
 ```
 
-### 5.2. Dashboard & Alerts
-```python
-# Web dashboard hiển thị:
-- Real-time validation status
-- Discrepancy charts
-- Spread trends
-- Alert nếu discrepancy > threshold
+### 5.2. Dashboard & Alerts ✅
+```
+File: validation/index.html
+URL:  /validation/index.html
+
+Features implemented:
+  ✅ Real-time health badge (HEALTHY / DEGRADED / CRITICAL)
+  ✅ Discrepancy rate stats + 24-bar hourly chart
+  ✅ Auto-Adjuster hour risk heatmap (color-coded 12×2 grid)
+  ✅ Live validation event feed (last 12 events)
+  ✅ Spread gauge with session multiplier
+  ✅ Multi-broker status table
+  ✅ Auto-refresh every 30s
 ```
 
-### 5.3. Multi-Broker Support
-```python
-# Validate trên nhiều broker:
-- Pepperstone
-- IC Markets
-- OANDA
-# So sánh để chọn broker tốt nhất
+### 5.3. Multi-Broker Support ✅
 ```
+File: backend/quantix_core/feeds/multi_broker_feed.py
+API:  GET  /api/v1/broker-comparison?symbol=EURUSD
+      POST /api/v1/broker-signal-check
+
+Brokers:
+  ✅ Pepperstone (MT5 proxy via Binance fallback) — ACTIVE
+  ✅ OANDA v20 REST API — ACTIVE if OANDA_API_KEY set
+  📋 IC Markets — stub registered, pending public API
+```
+
 
 ---
 

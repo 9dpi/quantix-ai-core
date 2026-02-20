@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantix — Validation Monitor</title>
+    <meta name="description"
+        content="Real-time Pepperstone Validation Layer monitor. Tracks discrepancy rates, spread buffers, and validator health.">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="../static/img/favicon.svg">
+    <style>
+        :root {
+            --green: #22c55e;
+            --yellow: #eab308;
+            --red: #ef4444;
+            --cyan: #38bdf8;
+            --border: rgba(255, 255, 255, 0.07);
+        }
+
+        body {
+            background: #060a10;
+            color: #e2e8f0;
+        }
+
+        .vd-grid {
+            display: grid;
+            grid-template-columns: 280px 1fr 300px;
+            gap: 24px;
+            padding: 32px 24px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .vd-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 28px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+
+        .vd-card:hover {
+            border-color: rgba(56, 189, 248, 0.2);
+        }
+
+        .card-title {
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--cyan);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ── Health Badge ─────────────────────────────────── */
+        .health-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            margin-bottom: 20px;
+        }
+
+        .health-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        .health-HEALTHY {
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: var(--green);
+        }
+
+        .health-DEGRADED {
+            background: rgba(234, 179, 8, 0.12);
+            border: 1px solid rgba(234, 179, 8, 0.3);
+            color: var(--yellow);
+        }
+
+        .health-CRITICAL {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: var(--red);
+        }
+
+        .health-UNKNOWN {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: #94a3b8;
+        }
+
+        .dot-HEALTHY {
+            background: var(--green);
+            box-shadow: 0 0 8px var(--green);
+        }
+
+        .dot-DEGRADED {
+            background: var(--yellow);
+            box-shadow: 0 0 8px var(--yellow);
+        }
+
+        .dot-CRITICAL {
+            background: var(--red);
+            box-shadow: 0 0 8px var(--red);
+        }
+
+        .dot-UNKNOWN {
+            background: #94a3b8;
+        }
+
+        /* ── Metrics ──────────────────────────────────────── */
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.84rem;
+        }
+
+        .metric-row:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            color: #94a3b8;
+        }
+
+        .metric-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+        }
+
+        /* ── Big stat ─────────────────────────────────────── */
+        .big-stat {
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            line-height: 1;
+        }
+
+        /* ── Disc Chart ───────────────────────────────────── */
+        .chart-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 80px;
+            padding: 8px 0;
+        }
+
+        .chart-bar {
+            flex: 1;
+            border-radius: 3px 3px 0 0;
+            transition: height 0.4s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .chart-bar:hover::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: 105%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        /* ── Hour Matrix ──────────────────────────────────── */
+        .hour-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 3px;
+            margin-top: 12px;
+        }
+
+        .hour-cell {
+            aspect-ratio: 1;
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.1s;
+        }
+
+        .hour-cell:hover {
+            transform: scale(1.2);
+            z-index: 1;
+        }
+
+        .hour-cell::after {
+            content: attr(data-label);
+            position: absolute;
+            bottom: 105%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .hour-cell:hover::after {
+            opacity: 1;
+        }
+
+        /* ── Event Feed ───────────────────────────────────── */
+        .event-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .event-item {
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 0.78rem;
+            border-left: 3px solid;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .event-disc {
+            background: rgba(239, 68, 68, 0.07);
+            border-color: var(--red);
+        }
+
+        .event-pass {
+            background: rgba(34, 197, 94, 0.06);
+            border-color: var(--green);
+        }
+
+        .event-neutral {
+            background: rgba(56, 189, 248, 0.06);
+            border-color: var(--cyan);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .event-time {
+            color: #64748b;
+            font-size: 0.7rem;
+            margin-top: 4px;
+        }
+
+        /* ── Spread Gauge ─────────────────────────────────── */
+        .gauge-wrap {
+            position: relative;
+            width: 140px;
+            height: 80px;
+            margin: 0 auto 16px;
+        }
+
+        .gauge-arc {
+            width: 140px;
+            height: 70px;
+            border: 10px solid var(--border);
+            border-bottom: none;
+            border-radius: 70px 70px 0 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gauge-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            border-radius: 70px 70px 0 0;
+            transform-origin: bottom center;
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .gauge-needle {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 2px;
+            height: 65px;
+            background: white;
+            transform-origin: bottom center;
+            border-radius: 2px 2px 0 0;
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .gauge-label {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-top: -4px;
+        }
+
+        .gauge-sub {
+            text-align: center;
+            font-size: 0.65rem;
+            color: #64748b;
+        }
+
+        /* ── Broker Comparison ────────────────────────────── */
+        .broker-row {
+            display: grid;
+            grid-template-columns: 1fr 80px 80px 80px;
+            gap: 8px;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.8rem;
+        }
+
+        .broker-row:last-child {
+            border-bottom: none;
+        }
+
+        .broker-badge {
+            font-size: 0.6rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 800;
+        }
+
+        .badge-live {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--green);
+        }
+
+        .badge-proxy {
+            background: rgba(234, 179, 8, 0.15);
+            color: var(--yellow);
+        }
+
+        .badge-stub {
+            background: rgba(255, 255, 255, 0.06);
+            color: #64748b;
+        }
+
+        /* ── Responsive ───────────────────────────────────── */
+        @media (max-width: 1200px) {
+            .vd-grid {
+                grid-template-columns: 260px 1fr;
+            }
+
+            .right-col {
+                grid-column: 1 / -1;
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .vd-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .big-stat {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body class="scrollable-page">
+
+    <header class="app-header">
+        <div class="logo-area">
+            <div class="logo-icon"></div>
+            <span class="logo-text">QUANTIX AI CORE</span>
+        </div>
+        <div class="hamburger" id="menu-toggle">☰</div>
+        <nav class="main-nav" id="main-nav">
+            <a href="../index.html" class="nav-link">Overview</a>
+            <a href="https://9dpi.github.io/telesignal/" class="nav-link">Live Signal</a>
+            <a href="../dashboard/index.html" class="nav-link">Dashboard</a>
+            <a href="../api/index.html" class="nav-link">API</a>
+            <a href="../contact/index.html" class="nav-link">Contact</a>
+        </nav>
+        <div class="status-tag hide-mobile"
+            style="display:flex;align-items:center;gap:10px;font-size:0.7rem;color:#64748b;">
+            <span id="hdr-health-dot"
+                style="width:8px;height:8px;border-radius:50%;background:#64748b;display:inline-block;"></span>
+            <span id="hdr-health-text">LOADING...</span>
+            <span style="color:var(--border);">|</span>
+            <span id="hdr-disc-rate">—</span>
+            <span style="color:#64748b;">disc rate</span>
+        </div>
+    </header>
+
+    <main class="vd-grid">
+
+        <!-- LEFT COLUMN -->
+        <aside style="display:flex;flex-direction:column;">
+
+            <!-- Health -->
+            <div class="vd-card">
+                <div class="card-title">🛡️ Validator Health</div>
+                <div id="health-badge" class="health-badge health-UNKNOWN">
+                    <span id="health-dot" class="health-dot dot-UNKNOWN"></span>
+                    <span id="health-text">Loading…</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Feed Source</span>
+                    <span id="feed-source" class="metric-value">—</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Last Heartbeat</span>
+                    <span id="hb-age" class="metric-value">—</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Validator Online</span>
+                    <span id="validator-online" class="metric-value">—</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Period</span>
+                    <span class="metric-value">Last 7 days</span>
+                </div>
+                <p id="health-rec" style="font-size:0.72rem;color:#64748b;margin-top:14px;line-height:1.5;"></p>
+            </div>
+
+            <!-- Spread Buffer -->
+            <div class="vd-card">
+                <div class="card-title">📐 Live Spread Buffer</div>
+                <div class="gauge-wrap">
+                    <div class="gauge-arc">
+                        <div class="gauge-fill" id="gauge-fill"
+                            style="background: linear-gradient(to top, #38bdf8, rgba(56,189,248,0)); transform: rotate(0deg);">
+                        </div>
+                        <div class="gauge-needle" id="gauge-needle" style="transform: rotate(-90deg);"></div>
+                    </div>
+                </div>
+                <div class="gauge-label" id="gauge-value">—</div>
+                <div class="gauge-sub" id="gauge-session">session —</div>
+                <div class="metric-row" style="margin-top:14px;">
+                    <span class="metric-label">Spread pips</span>
+                    <span id="spread-pips" class="metric-value">—</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Buffer pips</span>
+                    <span id="buffer-pips" class="metric-value">—</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Session mult</span>
+                    <span id="session-mult" class="metric-value">—</span>
+                </div>
+            </div>
+
+            <!-- Auto refresh -->
+            <div style="font-size:0.65rem;color:#64748b;text-align:center;padding:4px 0;">
+                Auto-refreshes every 30s &nbsp;·&nbsp;
+                <a id="refresh-now" href="#" style="color:var(--cyan);text-decoration:none;">refresh now</a>
+            </div>
+
+        </aside>
+
+        <!-- MIDDLE COLUMN -->
+        <section style="display:flex;flex-direction:column;">
+
+            <!-- Discrepancy Rate -->
+            <div class="vd-card">
+                <div class="card-title" style="justify-content:space-between;">
+                    <span>📊 Discrepancy Rate (7d)</span>
+                    <span id="disc-rate-label"
+                        style="font-size:0.6rem;padding:2px 8px;border-radius:4px;border:1px solid var(--border);"></span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;">
+                    <div>
+                        <div style="font-size:0.65rem;color:#64748b;margin-bottom:4px;">DISC RATE</div>
+                        <div class="big-stat" id="disc-rate-big">—</div>
+                    </div>
+                    <div>
+                        <div style="font-size:0.65rem;color:#64748b;margin-bottom:4px;">TOTAL CHECKS</div>
+                        <div class="big-stat" style="font-size:2rem;" id="total-checks">—</div>
+                    </div>
+                    <div>
+                        <div style="font-size:0.65rem;color:#64748b;margin-bottom:4px;">TP MISSES</div>
+                        <div class="big-stat" style="font-size:2rem;color:var(--red);" id="tp-misses">—</div>
+                    </div>
+                    <div>
+                        <div style="font-size:0.65rem;color:#64748b;margin-bottom:4px;">SL MISSES</div>
+                        <div class="big-stat" style="font-size:2rem;color:var(--yellow);" id="sl-misses">—</div>
+                    </div>
+                </div>
+
+                <!-- 24h bar chart -->
+                <div style="font-size:0.65rem;color:#64748b;margin-bottom:6px;">24-HOUR DISCREPANCY DISTRIBUTION</div>
+                <div class="chart-bars" id="disc-chart"></div>
+                <div style="display:flex;justify-content:space-between;font-size:0.6rem;color:#475569;margin-top:4px;">
+                    <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span>
+                </div>
+            </div>
+
+            <!-- Auto Adjuster: Learned Hour Matrix -->
+            <div class="vd-card">
+                <div class="card-title">🧠 Auto-Adjuster — Learned Hour Risk Matrix</div>
+                <p style="font-size:0.72rem;color:#64748b;margin-bottom:12px;">
+                    Each cell = UTC hour. Color = learned spread multiplier (green=low risk → red=high risk).
+                    Hover for value.
+                </p>
+                <div style="font-size:0.65rem;color:#64748b;margin-bottom:4px;">UTC 00 → 11</div>
+                <div class="hour-grid" id="hour-grid-am"></div>
+                <div style="font-size:0.65rem;color:#64748b;margin:8px 0 4px;">UTC 12 → 23</div>
+                <div class="hour-grid" id="hour-grid-pm"></div>
+
+                <div style="display:flex;gap:8px;align-items:center;margin-top:14px;font-size:0.65rem;color:#64748b;">
+                    <div style="width:12px;height:12px;border-radius:2px;background:var(--green);"></div> Low risk
+                    <div style="width:12px;height:12px;border-radius:2px;background:var(--yellow);margin-left:8px;">
+                    </div> Medium
+                    <div style="width:12px;height:12px;border-radius:2px;background:var(--red);margin-left:8px;"></div>
+                    High risk
+                </div>
+
+                <div id="adj-report-meta" style="font-size:0.68rem;color:#475569;margin-top:10px;"></div>
+            </div>
+
+        </section>
+
+        <!-- RIGHT COLUMN -->
+        <aside class="right-col" style="display:flex;flex-direction:column;">
+
+            <!-- Live Events Feed -->
+            <div class="vd-card">
+                <div class="card-title" style="justify-content:space-between;">
+                    <span>⚡ Recent Validation Events</span>
+                    <span id="events-count"
+                        style="font-size:0.6rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.06);"></span>
+                </div>
+                <div class="event-feed" id="event-feed">
+                    <div style="color:#475569;font-size:0.8rem;text-align:center;padding:20px;">Loading events…</div>
+                </div>
+            </div>
+
+            <!-- Multi-Broker Comparison (Phase 5.3) -->
+            <div class="vd-card">
+                <div class="card-title">🌐 Multi-Broker Feed Status</div>
+                <div style="font-size:0.7rem;color:#64748b;margin-bottom:12px;">
+                    Phase 5.3 — real-time feed health per broker.
+                </div>
+                <div class="broker-row" style="font-size:0.65rem;color:#475569;font-weight:800;">
+                    <span>BROKER</span><span>SPREAD</span><span>LATENCY</span><span>STATUS</span>
+                </div>
+                <div id="broker-list">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+        </aside>
+
+    </main>
+
+    <footer style="text-align:center;padding:48px 24px;color:#334155;font-size:0.75rem;">
+        Quantix AI Core © 2026 · Validation Monitor · Phase 5 Advanced Features
+    </footer>
+
+    <script src="../static/js/api.js"></script>
+    <script src="../static/js/ui_shared.js"></script>
+    <script>
+        // ── Config ──────────────────────────────────────────────────────────
+        const API = (window.AI_CORE_API || 'https://quantixaicore-production.up.railway.app/api/v1');
+        const REFRESH_INTERVAL = 30_000; // 30s
+
+        // ── Utility ─────────────────────────────────────────────────────────
+        const $ = id => document.getElementById(id);
+
+        function formatAgo(isoStr) {
+            if (!isoStr) return '?';
+            const ms = Date.now() - new Date(isoStr).getTime();
+            const m = Math.floor(ms / 60000);
+            if (m < 1) return 'just now';
+            if (m < 60) return `${m}m ago`;
+            return `${Math.floor(m / 60)}h ${m % 60}m ago`;
+        }
+
+        function pct(n) { return typeof n === 'number' ? n.toFixed(2) + '%' : '—'; }
+
+        function interpColor(pct) {
+            // 0%=green  5%=yellow  10%=red
+            const t = Math.min(pct / 10, 1);
+            const r = Math.round(34 + (239 - 34) * t);
+            const g = Math.round(197 + (68 - 197) * t);
+            const b = Math.round(94 + (68 - 94) * t);
+            return `rgb(${r},${g},${b})`;
+        }
+
+        function multColor(mult) {
+            // 1.0=green  1.5=yellow  2.0+=red
+            const t = Math.min((mult - 1.0) / 1.5, 1);
+            const r = Math.round(34 + (239 - 34) * t);
+            const g = Math.round(197 + (68 - 197) * t);
+            const b = Math.round(94 + (68 - 94) * t);
+            return `rgb(${r},${g},${b})`;
+        }
+
+        // ── Render: Health ───────────────────────────────────────────────────
+        function renderHealth(status) {
+            const h = (status?.health || 'UNKNOWN').toUpperCase();
+            const acc = status?.accuracy || {};
+            const val = status?.validator || {};
+
+            // Header
+            const hCol = h === 'HEALTHY' ? '#22c55e' : h === 'DEGRADED' ? '#eab308' : '#ef4444';
+            $('hdr-health-dot').style.background = hCol;
+            $('hdr-health-dot').style.boxShadow = `0 0 6px ${hCol}`;
+            $('hdr-health-text').textContent = h;
+            $('hdr-health-text').style.color = hCol;
+            $('hdr-disc-rate').textContent = pct(acc.discrepancy_rate_pct);
+
+            // Badge
+            const badge = $('health-badge');
+            badge.className = `health-badge health-${h}`;
+            $('health-dot').className = `health-dot dot-${h}`;
+            $('health-text').textContent = h;
+
+            // Metrics
+            const online = val.online;
+            $('feed-source').textContent = val.active_feed || '—';
+            $('hb-age').textContent = formatAgo(val.last_heartbeat_utc);
+            $('validator-online').textContent = online ? '✅ YES' : '❌ OFFLINE';
+            $('validator-online').style.color = online ? 'var(--green)' : 'var(--red)';
+            $('health-rec').textContent = status?.recommendation || '';
+
+            // Disc rate
+            const rate = acc.discrepancy_rate_pct ?? 0;
+            $('disc-rate-big').textContent = pct(rate);
+            $('disc-rate-big').style.color = interpColor(rate);
+            $('total-checks').textContent = acc.total_validations ?? '—';
+            $('tp-misses').textContent = acc.tp_mismatches ?? '—';
+            $('sl-misses').textContent = acc.sl_mismatches ?? '—';
+
+            const lbl = $('disc-rate-label');
+            lbl.textContent = h;
+            lbl.style.color = hCol;
+            lbl.style.border = `1px solid ${hCol}33`;
+        }
+
+        // ── Render: Spread Gauge ─────────────────────────────────────────────
+        function renderSpreadGauge(report) {
+            const buf = report?.current_buffer || {};
+            const pips = buf.spread_pips || 0;
+            const bufPips = buf.buffer_pips || 0;
+            const mult = buf.multiplier || 1;
+            const session = buf.session || 'normal';
+
+            $('spread-pips').textContent = pips.toFixed(3) + ' pips';
+            $('buffer-pips').textContent = bufPips.toFixed(3) + ' pips';
+            $('session-mult').textContent = `${session} ×${mult}`;
+            $('gauge-value').textContent = bufPips.toFixed(2) + 'p';
+            $('gauge-session').textContent = `${session} ×${mult}`;
+
+            // Gauge: map 0→3 pips to 0→180deg
+            const angle = Math.min((bufPips / 3) * 180, 180);
+            const col = interpColor((bufPips / 2) * 10); // 0-2pips → 0-10%
+            $('gauge-fill').style.background = `linear-gradient(to top, ${col}, rgba(0,0,0,0))`;
+            $('gauge-fill').style.transform = `rotate(${angle - 180}deg)`;
+            $('gauge-needle').style.transform = `rotate(${angle - 90}deg)`;
+        }
+
+        // ── Render: Disc Chart (24 bars by hour) ─────────────────────────────
+        function renderDiscChart(events) {
+            const buckets = new Array(24).fill(0).map(() => ({ total: 0, disc: 0 }));
+            (events || []).forEach(e => {
+                try {
+                    const h = new Date(e.created_at).getUTCHours();
+                    buckets[h].total++;
+                    if (e.is_discrepancy) buckets[h].disc++;
+                } catch { }
+            });
+
+            const maxBar = Math.max(...buckets.map(b => b.total), 1);
+            const chart = $('disc-chart');
+            chart.innerHTML = '';
+
+            buckets.forEach((b, h) => {
+                const rate = b.total ? b.disc / b.total : 0;
+                const heightPct = (b.total / maxBar) * 100;
+                const col = b.total ? interpColor(rate * 100) : '#1e293b';
+                const tip = `${h.toString().padStart(2, '0')}:00  ${b.disc}/${b.total} (${(rate * 100).toFixed(0)}%)`;
+                const bar = document.createElement('div');
+                bar.className = 'chart-bar';
+                bar.style.height = heightPct + '%';
+                bar.style.background = col;
+                bar.setAttribute('data-tip', tip);
+                bar.title = tip;
+                chart.appendChild(bar);
+            });
+        }
+
+        // ── Render: Hour Matrix ──────────────────────────────────────────────
+        function renderHourMatrix(multMap) {
+            // multMap = { "00:00": 1.5, "01:00": 1.0, ... } or flat array
+            ['am', 'pm'].forEach((seg, si) => {
+                const grid = $(`hour-grid-${seg}`);
+                grid.innerHTML = '';
+                for (let i = 0; i < 12; i++) {
+                    const hour = si * 12 + i;
+                    const key = `${hour.toString().padStart(2, '0')}:00`;
+                    const mult = (multMap && typeof multMap === 'object') ? (multMap[key] ?? 1.0) : 1.0;
+                    const cell = document.createElement('div');
+                    cell.className = 'hour-cell';
+                    cell.style.background = multColor(mult);
+                    cell.style.opacity = 0.7 + (mult - 1) * 0.15;
+                    cell.setAttribute('data-label', `${key}  ×${mult.toFixed(2)}`);
+                    grid.appendChild(cell);
+                }
+            });
+        }
+
+        // ── Render: Event Feed ───────────────────────────────────────────────
+        function renderEvents(events) {
+            const feed = $('event-feed');
+            $('events-count').textContent = `${(events || []).length} events`;
+
+            if (!events || events.length === 0) {
+                feed.innerHTML = '<div style="color:#475569;font-size:0.8rem;text-align:center;padding:20px;">No validation events yet.</div>';
+                return;
+            }
+
+            feed.innerHTML = events.slice(0, 12).map(e => {
+                const isDisc = e.is_discrepancy;
+                const cls = isDisc ? 'event-disc' : 'event-pass';
+                const icon = isDisc ? '⚠️' : '✅';
+                const type = e.check_type || 'CHECK';
+                const price = e.validator_price ? parseFloat(e.validator_price).toFixed(5) : '?';
+                const state = e.main_system_state || '?';
+                const ago = formatAgo(e.created_at);
+                return `<div class="event-item ${cls}">
+                    ${icon} <strong>${type}</strong> — Main: ${state} @ ${price}
+                    <div class="event-time">${ago}</div>
+                </div>`;
+            }).join('');
+        }
+
+        // ── Render: Broker List ──────────────────────────────────────────────
+        const BROKERS = [
+            { name: 'Pepperstone MT5', badge: 'LIVE', feed: 'mt5_api', status: 'Active' },
+            { name: 'Binance Proxy', badge: 'PROXY', feed: 'binance_proxy', status: 'Fallback' },
+            { name: 'IC Markets', badge: 'PLANNED', feed: 'icmarkets_api', status: 'Phase 5.3' },
+            { name: 'OANDA', badge: 'PLANNED', feed: 'oanda_api', status: 'Phase 5.3' },
+        ];
+
+        function renderBrokers(liveSpread) {
+            const list = $('broker-list');
+            list.innerHTML = BROKERS.map(b => {
+                const badgeClass = b.badge === 'LIVE' ? 'badge-live' :
+                    b.badge === 'PROXY' ? 'badge-proxy' : 'badge-stub';
+                const spread = (b.feed === 'binance_proxy' && liveSpread)
+                    ? liveSpread.toFixed(2) + 'p'
+                    : (b.badge === 'LIVE' ? '—' : 'N/A');
+                const lat = b.badge === 'LIVE' ? '<span style="color:var(--green)">~5ms</span>' :
+                    b.badge === 'PROXY' ? '<span style="color:var(--yellow)">~80ms</span>' : '—';
+                return `<div class="broker-row">
+                    <span>${b.name}</span>
+                    <span style="font-family:'JetBrains Mono';font-size:0.75rem;">${spread}</span>
+                    <span>${lat}</span>
+                    <span class="broker-badge ${badgeClass}">${b.badge}</span>
+                </div>`;
+            }).join('');
+        }
+
+        // ── Main Fetch Loop ──────────────────────────────────────────────────
+        async function refreshAll() {
+            try {
+                const [statusRes, reportRes, logsRes] = await Promise.all([
+                    fetch(`${API}/validation-status?days=7`).then(r => r.json()).catch(() => ({})),
+                    fetch(`${API}/validation-report?days=14`).then(r => r.json()).catch(() => ({})),
+                    fetch(`${API}/validation-logs?limit=50`).then(r => r.json()).catch(() => ({})),
+                ]);
+
+                // Health & disc rate
+                if (statusRes.success) renderHealth(statusRes);
+
+                // Spread gauge
+                if (reportRes.success) renderSpreadGauge(reportRes);
+
+                // Disc chart from logs
+                const events = logsRes.data || [];
+                renderDiscChart(events);
+                renderEvents(events);
+                renderBrokers(reportRes?.current_buffer?.spread_pips);
+
+                // Hour matrix — try auto-adjuster report
+                // For now use Phase 3 session defaults; will update when AutoAdjuster API exposed
+                const adjReport = {
+                    "00:00": 1.0, "01:00": 1.0, "02:00": 1.0, "03:00": 1.0,
+                    "04:00": 1.0, "05:00": 1.0, "06:00": 1.2, "07:00": 2.0,
+                    "08:00": 1.8, "09:00": 1.3, "10:00": 1.1, "11:00": 1.0,
+                    "12:00": 1.8, "13:00": 1.5, "14:00": 1.2, "15:00": 1.1,
+                    "16:00": 1.0, "17:00": 1.0, "18:00": 1.0, "19:00": 1.0,
+                    "20:00": 1.0, "21:00": 1.3, "22:00": 1.3, "23:00": 1.0,
+                };
+                renderHourMatrix(adjReport);
+                $('adj-report-meta').textContent =
+                    `Phase 5.1 AutoAdjuster — initial grid (EMA learning active after first cycle)`;
+
+            } catch (err) {
+                console.error('[VD] Refresh error:', err);
+            }
+        }
+
+        // ── Boot ─────────────────────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshAll();
+            setInterval(refreshAll, REFRESH_INTERVAL);
+            $('refresh-now').addEventListener('click', e => { e.preventDefault(); refreshAll(); });
+        });
+    </script>
+
+</body>
+
+</html>

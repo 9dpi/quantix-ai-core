@@ -1,12 +1,15 @@
 """
-Validation API Routes — Phase 4 Production Monitoring Extension
-================================================================
-Extended from original validation.py to include:
-    GET /validation-logs          — Recent validation events (existing)
-    GET /analysis-logs            — AI heartbeat logs (existing)
-    GET /validation-status        — Phase 4 production health monitor (NEW)
-    GET /validation-report        — Phase 3 spread analysis on-demand (NEW)
+Validation API Routes — Phase 4 & 5 Production Monitoring
+==========================================================
+    GET /validation-logs          — Recent validation events
+    GET /analysis-logs            — AI heartbeat logs
+    GET /validation-status        — Phase 4 health monitor (HEALTHY/DEGRADED/CRITICAL)
+    GET /validation-report        — Phase 3 spread analysis on-demand
+    GET /auto-adjuster-report     — Phase 5.1 learned hour-matrix & ATR state
+    GET /broker-comparison        — Phase 5.3 live spread across all brokers
+    POST /broker-signal-check     — Phase 5.3 multi-broker entry hit check
 """
+
 
 from fastapi import APIRouter, Query
 from quantix_core.database.connection import db
@@ -234,3 +237,100 @@ async def get_validation_report(
     except Exception as e:
         logger.error(f"Error generating validation report: {e}")
         return {"success": False, "error": str(e)}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase 5.1 — Auto-Adjuster Report
+# ─────────────────────────────────────────────────────────────────────────────
+
+@router.get("/auto-adjuster-report")
+async def get_auto_adjuster_report(
+    symbol: str = Query(default="EURUSD"),
+    learn: bool = Query(default=False, description="Run a learn cycle first"),
+):
+    """
+    Phase 5.1 Auto-Adjuster state report.
+
+    Returns the current learned hour-risk matrix, ATR multiplier,
+    and buffer recommendation for the given symbol.
+
+    Set ?learn=true to trigger a synchronous learn cycle before reporting
+    (adds ~300ms latency).
+    """
+    try:
+        from quantix_core.engine.auto_adjuster import AutoAdjuster
+        from quantix_core.feeds import get_feed
+        import os
+
+        feed = get_feed(os.getenv("VALIDATOR_FEED", "binance_proxy"))
+        adj  = AutoAdjuster(db=db, feed=feed)
+
+        if learn:
+            learn_summary = adj.learn()
+        else:
+            learn_summary = None
+
+        report = adj.get_learning_report()
+        buf    = adj.get_buffer(symbol=symbol)
+
+        return {
+            "success":        True,
+            "symbol":         symbol,
+            "report":         report,
+            "current_buffer": buf,
+            "learn_ran":      learn,
+            "learn_summary":  learn_summary,
+        }
+    except Exception as e:
+        logger.error(f"Error generating auto-adjuster report: {e}")
+        return {"success": False, "error": str(e)}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase 5.3 — Multi-Broker Comparison
+# ─────────────────────────────────────────────────────────────────────────────
+
+@router.get("/broker-comparison")
+async def get_broker_comparison(
+    symbol: str = Query(default="EURUSD"),
+):
+    """
+    Phase 5.3 — Live spread comparison across all configured brokers.
+
+    Returns per-broker bid/ask/spread and identifies best (tightest spread) broker.
+    """
+    try:
+        from quantix_core.feeds.multi_broker_feed import MultiBrokerEngine
+        engine   = MultiBrokerEngine()
+        result   = engine.compare_spreads(symbol=symbol)
+        avail    = engine.availability_summary()
+        return {"success": True, "comparison": result, "adapters": avail}
+    except Exception as e:
+        logger.error(f"Error in broker comparison: {e}")
+        return {"success": False, "error": str(e)}
+
+
+import pydantic
+
+class SignalCheckRequest(pydantic.BaseModel):
+    signal_id:    str = "test"
+    asset:        str = "EURUSD"
+    direction:    str = "BUY"
+    entry_price:  float = 1.0850
+
+@router.post("/broker-signal-check")
+async def post_broker_signal_check(req: SignalCheckRequest):
+    """
+    Phase 5.3 — Check signal entry against multiple brokers.
+
+    Returns per-broker entry hit verdict + consensus + best broker recommendation.
+    """
+    try:
+        from quantix_core.feeds.multi_broker_feed import MultiBrokerEngine
+        engine = MultiBrokerEngine()
+        result = engine.check_signal(req.dict())
+        return {"success": True, "result": result}
+    except Exception as e:
+        logger.error(f"Error in broker signal check: {e}")
+        return {"success": False, "error": str(e)}
+

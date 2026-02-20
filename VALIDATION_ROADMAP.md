@@ -166,58 +166,53 @@ class CTraderFeed:
 
 ---
 
-## 📅 PHASE 3: Spread Buffer Optimization (Tuần 5)
+## 📅 PHASE 3: Spread Buffer Optimization (Tuần 5) ✅ COMPLETED
 
 ### Mục tiêu:
 Sử dụng dữ liệu thực từ Phase 2 để tối ưu spread buffer
 
-### 3.1. Analyze Spread Impact (Ngày 1-2)
-```python
-# Script: analyze_spread_impact.py
-
-# Tính toán:
-- Average Pepperstone spread (bid-ask)
-- Impact lên TP/SL hits
-- Optimal buffer size
+### 3.1. Analyze Spread Impact ✅
+```bash
+# Script hoàn chỉnh tại:
+python backend/analyze_spread_impact.py
+python backend/analyze_spread_impact.py --days 7 --symbol EURUSD
+python backend/analyze_spread_impact.py --json
 ```
+**Features:**
+- [x] Đọc validation_events từ Supabase
+- [x] Tính avg/max/min/p95 spread từ bid/ask thực
+- [x] Tính discrepancy rate và TP/SL mismatch count
+- [x] Tự động recommend buffer dựa trên threshold (<5% / 5-10% / >10%)
+- [x] Hiển thị live buffer tại thời điểm chạy
 
-**Output mong đợi:**
-```
-=== SPREAD ANALYSIS ===
-Average spread: 0.25 pips
-Max spread (peak hours): 0.4 pips
-Min spread (London open): 0.1 pips
-
-Recommended buffer:
-- TP: +0.5 pips
-- SL: +0.5 pips
-```
-
-### 3.2. Implement Dynamic Spread Buffer (Ngày 3-4)
-```python
+### 3.2. Implement Dynamic Spread Buffer ✅
+```bash
 # File: quantix_core/engine/spread_adjuster.py
-
-class SpreadAdjuster:
-    def adjust_tp_sl(self, tp, sl, current_spread):
-        """
-        Dynamically adjust TP/SL based on current spread
-        """
-        buffer = current_spread * 1.5  # Safety margin
-        
-        adjusted_tp = tp + buffer
-        adjusted_sl = sl + buffer
-        
-        return adjusted_tp, adjusted_sl
 ```
+**Features:**
+- [x] `get_buffer(symbol)` — buffer theo thời gian thực, có cache 30s
+- [x] `adjust_tp_sl(tp, sl, direction)` — direction-aware (BUY/SELL khác nhau)
+- [x] Session multiplier: London open ×2.0, NY open ×1.8, normal ×1.0
+- [x] Priority: live_feed → historical_avg (24h Supabase) → default constant
+- [x] `analyze(days)` — full spread impact report method
+- [x] Safety margin: ×1.5 (configurable)
 
-### 3.3. A/B Testing (Ngày 5-7)
+### 3.3. A/B Testing ✅
 ```bash
 # Chạy 2 validators song song:
-# 1. Validator A: No spread buffer
-# 2. Validator B: With spread buffer
+python backend/ab_test_validator.py --minutes 60    # quick test
+python backend/ab_test_validator.py --minutes 10080  # 7-day full test
 
-# So sánh accuracy sau 1 tuần
+# In báo cáo từ file đã lưu:
+python backend/ab_test_validator.py --report ab_test_results_YYYYMMDD_HHMM.json
 ```
+**Features:**
+- [x] Group A: No buffer (control)
+- [x] Group B: SpreadAdjuster (treatment)
+- [x] Parallel threading, shared DB + feed
+- [x] Live progress counter
+- [x] Auto-saves JSON report on completion
+- [x] Winner recommendation với accuracy delta
 
 **Decision Point:**
 - Chọn config có accuracy cao nhất

@@ -215,15 +215,32 @@ class PepperstoneValidator:
         entry_price = signal.get("entry_price")
         direction   = signal.get("direction", "BUY")
 
-        # Use bid for SELL entry, ask for BUY entry (realistic broker fill)
+        # ── CORRECTED FUTURE-ENTRY LOGIC ────────────────────────────────────
+        # Signal uses "dip entry" strategy: entry_price is BELOW current market
+        # for BUY, ABOVE current market for SELL.
+        #
+        # Market must MOVE to reach entry:
+        #   BUY  → price must DROP  → validator checks  bid  <= entry_price
+        #   SELL → price must RALLY → validator checks  ask  >= entry_price
+        #
+        # Tolerance buffer: ±1 pip (0.0001) to absorb spread noise near entry.
+        # This matches signal_watcher.py is_entry_touched() which uses
+        # candle.low <= entry (BUY) / candle.high >= entry (SELL).
+        # ────────────────────────────────────────────────────────────────────
+        TOLERANCE = 0.0001  # 1 pip tolerance buffer
+
         if direction == "BUY":
-            feed_triggered = market_data["ask"] >= entry_price
+            # BUY entry: market must fall to (or below) entry price
+            feed_triggered = market_data["bid"] <= (entry_price + TOLERANCE)
         else:
-            feed_triggered = market_data["bid"] <= entry_price
+            # SELL entry: market must rise to (or above) entry price
+            feed_triggered = market_data["ask"] >= (entry_price - TOLERANCE)
 
         main_triggered = (signal.get("state") == "ENTRY_HIT")
 
         if feed_triggered != main_triggered:
+            # Only log a mismatch if the states genuinely diverge
+            # (feed says triggered but main doesn't, or vice-versa)
             disc = self._build_discrepancy(
                 disc_type="ENTRY_MISMATCH",
                 signal=signal,
@@ -231,11 +248,12 @@ class PepperstoneValidator:
                 feed_says="TRIGGERED" if feed_triggered else "NOT_TRIGGERED",
                 main_says="TRIGGERED" if main_triggered else "NOT_TRIGGERED",
                 details={
-                    "entry_price": entry_price,
-                    "market_high": market_data["high"],
-                    "market_low":  market_data["low"],
-                    "bid":        market_data["bid"],
-                    "ask":        market_data["ask"],
+                    "entry_price":  entry_price,
+                    "market_high":  market_data["high"],
+                    "market_low":   market_data["low"],
+                    "bid":          market_data["bid"],
+                    "ask":          market_data["ask"],
+                    "tolerance_pip": TOLERANCE,
                 },
             )
             tracking["discrepancies"].append(disc)

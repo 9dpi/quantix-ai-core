@@ -190,11 +190,9 @@ class TelegramNotifierV2:
         
         test_tag = "[TEST] " if signal.get("is_test") else ""
         
-        # Rule: BLOCK if ENTRY_HIT was not sent by this instance
-        signal_id = signal.get("id")
-        if signal_id not in self._notified_entries:
-            logger.warning(f"⛔ Blocked TP_HIT for {signal_id} (Orphan: Entry not notified)")
-            return None
+        # NOTE: Orphan guard removed — in-memory set is lost on restart.
+        # Blocking TP/SL silently after a redeploy is worse than a duplicate message.
+        # The DB state (TP_HIT / SL_HIT) is the source of truth.
         
         message = (
             f"{test_tag}✅ *TAKE PROFIT HIT*\n\n"
@@ -234,11 +232,9 @@ class TelegramNotifierV2:
         
         test_tag = "[TEST] " if signal.get("is_test") else ""
         
-        # Rule: BLOCK if ENTRY_HIT was not sent by this instance
-        signal_id = signal.get("id")
-        if signal_id not in self._notified_entries:
-            logger.warning(f"⛔ Blocked SL_HIT for {signal_id} (Orphan: Entry not notified)")
-            return None
+        # NOTE: Orphan guard removed — in-memory set is lost on restart.
+        # Blocking TP/SL silently after a redeploy is worse than a duplicate message.
+        # The DB state (TP_HIT / SL_HIT) is the source of truth.
         
         message = (
             f"{test_tag}🛑 *STOP LOSS HIT*\n\n"
@@ -295,7 +291,7 @@ class TelegramNotifierV2:
             f"Exit (Market): {current_price}\n\n"
             f"Status: 🏁 CLOSED\_TIMEOUT\n"
             f"Result: {result_icon} {result_text}\n"
-            f"Reason: Trade exceeded max duration (35m)\n\n"
+            f"Reason: Trade exceeded max duration (90m)\n\n"
             f"System released for new signals."
         )
         
@@ -396,14 +392,14 @@ class TelegramNotifierV2:
                 # 1. Clear Stuck Pending (WAITING > 35m)
                 limit_30 = (datetime.now(timezone.utc) - timedelta(minutes=35)).isoformat()
                 res_p = db.client.table(settings.TABLE_SIGNALS).update({
-                    "state": "CANCELLED", "status": "EXPIRED", "result": "CANCELLED", "closed_at": datetime.now(timezone.utc).isoformat()
+                    "state": "CANCELLED", "status": "EXPIRED", "result": "EXPIRED", "closed_at": datetime.now(timezone.utc).isoformat()
                 }).eq("state", "WAITING_FOR_ENTRY").lt("generated_at", limit_30).execute()
                 count_p = len(res_p.data) if res_p.data else 0
                 
                 # 2. Clear Stuck Active (ENTRY_HIT > 35m)
                 limit_90 = (datetime.now(timezone.utc) - timedelta(minutes=35)).isoformat()
                 res_a = db.client.table(settings.TABLE_SIGNALS).update({
-                    "state": "TIME_EXIT", "status": "CLOSED_TIMEOUT", "result": "CANCELLED", "closed_at": datetime.now(timezone.utc).isoformat()
+                    "state": "TIME_EXIT", "status": "CLOSED_TIMEOUT", "result": "CLOSED_TIMEOUT", "closed_at": datetime.now(timezone.utc).isoformat()
                 }).eq("state", "ENTRY_HIT").lt("generated_at", limit_90).execute()
                 count_a = len(res_a.data) if res_a.data else 0
                 

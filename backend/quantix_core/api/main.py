@@ -164,6 +164,41 @@ async def background_startup_tasks():
             except Exception as e:
                 logger.warning(f"⚠️ Auto-Adjuster init failed (non-critical): {e}")
 
+        # ── Continuous Analyzer (Signal Generator) ────────────────────────
+        # Generates new signals based on market conditions
+        analyzer_enabled = os.getenv("ANALYZER_ENABLED", "auto")
+        should_run_analyzer = (
+            analyzer_enabled == "true"
+            or (analyzer_enabled == "auto" and IS_RAILWAY)
+        )
+
+        if should_run_analyzer:
+            logger.info("🧠 Starting Continuous Analyzer (Signal Generator)...")
+            
+            def _run_analyzer():
+                import time
+                # Wait 10s to let Validator & API stabilize
+                time.sleep(10)
+                try:
+                    # Ensure backend is in path
+                    backend_dir = os.path.join(os.getcwd(), "backend")
+                    if backend_dir not in sys.path:
+                        sys.path.insert(0, backend_dir)
+                    
+                    from quantix_core.engine.continuous_analyzer import ContinuousAnalyzer
+                    # Initialize and start blocking loop
+                    analyzer = ContinuousAnalyzer()
+                    analyzer.start()
+                except Exception as e:
+                    logger.error(f"❌ Analyzer crashed: {e}")
+                    logger.exception(e)
+            
+            at = threading.Thread(target=_run_analyzer, daemon=True, name="AnalyzerLayer")
+            at.start()
+            logger.info("🧠 Analyzer thread launched")
+        else:
+            logger.info("ℹ️ Analyzer not started (set ANALYZER_ENABLED=true)")
+
     except Exception as e:
         logger.error(f"⚠️ Background startup task failed: {e}")
         # App continues running even if background tasks fail

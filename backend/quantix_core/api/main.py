@@ -19,8 +19,8 @@ logger.info(f"SYS.PATH: {sys.path}")
 from quantix_core.api.routes import health, signals, ingestion, csv_ingestion, admin, features, structure, lab, public, reference, lab_reference, validation
 from quantix_core.config.settings import settings
 from quantix_core.database.connection import db
-# from quantix_core.engine.continuous_analyzer import ContinuousAnalyzer
-# from quantix_core.engine.signal_watcher import SignalWatcher
+from quantix_core.engine.continuous_analyzer import ContinuousAnalyzer
+from quantix_core.engine.signal_watcher import SignalWatcher
 from twelvedata import TDClient
 
 app = FastAPI(
@@ -198,6 +198,53 @@ async def background_startup_tasks():
             logger.info("🧠 Analyzer thread launched")
         else:
             logger.info("ℹ️ Analyzer not started (set ANALYZER_ENABLED=true)")
+
+        # ── Signal Watcher (Lifecycle Execution) ──────────────────────────
+        # Monitors WAITING_FOR_ENTRY and ENTRY_HIT signals
+        watcher_enabled = os.getenv("WATCHER_ENABLED", "auto")
+        should_run_watcher = (
+            watcher_enabled == "true"
+            or (watcher_enabled == "auto" and IS_RAILWAY)
+        )
+
+        if should_run_watcher:
+            logger.info("🔍 Starting Signal Watcher (Lifecycle Engine)...")
+            
+            def _run_watcher():
+                import time
+                # Wait 15s to let Analyzer & Validator stabilize
+                time.sleep(15)
+                try:
+                    from quantix_core.engine.signal_watcher import SignalWatcher
+                    from twelvedata import TDClient
+                    
+                    td_client = TDClient(apikey=settings.TWELVE_DATA_API_KEY)
+                    # Initialize and start blocking loop
+                    watcher = SignalWatcher(
+                        supabase_client=db.client,
+                        td_client=td_client,
+                        telegram_notifier=None # Notifier is handled by Analyzer or separate instance if needed
+                    )
+                    
+                    # We inject the notifier if available in settings
+                    if settings.TELEGRAM_BOT_TOKEN and settings.TELEGRAM_CHAT_ID:
+                        from quantix_core.notifications.telegram_notifier_v2 import create_notifier
+                        watcher.telegram = create_notifier(
+                            settings.TELEGRAM_BOT_TOKEN, 
+                            settings.TELEGRAM_CHAT_ID,
+                            settings.TELEGRAM_ADMIN_CHAT_ID
+                        )
+                    
+                    watcher.run()
+                except Exception as e:
+                    logger.error(f"❌ Watcher crashed: {e}")
+                    logger.exception(e)
+            
+            wt = threading.Thread(target=_run_watcher, daemon=True, name="WatcherLayer")
+            wt.start()
+            logger.info("🔍 Watcher thread launched")
+        else:
+            logger.info("ℹ️ Watcher not started (set WATCHER_ENABLED=true)")
 
     except Exception as e:
         logger.error(f"⚠️ Background startup task failed: {e}")

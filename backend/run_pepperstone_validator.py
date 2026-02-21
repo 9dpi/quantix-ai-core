@@ -227,14 +227,16 @@ class PepperstoneValidator:
         # This matches signal_watcher.py is_entry_touched() which uses
         # candle.low <= entry (BUY) / candle.high >= entry (SELL).
         # ────────────────────────────────────────────────────────────────────
-        TOLERANCE = 0.0001  # 1 pip tolerance buffer
+        # ── ALIGNED LOGIC (Matches signal_watcher.py) ────────────────────────
+        # BUY  entry: triggered if market low <= entry (price dipped to entry)
+        # SELL entry: triggered if market high >= entry (price rallied to entry)
+        # ────────────────────────────────────────────────────────────────────
+        TOLERANCE = 0.00005  # 0.5 pip buffer for feed jitter
 
         if direction == "BUY":
-            # BUY entry: market must fall to (or below) entry price
-            feed_triggered = market_data["bid"] <= (entry_price + TOLERANCE)
+            feed_triggered = market_data["low"] <= (entry_price + TOLERANCE)
         else:
-            # SELL entry: market must rise to (or above) entry price
-            feed_triggered = market_data["ask"] >= (entry_price - TOLERANCE)
+            feed_triggered = market_data["high"] >= (entry_price - TOLERANCE)
 
         main_triggered = (signal.get("state") == "ENTRY_HIT")
 

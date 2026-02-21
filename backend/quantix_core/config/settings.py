@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     MODEL_VERSION: str = "quantix_fx_v1.0"
     DEBUG: bool = False
-    INSTANCE_NAME: str = "LOCAL-MACHINE"
+    INSTANCE_NAME: str = "LOCAL-MACHINE"  # Override via Railway env var INSTANCE_NAME
     
     # API
     API_HOST: str = "0.0.0.0"

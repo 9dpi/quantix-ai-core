@@ -64,11 +64,15 @@ class SignalWatcher:
         self._running = True
         logger.info("🔍 SignalWatcher started")
         
-        # 🛡️ Safeguard: Local environment should not send Telegram signals unless explicitly enabled
-        is_local = settings.INSTANCE_NAME in ["LOCAL-MACHINE", "local", "dev"]
-        if is_local and os.getenv("ENABLE_LOCAL_TELEGRAM", "false").lower() != "true":
+        # 🛡️ Disable Telegram on local to prevent duplicate notifications.
+        # On Railway, RAILWAY_ENVIRONMENT is always set — use that as the truth.
+        is_railway = os.getenv("RAILWAY_ENVIRONMENT") is not None
+        if not is_railway and os.getenv("ENABLE_LOCAL_TELEGRAM", "false").lower() != "true":
             self.telegram = None
-            logger.warning(f"🚫 {settings.INSTANCE_NAME} ENVIRONMENT: Telegram notifications DISABLED to prevent duplicates.")
+            logger.warning("🚫 LOCAL ENVIRONMENT: Telegram notifications DISABLED to prevent duplicates.")
+        else:
+            logger.info("✅ RAILWAY ENVIRONMENT: Telegram notifications ENABLED.")
+
 
         # 🤖 Start Telegram Command Listener in background thread (Only if telegram is enabled)
         if self.telegram:

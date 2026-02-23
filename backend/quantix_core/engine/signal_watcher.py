@@ -142,13 +142,27 @@ class SignalWatcher:
         # 1. Fetch active signals
         signals = self.fetch_active_signals()
         self.last_watched_count = len(signals)
-        
+
+        # Heartbeat for monitoring
+        if not hasattr(self, 'cycle_count'): self.cycle_count = 0
+        self.cycle_count += 1
+        if self.cycle_count % 5 == 0:
+            try:
+                self.db.table("fx_analysis_log").insert({
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "asset": "HEARTBEAT_WATCHER",
+                    "direction": "SYSTEM",
+                    "status": "WATCHER_ALIVE",
+                    "price": 0,
+                    "confidence": 0,
+                    "strength": 0
+                }).execute()
+            except: pass
+
         # 🛡️ Market Hours Check
         if not MarketHours.is_market_open():
             if signals:
                 logger.warning(f"Market is CLOSED. Pausing watcher for {len(signals)} signals.")
-                # Weekend cleanup REMOVED per user request - signals persist
-                pass
             return
         
         if not signals:

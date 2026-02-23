@@ -171,7 +171,20 @@ class SignalWatcher:
         except: pass
 
         # 🛡️ Market Hours Check
-        if not MarketHours.is_market_open():
+        is_open = MarketHours.is_market_open()
+        try:
+            self.db.table("fx_analysis_log").insert({
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "asset": "DEBUG_WATCHER",
+                "status": f"MARKET_CHECK: {is_open} | Signals: {len(signals)}",
+                "price": 0,
+                "direction": "SYSTEM",
+                "confidence": 0,
+                "strength": 0
+            }).execute()
+        except: pass
+
+        if not is_open:
             if signals:
                 logger.warning(f"Market is CLOSED. Pausing watcher for {len(signals)} signals.")
             return

@@ -20,6 +20,7 @@ import os
 import pydantic
 from datetime import datetime
 import sys
+from quantix_core.engine.continuous_analyzer import ContinuousAnalyzer
 
 from quantix_core.api.routes import (
     health, signals, ingestion, csv_ingestion,
@@ -102,7 +103,18 @@ async def _startup_checks():
     )
 
 
-# --- Root ---
+@app.get("/diagnostic/trigger", tags=["Admin"])
+async def trigger_diagnostic():
+    """Manually trigger one analysis cycle for debugging"""
+    try:
+        analyzer = ContinuousAnalyzer()
+        # Run only one cycle
+        analyzer.run_cycle()
+        return {"success": True, "message": "Diagnostic cycle completed. Check fx_analysis_log."}
+    except Exception as e:
+        logger.error(f"Diagnostic trigger failed: {e}")
+        return {"success": False, "error": str(e)}
+
 @app.get("/", tags=["Health"])
 async def root():
     return {

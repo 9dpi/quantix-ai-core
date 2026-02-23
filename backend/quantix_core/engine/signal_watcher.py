@@ -346,9 +346,27 @@ class SignalWatcher:
             return False
         
         if direction == "BUY":
-            return candle["low"] <= entry
+            is_touched = candle["low"] <= entry
+            if is_touched:
+                logger.info(f"🎯 BUY_ENTRY_TOUCH: {candle['low']} <= {entry}")
         else:  # SELL
-            return candle["high"] >= entry
+            is_touched = candle["high"] >= entry
+            if is_touched:
+                logger.info(f"🎯 SELL_ENTRY_TOUCH: {candle['high']} >= {entry}")
+
+        if is_touched:
+            try:
+                self.db.table("fx_analysis_log").insert({
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "asset": signal.get("asset", "???"),
+                    "direction": signal.get("direction", "???"),
+                    "status": "ENTRY_TOUCH_DETECTED",
+                    "price": candle.get("high" if direction == "SELL" else "low", 0),
+                    "confidence": 0,
+                    "strength": 0
+                }).execute()
+            except: pass
+        return is_touched
     
     def is_tp_touched(self, signal: dict, candle: dict) -> bool:
         """

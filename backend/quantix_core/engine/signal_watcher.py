@@ -295,6 +295,17 @@ class SignalWatcher:
                 return
 
             # [2] ENTRY HIT CHECK
+            if candle:
+                try:
+                    self.db.table("fx_analysis_log").insert({
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "asset": "DEBUG_WATCHER",
+                        "status": f"WAITING_CHECK_{signal_id}",
+                        "price": candle.get("close", 0),
+                        "direction": f"H:{candle['high']} L:{candle['low']}"
+                    }).execute()
+                except: pass
+            
             if candle and self.is_entry_touched(signal, candle):
                 self.transition_to_entry_hit(signal, candle)
         

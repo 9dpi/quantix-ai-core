@@ -1,1 +1,0 @@
-# Quantix AI - Learning Package

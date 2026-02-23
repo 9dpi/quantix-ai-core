@@ -143,6 +143,16 @@ class SignalWatcher:
         signals = self.fetch_active_signals()
         self.last_watched_count = len(signals)
 
+        try:
+            self.db.table("fx_analysis_log").insert({
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "asset": "DEBUG_WATCHER",
+                "status": f"FETCHED_SIGNALS_{len(signals)}",
+                "price": 0,
+                "direction": "SYSTEM"
+            }).execute()
+        except: pass
+
         # Heartbeat for monitoring
         if not hasattr(self, 'cycle_count'): self.cycle_count = 0
         self.cycle_count += 1

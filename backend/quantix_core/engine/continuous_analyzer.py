@@ -219,6 +219,9 @@ class ContinuousAnalyzer:
                 logger.warning("Empty data from TwelveData")
                 return
 
+            # 3. Prepare Common Data
+            price = float(df.iloc[-1]["close"])
+
             # --- HEARTBEAT LOG ---
             heartbeat_entry = {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -235,9 +238,6 @@ class ContinuousAnalyzer:
 
             # 2. Market Analysis
             state = self.engine.analyze(df, symbol="EURUSD", timeframe="M15", source="twelve_data")
-            
-            # 3. Prepare Common Data
-            price = float(df.iloc[-1]["close"])
             
             # Map market state to trading direction
             # STRICT RULE: Only trade clear structure — skip neutral/sideways

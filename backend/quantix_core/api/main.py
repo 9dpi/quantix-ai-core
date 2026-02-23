@@ -18,7 +18,7 @@ import uvicorn
 import asyncio
 import os
 import pydantic
-from datetime import datetime
+from datetime import datetime, timezone
 import sys
 from quantix_core.engine.continuous_analyzer import ContinuousAnalyzer
 

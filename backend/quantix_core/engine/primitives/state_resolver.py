@@ -80,6 +80,7 @@ class StateResolver:
             return StructureState(
                 state="unclear",
                 confidence=0.0,
+                strength=0.0,
                 dominance={
                     "bullish": bullish_score,
                     "bearish": bearish_score

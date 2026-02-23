@@ -146,6 +146,7 @@ class StructureEngineV1:
         return StructureState(
             state="unclear",
             confidence=0.0,
+            strength=0.0,
             dominance={"bullish": 0.0, "bearish": 0.0},
             evidence=["Insufficient swing points for structure analysis"],
             trace_id=trace_id,
@@ -163,6 +164,7 @@ class StructureEngineV1:
         return StructureState(
             state="range",
             confidence=0.6,
+            strength=0.3,
             dominance={"bullish": 0.0, "bearish": 0.0},
             evidence=["No structure breaks detected", "Market likely ranging"],
             trace_id=trace_id,
@@ -181,6 +183,7 @@ class StructureEngineV1:
         return StructureState(
             state="unclear",
             confidence=0.0,
+            strength=0.0,
             dominance={"bullish": 0.0, "bearish": 0.0},
             evidence=[f"Analysis error: {error}"],
             trace_id=trace_id,

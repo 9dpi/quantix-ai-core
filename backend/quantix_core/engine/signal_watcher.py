@@ -237,54 +237,30 @@ class SignalWatcher:
             return []
     
     def fetch_latest_candle(self) -> Optional[dict]:
-        """
-        Fetch latest M15 candle proxy from Binance (EURUSDT).
-        
-        Returns:
-            Candle dict with timestamp, open, high, low, close
-            or None if fetch fails
-        """
+        """Fetch latest candle from TwelveData"""
         try:
-            # EURUSDT on Binance acts as a 1:1 proxy for EURUSD with zero-latency
-            url = "https://api.binance.com/api/v3/klines"
-            params = {
-                "symbol": "EURUSDT",
-                "interval": "15m",
-                "limit": 2
-            }
+            # Multi-source failover: TwelveData is more reliable on Cloud IPs
+            data = self.td_client.get_time_series(
+                symbol="EUR/USD",
+                interval="1min",
+                outputsize=2
+            )
             
-            response = requests.get(url, params=params, timeout=5)
-            data = response.json()
-            
-            if not data or not isinstance(data, list):
-                logger.warning("No candle data returned from Binance")
+            if "values" not in data or not data["values"]:
+                logger.warning("No candle data from TwelveData")
                 return None
-            
-            # Aggregate last 2 candles to ensure we don't miss touches during rollover gaps
-            # Logic: If poll runs at 10:01, and hit was 9:59 (prev candle), checking only latest (10:00) would miss it.
-            
-            latest = data[-1]
-            high = float(latest[2])
-            low = float(latest[3])
-            
-            if len(data) > 1:
-                prev = data[-2]
-                high = max(high, float(prev[2]))
-                low = min(low, float(prev[3]))
-            
-            # Convert Open time (ms) to string
-            dt = datetime.fromtimestamp(latest[0]/1000, tz=timezone.utc)
-            
+                
+            latest = data["values"][0]
+            # Standardize for touch detection
             return {
-                "timestamp": dt.strftime('%Y-%m-%d %H:%M:%S'),
-                "open": float(latest[1]),
-                "high": high,
-                "low": low,
-                "close": float(latest[4])
+                "timestamp": latest["datetime"],
+                "open": float(latest["open"]),
+                "high": float(latest["high"]),
+                "low": float(latest["low"]),
+                "close": float(latest["close"])
             }
-        
         except Exception as e:
-            logger.error(f"Error fetching Binance candle: {e}")
+            logger.error(f"Error fetching TwelveData candle: {e}")
             return None
     
     def check_signal(self, signal: dict, candle: dict):

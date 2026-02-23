@@ -146,18 +146,17 @@ class SignalWatcher:
         # Heartbeat for monitoring
         if not hasattr(self, 'cycle_count'): self.cycle_count = 0
         self.cycle_count += 1
-        if self.cycle_count % 5 == 0:
-            try:
-                self.db.table("fx_analysis_log").insert({
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                    "asset": "HEARTBEAT_WATCHER",
-                    "direction": "SYSTEM",
-                    "status": "WATCHER_ALIVE",
-                    "price": 0,
-                    "confidence": 0,
-                    "strength": 0
-                }).execute()
-            except: pass
+        try:
+            self.db.table("fx_analysis_log").insert({
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "asset": "HEARTBEAT_WATCHER",
+                "direction": "SYSTEM",
+                "status": f"WATCHER_ALIVE_C{self.cycle_count}",
+                "price": 0,
+                "confidence": 0,
+                "strength": 0
+            }).execute()
+        except: pass
 
         # 🛡️ Market Hours Check
         if not MarketHours.is_market_open():

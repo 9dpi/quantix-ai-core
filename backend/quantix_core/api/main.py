@@ -155,9 +155,28 @@ async def trigger_diagnostic():
              
         state = analyzer.engine.analyze(df, symbol="EURUSD", timeframe="M15", source="twelve_data")
         
+        # Test DB insertion
+        db_ok = False
+        db_err = None
+        try:
+            db.client.table("fx_analysis_log").insert({
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "asset": "DIAGNOSTIC",
+                "direction": "TEST",
+                "status": "OK",
+                "price": float(df.iloc[-1]["close"]),
+                "confidence": 0.0,
+                "strength": 0.0
+            }).execute()
+            db_ok = True
+        except Exception as e:
+             db_err = str(e)
+             
         return {
             "success": True, 
             "message": "Diagnostic check passed.",
+            "db_insertion": db_ok,
+            "db_error": db_err,
             "data_points": len(df),
             "current_price": float(df.iloc[-1]["close"]),
             "market_state": state.state,

@@ -115,7 +115,7 @@ async def _run_watcher_loop():
         watcher = SignalWatcher()
         while True:
             try:
-                watcher.run_cycle()
+                watcher.check_cycle()
             except Exception as e:
                 logger.error(f"Watcher loop error: {e}")
             await asyncio.sleep(60) # Watcher runs every minute

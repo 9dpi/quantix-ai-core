@@ -32,28 +32,35 @@ class SignalWatcher:
     
     def __init__(
         self,
-        supabase_client: Client,
-        td_client,
+        supabase_client: Optional[Client] = None,
+        td_client = None,
         check_interval: Optional[int] = None,
-        telegram_notifier=None
+        telegram_notifier = None
     ):
-        """
-        Initialize signal watcher.
+        """Standardized Init for v3.2 embedding"""
+        from quantix_core.database.connection import db
+        from quantix_core.ingestion.twelve_data_client import TwelveDataClient
         
-        Args:
-            supabase_client: Supabase database client
-            td_client: TwelveData API client for market data
-            check_interval: Seconds between checks (defaults to settings.WATCHER_CHECK_INTERVAL)
-            telegram_notifier: Optional Telegram notification handler
-        """
-        self.db = supabase_client
-        self.td_client = td_client
+        self.db = supabase_client or db.client
+        self.td_client = td_client or TwelveDataClient(api_key=settings.TWELVE_DATA_API_KEY)
         self.check_interval = check_interval or settings.WATCHER_CHECK_INTERVAL
-        self.telegram = telegram_notifier
         self._running = False
         
+        # Auto-init telegram if not provided
+        if telegram_notifier:
+            self.telegram = telegram_notifier
+        elif settings.TELEGRAM_BOT_TOKEN and settings.TELEGRAM_CHAT_ID:
+            from quantix_core.notifications.telegram_notifier_v2 import create_notifier
+            self.telegram = create_notifier(
+                settings.TELEGRAM_BOT_TOKEN, 
+                settings.TELEGRAM_CHAT_ID,
+                settings.TELEGRAM_ADMIN_CHAT_ID
+            )
+        else:
+            self.telegram = None
+
         logger.info(
-            f"SignalWatcher initialized (check_interval={check_interval}s)"
+            f"SignalWatcher initialized (check_interval={self.check_interval}s)"
         )
     
     def run(self):

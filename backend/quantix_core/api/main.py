@@ -82,7 +82,45 @@ async def startup_event():
     instance = os.getenv("RAILWAY_SERVICE_NAME", "local")
     logger.info(f"🚀 Quantix API ONLINE — port={port} | instance={instance}")
     logger.info(f"⏰ UTC: {datetime.utcnow().isoformat()}")
+    
+    # --- AUTO-WORKER INTEGRATION (v3.2) ---
+    # Start background tasks directly in API process to ensure 100% uptime on Railway
+    # without needing dedicated worker services enabled in the UI.
+    asyncio.create_task(_run_analyzer_loop())
+    asyncio.create_task(_run_watcher_loop())
+    
     asyncio.create_task(_startup_checks())
+
+async def _run_analyzer_loop():
+    """Embedded Analyzer Loop"""
+    try:
+        from quantix_core.engine.continuous_analyzer import ContinuousAnalyzer
+        logger.info("💓 Starting Embedded Analyzer Task...")
+        analyzer = ContinuousAnalyzer()
+        # Non-blocking loop
+        while True:
+            try:
+                analyzer.run_cycle()
+            except Exception as e:
+                logger.error(f"Analyzer loop error: {e}")
+            await asyncio.sleep(settings.MONITOR_INTERVAL_SECONDS)
+    except Exception as e:
+        logger.critical(f"Failed to initialize Embedded Analyzer: {e}")
+
+async def _run_watcher_loop():
+    """Embedded Watcher Loop"""
+    try:
+        from quantix_core.engine.signal_watcher import SignalWatcher
+        logger.info("👀 Starting Embedded Watcher Task...")
+        watcher = SignalWatcher()
+        while True:
+            try:
+                watcher.run_cycle()
+            except Exception as e:
+                logger.error(f"Watcher loop error: {e}")
+            await asyncio.sleep(60) # Watcher runs every minute
+    except Exception as e:
+        logger.critical(f"Failed to initialize Embedded Watcher: {e}")
 
 
 async def _startup_checks():

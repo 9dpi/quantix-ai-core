@@ -149,7 +149,9 @@ class SignalWatcher:
                 "asset": "DEBUG_WATCHER",
                 "status": f"FETCHED_SIGNALS_{len(signals)}",
                 "price": 0,
-                "direction": "SYSTEM"
+                "direction": "SYSTEM",
+                "confidence": 0,
+                "strength": 0
             }).execute()
         except: pass
 
@@ -312,7 +314,9 @@ class SignalWatcher:
                         "asset": "DEBUG_WATCHER",
                         "status": f"WAITING_CHECK_{signal_id}",
                         "price": candle.get("close", 0),
-                        "direction": f"H:{candle['high']} L:{candle['low']}"
+                        "direction": f"H:{candle['high']} L:{candle['low']}",
+                        "confidence": 0,
+                        "strength": 0
                     }).execute()
                 except: pass
             

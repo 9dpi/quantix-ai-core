@@ -143,48 +143,11 @@ class SignalWatcher:
         signals = self.fetch_active_signals()
         self.last_watched_count = len(signals)
 
-        try:
-            self.db.table("fx_analysis_log").insert({
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "asset": "DEBUG_WATCHER",
-                "status": f"FETCHED_SIGNALS_{len(signals)}",
-                "price": 0,
-                "direction": "SYSTEM",
-                "confidence": 0,
-                "strength": 0
-            }).execute()
-        except: pass
-
-        # Heartbeat for monitoring
         if not hasattr(self, 'cycle_count'): self.cycle_count = 0
         self.cycle_count += 1
-        try:
-            self.db.table("fx_analysis_log").insert({
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "asset": "HEARTBEAT_WATCHER",
-                "direction": "SYSTEM",
-                "status": f"WATCHER_ALIVE_C{self.cycle_count}",
-                "price": 0,
-                "confidence": 0,
-                "strength": 0
-            }).execute()
-        except: pass
 
         # 🛡️ Market Hours Check
-        is_open = MarketHours.is_market_open()
-        try:
-            self.db.table("fx_analysis_log").insert({
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "asset": "DEBUG_WATCHER",
-                "status": f"MARKET_CHECK: {is_open} | Signals: {len(signals)}",
-                "price": 0,
-                "direction": "SYSTEM",
-                "confidence": 0,
-                "strength": 0
-            }).execute()
-        except: pass
-
-        if not is_open:
+        if not MarketHours.is_market_open():
             if signals:
                 logger.warning(f"Market is CLOSED. Pausing watcher for {len(signals)} signals.")
             return
@@ -296,18 +259,6 @@ class SignalWatcher:
                 return
 
             # [2] ENTRY HIT CHECK
-            if candle:
-                try:
-                    self.db.table("fx_analysis_log").insert({
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
-                        "asset": "DEBUG_WATCHER",
-                        "status": f"WAITING_CHECK_{signal_id}",
-                        "price": candle.get("close", 0),
-                        "direction": f"H:{candle['high']} L:{candle['low']}",
-                        "confidence": 0,
-                        "strength": 0
-                    }).execute()
-                except: pass
             
             if candle and self.is_entry_touched(signal, candle):
                 self.transition_to_entry_hit(signal, candle)

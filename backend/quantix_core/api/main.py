@@ -108,9 +108,23 @@ async def trigger_diagnostic():
     """Manually trigger one analysis cycle for debugging"""
     try:
         analyzer = ContinuousAnalyzer()
-        # Run only one cycle
-        analyzer.run_cycle()
-        return {"success": True, "message": "Diagnostic cycle completed. Check fx_analysis_log."}
+        # Mocking run_cycle steps to get results
+        raw_data = analyzer.td_client.get_time_series(symbol="EUR/USD", interval="15min", outputsize=10)
+        df = analyzer.convert_to_df(raw_data)
+        
+        if df.empty:
+             return {"success": False, "error": "TwelveData returned empty data", "raw": raw_data}
+             
+        state = analyzer.engine.analyze(df, symbol="EURUSD", timeframe="M15", source="twelve_data")
+        
+        return {
+            "success": True, 
+            "message": "Diagnostic check passed.",
+            "data_points": len(df),
+            "current_price": float(df.iloc[-1]["close"]),
+            "market_state": state.state,
+            "confidence": state.confidence
+        }
     except Exception as e:
         logger.error(f"Diagnostic trigger failed: {e}")
         return {"success": False, "error": str(e)}

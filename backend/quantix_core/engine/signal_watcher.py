@@ -200,9 +200,33 @@ class SignalWatcher:
             return []
     
     def fetch_latest_candle(self) -> Optional[dict]:
-        """Fetch latest candle from TwelveData"""
+        """Fetch latest candle with Multi-Source Fallover (Binance first to save TwelveData quota)"""
+        # --- SOURCE A: BINANCE (FREE / NO KEY) ---
         try:
-            # Multi-source failover: TwelveData is more reliable on Cloud IPs
+            # Binance is extremely fast and has no real quota for 1m requests
+            resp = requests.get(
+                "https://api.binance.com/api/v3/klines",
+                params={"symbol": "EURUSDT", "interval": "1m", "limit": 1},
+                timeout=5
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                if data and len(data) > 0:
+                    c = data[0]
+                    # Binance index: 1=Open, 2=High, 3=Low, 4=Close
+                    logger.debug("✅ Market Data Source: BINANCE (Quota Protected)")
+                    return {
+                        "timestamp": datetime.fromtimestamp(c[0]/1000, tz=timezone.utc).isoformat(),
+                        "open": float(c[1]),
+                        "high": float(c[2]),
+                        "low": float(c[3]),
+                        "close": float(c[4])
+                    }
+        except Exception as e:
+            logger.warning(f"⚠️ Binance feed failed, falling back to TwelveData: {e}")
+
+        # --- SOURCE B: TWELVEDATA (RESTRICTED QUOTA) ---
+        try:
             data = self.td_client.get_time_series(
                 symbol="EUR/USD",
                 interval="1min",
@@ -214,7 +238,7 @@ class SignalWatcher:
                 return None
                 
             latest = data["values"][0]
-            # Standardize for touch detection
+            logger.info("📡 Market Data Source: TWELVEDATA (Quota Used)")
             return {
                 "timestamp": latest["datetime"],
                 "open": float(latest["open"]),

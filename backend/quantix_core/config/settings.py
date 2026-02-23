@@ -23,8 +23,8 @@ class Settings(BaseSettings):
     TWELVE_DATA_API_KEY: Optional[str] = None
     
     # Heartbeat [T0+Δ]
-    MONITOR_INTERVAL_SECONDS: int = 180  # Optimized for 800 req/day quota (1 req/180s)
-    WATCHER_CHECK_INTERVAL: int = 120   # Optimized for 120s scan per v3.1 rules
+    MONITOR_INTERVAL_SECONDS: int = 300  # Optimized for AI Analysis (every 5 mins)
+    WATCHER_CHECK_INTERVAL: int = 60    # High-speed monitoring via FREE Binance API (every 60s)
     
     # Supabase Database
     SUPABASE_URL: Optional[str] = None

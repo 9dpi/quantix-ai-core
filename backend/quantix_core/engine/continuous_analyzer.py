@@ -192,6 +192,21 @@ class ContinuousAnalyzer:
 
         try:
             self.cycle_count += 1
+            logger.info(f"🎬 Starting new analysis cycle #{self.cycle_count}...")
+            
+            # Log market status to DB every 5 cycles
+            if self.cycle_count % 5 == 0:
+                try:
+                    db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "asset": "HEARTBEAT",
+                        "direction": "SYSTEM",
+                        "status": f"ALIVE_C{self.cycle_count}",
+                        "confidence": 0.0,
+                        "strength": 0.0,
+                        "price": 0.0
+                    }).execute()
+                except: pass
             
             # 🔥 EMERGENCY JANITOR: Self-unblock before scanning
             self.janitor_cleanup()
@@ -203,6 +218,20 @@ class ContinuousAnalyzer:
             if df.empty:
                 logger.warning("Empty data from TwelveData")
                 return
+
+            # --- HEARTBEAT LOG ---
+            heartbeat_entry = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "asset": "EURUSD",
+                "price": price,
+                "direction": "HEARTBEAT",
+                "status": "ANALYZING",
+                "strength": 0.0,
+                "confidence": 0.0
+            }
+            try:
+                db.client.table(settings.TABLE_ANALYSIS_LOG).insert(heartbeat_entry).execute()
+            except: pass
 
             # 2. Market Analysis
             state = self.engine.analyze(df, symbol="EURUSD", timeframe="M15", source="twelve_data")

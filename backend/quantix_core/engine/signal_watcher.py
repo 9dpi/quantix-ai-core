@@ -9,6 +9,7 @@ import time
 import requests
 import os
 import threading
+import asyncio
 from datetime import datetime, timezone
 from typing import List, Optional
 from loguru import logger
@@ -79,6 +80,13 @@ class SignalWatcher:
             cmd_thread = threading.Thread(target=self._listen_for_commands, daemon=True)
             cmd_thread.start()
             logger.info("🤖 Telegram command listener started in background")
+
+        # 🧹 Maintenance: Clear stuck signals from previous session or weekend
+        try:
+            from backend.expire_old_signals import expire_old
+            asyncio.run(expire_old())
+        except Exception as e:
+            logger.warning(f"⚠️ Startup cleanup failed: {e}")
 
         while self._running:
             try:

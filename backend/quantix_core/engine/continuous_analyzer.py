@@ -12,6 +12,7 @@ from quantix_core.database.connection import db
 from quantix_core.utils.entry_calculator import EntryCalculator
 from quantix_core.utils.market_hours import MarketHours
 from quantix_core.engine.confidence_refiner import ConfidenceRefiner
+from quantix_core.feeds.binance_feed import BinanceFeed
 
 class ContinuousAnalyzer:
     """
@@ -22,6 +23,7 @@ class ContinuousAnalyzer:
     
     def __init__(self):
         self.td_client = TwelveDataClient(api_key=settings.TWELVE_DATA_API_KEY)
+        self.binance = BinanceFeed()
         self.engine = StructureEngineV1(sensitivity=2)
         self.last_execution_date = None
         self.cycle_count = 0
@@ -59,13 +61,19 @@ class ContinuousAnalyzer:
         
         logger.info(f"💓 Quantix AI Core v2.1 Initialized (Log: {self.audit_log_path})")
 
-    def convert_to_df(self, td_data: dict) -> pd.DataFrame:
-        """Convert TwelveData series to StructureEngine compatible DataFrame"""
-        if "values" not in td_data:
+    def convert_to_df(self, data) -> pd.DataFrame:
+        """Convert feed data to StructureEngine compatible DataFrame"""
+        if isinstance(data, dict) and "values" in data:
+            # TwelveData format
+            df = pd.DataFrame(data["values"])
+            df["datetime"] = pd.to_datetime(df["datetime"])
+        elif isinstance(data, list):
+            # Binance/Internal list format
+            df = pd.DataFrame(data)
+            df["datetime"] = pd.to_datetime(df["datetime"])
+        else:
             return pd.DataFrame()
         
-        df = pd.DataFrame(td_data["values"])
-        df["datetime"] = pd.to_datetime(df["datetime"])
         df = df.sort_values("datetime")
         
         # Structure Engine expects float columns
@@ -211,12 +219,30 @@ class ContinuousAnalyzer:
             # 🔥 EMERGENCY JANITOR: Self-unblock before scanning
             self.janitor_cleanup()
             
-            # 1. Continuous Feed [T0]
-            raw_data = self.td_client.get_time_series(symbol="EUR/USD", interval="15min", outputsize=100)
-            df = self.convert_to_df(raw_data)
+            # 1. Continuous Feed [T0] - Multi-Source Fallover
+            df = pd.DataFrame()
             
+            # --- Source A: TwelveData (Primary) ---
+            try:
+                raw_data = self.td_client.get_time_series(symbol="EUR/USD", interval="15min", outputsize=100)
+                if raw_data and "values" in raw_data:
+                    df = self.convert_to_df(raw_data)
+                    logger.info("📡 Data Source: TWELVEDATA")
+            except Exception as e:
+                logger.warning(f"⚠️ TwelveData failed: {e}")
+
+            # --- Source B: Binance (Fallback) ---
             if df.empty:
-                logger.warning("Empty data from TwelveData")
+                try:
+                    raw_data = self.binance.get_history(symbol="EURUSD", interval="15m", limit=100)
+                    if raw_data:
+                        df = self.convert_to_df(raw_data)
+                        logger.info("📡 Data Source: BINANCE (Quota Protected)")
+                except Exception as e:
+                    logger.error(f"⚠️ Binance fallback failed: {e}")
+
+            if df.empty:
+                logger.error("❌ CRITICAL: All data sources failed. Skipping cycle.")
                 return
 
             # 3. Prepare Common Data

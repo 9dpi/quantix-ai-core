@@ -82,6 +82,35 @@ class BinanceFeed(BaseFeed):
 
         return None  # All endpoints failed
 
+    def get_history(self, symbol: str = "EURUSD", interval: str = "15m", limit: int = 100) -> Optional[list]:
+        """Fetch historical candles from Binance."""
+        binance_symbol = _SYMBOL_MAP.get(symbol.upper(), f"{symbol}T")
+        params = {"symbol": binance_symbol, "interval": interval, "limit": limit}
+
+        for url in _ENDPOINTS:
+            try:
+                resp = requests.get(url, params=params, timeout=self.timeout)
+                if resp.status_code != 200:
+                    continue
+
+                data = resp.json()
+                if not data:
+                    continue
+
+                history = []
+                for candle in data:
+                    history.append({
+                        "datetime": datetime.fromtimestamp(candle[0] / 1000, tz=timezone.utc).isoformat(),
+                        "open": float(candle[1]),
+                        "high": float(candle[2]),
+                        "low": float(candle[3]),
+                        "close": float(candle[4])
+                    })
+                return history
+            except Exception:
+                continue
+        return None
+
     def is_available(self) -> bool:
         try:
             resp = requests.get(

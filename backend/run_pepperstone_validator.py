@@ -126,12 +126,9 @@ class PepperstoneValidator:
             except Exception as e:
                 logger.error(f"Validation cycle error: {e}")
 
-            self.cycle_count += 1
-
-            # Heartbeat every 5 cycles (~5 minutes)
             if self.cycle_count % 5 == 0:
                 self._log_heartbeat()
-
+            self.cycle_count += 1
             time.sleep(self.check_interval)
 
     # ------------------------------------------------------------------

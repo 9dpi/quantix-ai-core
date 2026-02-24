@@ -527,7 +527,7 @@ class SignalWatcher:
         try:
             # 1. ATOMIC DB UPDATE
             res = self.db.table("fx_signals").update({
-                "state": "TIME_EXIT",
+                "state": "CANCELLED",
                 "status": "CLOSED_TIMEOUT",
                 "result": "CANCELLED",
                 "closed_at": datetime.now(timezone.utc).isoformat()
@@ -536,7 +536,7 @@ class SignalWatcher:
             if not res.data:
                 return
 
-            logger.success(f"⏱️ DB Update: Signal {signal_id} → TIME_EXIT")
+            logger.success(f"⏱️ DB Update: Signal {signal_id} → TIMEOUT (CANCELLED state)")
 
             # 2. NOTIFICATION
             tg_id = signal.get("telegram_message_id")
@@ -554,7 +554,7 @@ class SignalWatcher:
             if res.data:
                 sig = res.data[0]
                 # Terminal states where we shouldn't send more notifications
-                return sig.get("status") == "CLOSED" or sig.get("state") in ["TP_HIT", "SL_HIT", "CANCELLED", "TIME_EXIT"]
+                return sig.get("status") == "CLOSED" or sig.get("state") in ["TP_HIT", "SL_HIT", "CANCELLED"]
         except Exception:
             pass
         return False

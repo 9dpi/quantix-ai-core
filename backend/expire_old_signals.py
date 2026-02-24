@@ -52,7 +52,7 @@ async def expire_old():
             if is_expired:
                 logger.warning(f"⚠️ Expiring Signal {sig_id}: {reason}")
                 db.client.table(settings.TABLE_SIGNALS).update({
-                    "state": "CANCELLED" if state in ["WAITING_FOR_ENTRY", "PUBLISHED"] else "TIME_EXIT",
+                    "state": "CANCELLED",
                     "status": "EXPIRED" if state in ["WAITING_FOR_ENTRY", "PUBLISHED"] else "CLOSED_TIMEOUT",
                     "result": "CANCELLED",
                     "closed_at": now.isoformat()

@@ -47,8 +47,8 @@ class Settings(BaseSettings):
     MIN_RR: float = 1.0  # Allow 1:1 RR
     MIN_CONFIDENCE: float = 0.65
     MAX_SIGNALS_PER_ASSET: int = 3
-    MAX_PENDING_DURATION_MINUTES: int = 35  # Auto-expire if entry not hit within 35 mins
-    MAX_TRADE_DURATION_MINUTES: int = 90    # Auto-exit after 90 mins per v3.1 rules
+    MAX_PENDING_DURATION_MINUTES: int = 120  # Increased to 2h to allow better entry window
+    MAX_TRADE_DURATION_MINUTES: int = 1440    # Increased to 24h to allow TP/SL to play out
     
     # 🔒 ANTI-BURST RULES
     MIN_RELEASE_INTERVAL_MINUTES: int = 30

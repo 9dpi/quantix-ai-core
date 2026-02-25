@@ -59,8 +59,12 @@ class SignalWatcher:
         else:
             self.telegram = None
 
+        # Detection Buffers (in price units, e.g., 0.00002 = 0.2 pips)
+        # Accounts for difference between Binance (Mid) vs MT5 (Ask/Bid)
+        self.HIT_TOLERANCE = 0.00002 
+
         logger.info(
-            f"SignalWatcher initialized (check_interval={self.check_interval}s)"
+            f"SignalWatcher initialized (check_interval={self.check_interval}s, tolerance={self.HIT_TOLERANCE})"
         )
     
     def run(self):
@@ -341,76 +345,43 @@ class SignalWatcher:
     # ========================================
     
     def is_entry_touched(self, signal: dict, candle: dict) -> bool:
-        """
-        Check if entry price was touched in this candle.
-        
-        BUY: Entry touched when price drops to entry level (low <= entry)
-        SELL: Entry touched when price rises to entry level (high >= entry)
-        """
+        """Check if entry hit with tolerance."""
         entry = signal.get("entry_price")
         direction = signal.get("direction")
+        if not entry or not direction: return False
         
-        if not entry or not direction:
-            return False
-        
+        # BUY: Low must drop to entry. SELL: High must rise to entry.
+        # Adding tolerance to account for BID/ASK spread on customer brokers.
         if direction == "BUY":
-            is_touched = candle["low"] <= entry
-            if is_touched:
-                logger.info(f"🎯 BUY_ENTRY_TOUCH: {candle['low']} <= {entry}")
-        else:  # SELL
-            is_touched = candle["high"] >= entry
-            if is_touched:
-                logger.info(f"🎯 SELL_ENTRY_TOUCH: {candle['high']} >= {entry}")
+            is_touched = candle["low"] <= (entry + self.HIT_TOLERANCE)
+        else:
+            is_touched = candle["high"] >= (entry - self.HIT_TOLERANCE)
 
         if is_touched:
-            try:
-                self.db.table("fx_analysis_log").insert({
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                    "asset": signal.get("asset", "???"),
-                    "direction": signal.get("direction", "???"),
-                    "status": "ENTRY_TOUCH_DETECTED",
-                    "price": candle.get("high" if direction == "SELL" else "low", 0),
-                    "confidence": 0,
-                    "strength": 0
-                }).execute()
-            except: pass
+            logger.info(f"🎯 {direction}_ENTRY_TOUCH: Price={candle['low' if direction=='BUY' else 'high']} Level={entry}")
         return is_touched
     
     def is_tp_touched(self, signal: dict, candle: dict) -> bool:
-        """
-        Check if take profit was touched.
-        
-        BUY: TP touched when price rises to TP (high >= tp)
-        SELL: TP touched when price drops to TP (low <= tp)
-        """
+        """Check if TP hit with tolerance."""
         tp = signal.get("tp")
         direction = signal.get("direction")
-        
-        if not tp or not direction:
-            return False
+        if not tp or not direction: return False
         
         if direction == "BUY":
-            return candle["high"] >= tp
-        else:  # SELL
-            return candle["low"] <= tp
+            return candle["high"] >= (tp - self.HIT_TOLERANCE)
+        else:
+            return candle["low"] <= (tp + self.HIT_TOLERANCE)
     
     def is_sl_touched(self, signal: dict, candle: dict) -> bool:
-        """
-        Check if stop loss was touched.
-        
-        BUY: SL touched when price drops to SL (low <= sl)
-        SELL: SL touched when price rises to SL (high >= sl)
-        """
+        """Check if SL hit with tolerance."""
         sl = signal.get("sl")
         direction = signal.get("direction")
-        
-        if not sl or not direction:
-            return False
+        if not sl or not direction: return False
         
         if direction == "BUY":
-            return candle["low"] <= sl
-        else:  # SELL
-            return candle["high"] >= sl
+            return candle["low"] <= (sl + self.HIT_TOLERANCE)
+        else:
+            return candle["high"] >= (sl - self.HIT_TOLERANCE)
     
     # ========================================
     # STATE TRANSITION METHODS

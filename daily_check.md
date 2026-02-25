@@ -4,8 +4,9 @@
 - **Dịch vụ Analyzer:** 🟢 ĐANG HOẠT ĐỘNG
 - **Dịch vụ Watcher:** � ĐANG HOẠT ĐỘNG (Đã khôi phục hoàn toàn)
 - **Dịch vụ Validator:** � ĐANG HOẠT ĐỘNG (Đã vá lỗi Stall & Timeout)
-- **Dịch vụ Watchdog:** 🔵 **NEW** (Đã kích hoạt giám sát 24/7)
+- **Dịch vụ Watchdog:** 🟢 ĐANG HOẠT ĐỘNG
 - **Dữ liệu Database:** 🟢 KẾT NỐI TỐT
+- **Độ chính xác tín hiệu:** 🔵 **IMPROVED** (Đã vá lỗi khớp lệnh & TP/SL)
 - **Hạn ngạch API:** 🟢 AN TOÀN (Hoạt động ổn định)
 
 ---
@@ -19,14 +20,16 @@
 
 ### **Sự cố 5: Frontend Data Fetch Failed & Validator Hang**
 - **Thời điểm:** Phát hiện lúc 25/02/2026 - 09:00 (GMT+7).
-- **Hiện tượng:** 
-    - Web Dashboard báo lỗi "Failed to fetch" khi API Railway gặp sự cố 502.
-    - Validator bị treo (Stall) do không có cơ chế Timeout khi gọi Database/Feed.
+- **Biện pháp xử lý:** Triển khai cơ chế **Hybrid API Fallback** (Supabase) và bổ sung Database Timeout (10s).
+- **Trạng thái:** ✅ Đã xử lý.
+
+### **Sự cố 6: Khách hàng phàn nàn về lỗi khớp lệnh (Entry/TP/SL)**
+- **Thời điểm:** Phát hiện lúc 25/02/2026 - 09:07 (GMT+7).
+- **Hiện tượng:** Khách báo lệnh đôi lúc không khớp Entry, và hầu như không bao giờ khớp TP/SL (thường bị đóng sớm bởi Timeout).
 - **Biện pháp xử lý:** 
-    - **Frontend:** Triển khai cơ chế **Hybrid API** (Railway + Supabase Fallback). Nếu Railway lỗi, web tự động chuyển sang đọc Supabase trực tiếp. (Đã áp dụng cho cả `quantix-live-execution` và `Telesignal`).
-    - **Core:** Bổ sung **Timeout (10s)** cho tất cả yêu cầu Database trong `connection.py` và bộ lọc **Sanity Filter** (loại bỏ giá ảo/spikes) trong `BinanceFeed`.
-    - **Giám sát:** Phát triển và triển khai **Dịch vụ Watchdog** mới để cảnh báo Telegram ngay lập tức nếu bất kỳ dịch vụ nào ngừng hoạt động quá 15 phút.
-- **Trạng thái:** ✅ ĐÃ KHÔI PHỤC TOÀN BỘ (FULL RECOVERY).
+    - Nâng `MAX_PENDING_DURATION` lên 2 giờ (120p) và `MAX_TRADE_DURATION` lên 24 giờ (1440p).
+    - Áp dụng sai số **0.2 pips (0.00002)** khi so khớp giá để bù đắp Spread sàn.
+- **Trạng thái:** ✅ Đã cập nhật & Đang giám sát.
 
 ---
 

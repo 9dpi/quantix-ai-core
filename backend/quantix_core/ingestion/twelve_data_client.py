@@ -47,8 +47,12 @@ class TwelveDataClient:
                 data = response.json()
                 
                 if data.get("status") == "error":
-                    logger.error(f"TwelveData API error: {data.get('message')}")
-                    return {"status": "error", "message": data.get("message")}
+                    msg = data.get("message", "")
+                    logger.error(f"TwelveData API error: {msg}")
+                    if "apikey" in msg.lower() or "limit" in msg.lower():
+                        # Raise error so the caller knows to switch source immediately
+                        raise ValueError(f"TWELVEDATA_UNAVAILABLE: {msg}")
+                    return {"status": "error", "message": msg}
                 
                 return data
                 

@@ -218,38 +218,42 @@ class SignalWatcher:
         """Fetch latest candle with Multi-Source Fallover (Binance first to save TwelveData quota)"""
         # --- SOURCE A: BINANCE (FREE / NO KEY) ---
         try:
-            # Binance is extremely fast and has no real quota for 1m requests
-            resp = requests.get(
-                "https://api.binance.com/api/v3/klines",
-                params={"symbol": "EURUSDT", "interval": "1m", "limit": 1},
-                timeout=5
-            )
-            if resp.status_code == 200:
-                data = resp.json()
-                if data and len(data) > 0:
-                    c = data[0]
-                    # Binance index: 1=Open, 2=High, 3=Low, 4=Close
-                    logger.debug("✅ Market Data Source: BINANCE (Quota Protected)")
-                    return {
-                        "timestamp": datetime.fromtimestamp(c[0]/1000, tz=timezone.utc).isoformat(),
-                        "open": float(c[1]),
-                        "high": float(c[2]),
-                        "low": float(c[3]),
-                        "close": float(c[4])
-                    }
+            from quantix_core.feeds.binance_feed import BinanceFeed
+            binance = BinanceFeed()
+            market_data = binance.get_price("EURUSD")
+            
+            if market_data:
+                logger.debug(f"✅ Market Data Source: {market_data['source']}")
+                return {
+                    "timestamp": market_data["timestamp"],
+                    "open": market_data["open"],
+                    "high": market_data["high"],
+                    "low": market_data["low"],
+                    "close": market_data["close"]
+                }
+            else:
+                logger.warning("⚠️ Binance feed returned no data, falling back to TwelveData...")
         except Exception as e:
-            logger.warning(f"⚠️ Binance feed failed, falling back to TwelveData: {e}")
+            logger.warning(f"⚠️ Binance feed failed completely: {e}")
 
         # --- SOURCE B: TWELVEDATA (RESTRICTED QUOTA) ---
         try:
+            if not self.td_client.api_key:
+                logger.error("❌ TwelveData API Key is missing - Cannot use as fallback.")
+                return None
+                
             data = self.td_client.get_time_series(
                 symbol="EUR/USD",
                 interval="1min",
                 outputsize=2
             )
             
+            if not data or data.get("status") == "error":
+                logger.error(f"TwelveData fallback failed: {data.get('message') if data else 'Empty response'}")
+                return None
+            
             if "values" not in data or not data["values"]:
-                logger.warning("No candle data from TwelveData")
+                logger.warning("No candle data values from TwelveData")
                 return None
                 
             latest = data["values"][0]

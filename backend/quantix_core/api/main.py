@@ -83,11 +83,10 @@ async def startup_event():
     logger.info(f"🚀 Quantix API ONLINE — port={port} | instance={instance}")
     logger.info(f"⏰ UTC: {datetime.utcnow().isoformat()}")
     
-    # --- AUTO-WORKER INTEGRATION (v3.2) ---
-    # Start background tasks directly in API process to ensure 100% uptime on Railway
-    # without needing dedicated worker services enabled in the UI.
-    asyncio.create_task(_run_analyzer_loop())
-    asyncio.create_task(_run_watcher_loop())
+    # --- AUTO-WORKER INTEGRATION (v3.2) - DISABLED to prevent duplicates ---
+    # Background workers now run as dedicated Railway services via Procfile.
+    # asyncio.create_task(_run_analyzer_loop())
+    # asyncio.create_task(_run_watcher_loop())
     
     asyncio.create_task(_startup_checks())
 

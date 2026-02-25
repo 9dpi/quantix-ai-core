@@ -6,8 +6,8 @@
 - **Dịch vụ Validator:** � ĐANG HOẠT ĐỘNG (Đã vá lỗi Stall & Timeout)
 - **Dịch vụ Watchdog:** 🟢 ĐANG HOẠT ĐỘNG
 - **Dữ liệu Database:** 🟢 KẾT NỐI TỐT
-- **Độ chính xác tín hiệu:** 🔵 **IMPROVED** (Đã vá lỗi khớp lệnh & TP/SL)
-- **Hạn ngạch API:** 🟢 AN TOÀN (Hoạt động ổn định)
+- **Kênh Telegram:** 🟢 **FIXED** (Đã hết tin nhắn trùng)
+- **Độ chính xác tín hiệu:** 🔵 IMPROVED (Đã vá lỗi khớp lệnh & TP/SL)
 
 ---
 
@@ -23,7 +23,12 @@
 - **Biện pháp xử lý:** 
     - **Thời gian:** Giữ nguyên cấu hình cũ (Entry Window: 30-35p, Trade Duration: 90p) theo yêu cầu.
     - **Độ nhạy:** Duy trì sai số **0.2 pips (0.00002)** khi so khớp giá để cải thiện tỷ lệ khớp lệnh thực tế trên sàn của khách.
-- **Trạng thái:** ✅ Đã cấu hình lại & Đang giám sát.
+### **Sự cố 7: Tin nhắn Telegram bị trùng (Duplicate Notifications)**
+- **Thời điểm:** Phát hiện lúc 25/02/2026 - 13:50 (GMT+7).
+- **Hiện tượng:** Khách nhận được 2 tin nhắn y hệt nhau cho mỗi sự kiện (Tín hiệu mới, Entry Hit). Database cũng bị lưu 2-3 ID cho cùng một lệnh.
+- **Nguyên nhân:** Lỗi cấu hình "Auto-Worker" trong file `api/main.py`. Hệ thống vừa chạy Analyzer/Watcher độc lập qua Procfile, vừa chạy thêm bộ Analyzer/Watcher nhúng bên trong tiến trình API -> Dẫn đến việc 2 bộ worker chạy song song trên Cloud.
+- **Biện pháp xử lý:** Vô hiệu hóa các task chạy ngầm (async tasks) trong `api/main.py`. Chỉ sử dụng các Worker chuyên biệt theo đúng kiến trúc `Procfile`.
+- **Trạng thái:** ✅ ĐÃ XỬ LÝ (Đã deploy bản fix).
 
 ---
 

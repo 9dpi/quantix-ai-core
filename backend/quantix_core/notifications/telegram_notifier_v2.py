@@ -397,9 +397,8 @@ class TelegramNotifierV2:
                 count_p = len(res_p.data) if res_p.data else 0
                 
                 # 2. Clear Stuck Active (ENTRY_HIT > 35m)
-                limit_90 = (datetime.now(timezone.utc) - timedelta(minutes=35)).isoformat()
                 res_a = db.client.table(settings.TABLE_SIGNALS).update({
-                    "state": "TIME_EXIT", "status": "CLOSED_TIMEOUT", "result": "CLOSED_TIMEOUT", "closed_at": datetime.now(timezone.utc).isoformat()
+                    "state": "CANCELLED", "status": "CLOSED_TIMEOUT", "result": "CLOSED_TIMEOUT", "closed_at": datetime.now(timezone.utc).isoformat()
                 }).eq("state", "ENTRY_HIT").lt("generated_at", limit_90).execute()
                 count_a = len(res_a.data) if res_a.data else 0
                 

@@ -61,19 +61,29 @@ class BinanceFeed(BaseFeed):
                     continue
 
                 candle = data[-1]
-                close = float(candle[4])
+                ts = datetime.fromtimestamp(candle[0] / 1000, tz=timezone.utc)
+                
+                # --- SANITY FILTER ---
+                # 1. Future block
+                if (ts - datetime.now(timezone.utc)).total_seconds() > 60:
+                    logger.warning(f"🚩 Sanity Reject: Future timestamp {ts}")
+                    continue
+                
+                # 2. Spike block (> 5% move in 1m is suspicious for EURUSD)
+                o, h, l, c = float(candle[1]), float(candle[2]), float(candle[3]), float(candle[4])
+                if abs(c - o) / o > 0.05:
+                    logger.warning(f"🚩 Sanity Reject: Suspected price spike {o} -> {c}")
+                    continue
+                
                 half_spread = (_SIMULATED_SPREAD_PIPS / 2) * 0.0001
-
                 return {
-                    "timestamp": datetime.fromtimestamp(
-                        candle[0] / 1000, tz=timezone.utc
-                    ).isoformat(),
-                    "open":       float(candle[1]),
-                    "high":       float(candle[2]),
-                    "low":        float(candle[3]),
-                    "close":      close,
-                    "bid":        round(close - half_spread, 5),
-                    "ask":        round(close + half_spread, 5),
+                    "timestamp": ts.isoformat(),
+                    "open":       o,
+                    "high":       h,
+                    "low":        l,
+                    "close":      c,
+                    "bid":        round(c - half_spread, 5),
+                    "ask":        round(c + half_spread, 5),
                     "spread_pips": _SIMULATED_SPREAD_PIPS,
                     "source":     f"binance_proxy ({url})",
                 }
@@ -99,12 +109,19 @@ class BinanceFeed(BaseFeed):
 
                 history = []
                 for candle in data:
+                    ts = datetime.fromtimestamp(candle[0] / 1000, tz=timezone.utc)
+                    o, h, l, c = float(candle[1]), float(candle[2]), float(candle[3]), float(candle[4])
+                    
+                    # Sanity check
+                    if (ts - datetime.now(timezone.utc)).total_seconds() > 60: continue
+                    if abs(c - o) / (o or 1) > 0.10: continue # 10% for history just in case
+
                     history.append({
-                        "datetime": datetime.fromtimestamp(candle[0] / 1000, tz=timezone.utc).isoformat(),
-                        "open": float(candle[1]),
-                        "high": float(candle[2]),
-                        "low": float(candle[3]),
-                        "close": float(candle[4])
+                        "datetime": ts.isoformat(),
+                        "open": o,
+                        "high": h,
+                        "low": l,
+                        "close": c
                     })
                 return history
             except Exception:

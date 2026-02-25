@@ -27,12 +27,12 @@ def check_signals():
         print("-" * 120)
         
         for s in signals:
-            gen_at = s.get('generated_at', 'N/A')
-            sig_id = s.get('id', 'N/A')
-            asset = s.get('asset', 'N/A')
-            direction = s.get('direction', 'N/A')
-            state = s.get('state', 'N/A')
-            result = s.get('result', 'N/A')
+            gen_at = str(s.get('generated_at') or 'N/A')
+            sig_id = str(s.get('id') or 'N/A')
+            asset = str(s.get('asset') or 'N/A')
+            direction = str(s.get('direction') or 'N/A')
+            state = str(s.get('state') or 'N/A')
+            result = str(s.get('result') or 'N/A')
             
             print(f"{gen_at[:23]:<25} | {sig_id:<38} | {asset:<10} | {direction:<5} | {state:<20} | {result:<15}")
             

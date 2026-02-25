@@ -1,24 +1,32 @@
 # Quantix System Daily Report - 2026-02-25
 
 ## 🏥 Overall System Health
-- **Dịch vụ Analyzer:** 🟢 ĐANG HOẠT ĐỘNG (Phát hiện tín hiệu 0e8ea5 lúc 08:18)
-- **Dịch vụ Watcher:** 🟡 **DEGRADED** (Vừa được vá lỗi kết nối Price Feed)
-- **Dịch vụ Validator:** 🔴 **NGOẠI TUYẾN (STALLED)** - Đang chờ nhịp tim mới sau Deploy
+- **Dịch vụ Analyzer:** 🟢 ĐANG HOẠT ĐỘNG
+- **Dịch vụ Watcher:** � ĐANG HOẠT ĐỘNG (Đã khôi phục hoàn toàn)
+- **Dịch vụ Validator:** � ĐANG HOẠT ĐỘNG (Đã vá lỗi Stall & Timeout)
+- **Dịch vụ Watchdog:** 🔵 **NEW** (Đã kích hoạt giám sát 24/7)
 - **Dữ liệu Database:** 🟢 KẾT NỐI TỐT
-- **Hạn ngạch API:** 🟢 AN TOÀN (60/800 credits - 7%)
+- **Hạn ngạch API:** 🟢 AN TOÀN (Hoạt động ổn định)
 
 ---
 
 ## 🔍 1. Nhật ký Sự cố Kỹ thuật (Technical Incident Tracking)
 ### **Sự cố 4: Validator Stalled & Watcher Price Feed Error**
 - **Thời điểm:** Phát hiện lúc 25/02/2026 - 08:20 (GMT+7).
+- **Hiện tượng:** Watcher báo lỗi TwelveData API Key không hợp lệ; Binance Feed bị lỗi kết nối tạm thời trên Cloud.
+- **Biện pháp xử lý:** Cập nhật code `signal_watcher.py` sử dụng class `BinanceFeed` mạnh mẽ hơn.
+- **Trạng thái:** ✅ Đã xử lý.
+
+### **Sự cố 5: Frontend Data Fetch Failed & Validator Hang**
+- **Thời điểm:** Phát hiện lúc 25/02/2026 - 09:00 (GMT+7).
 - **Hiện tượng:** 
-    - Watcher báo lỗi TwelveData API Key không hợp lệ (mặc dù Analyzer vẫn dùng được).
-    - Binance Feed bị lỗi kết nối tạm thời trên Cloud khiến Watcher không lấy được giá.
+    - Web Dashboard báo lỗi "Failed to fetch" khi API Railway gặp sự cố 502.
+    - Validator bị treo (Stall) do không có cơ chế Timeout khi gọi Database/Feed.
 - **Biện pháp xử lý:** 
-    - Đã cập nhật code `signal_watcher.py` sử dụng class `BinanceFeed` mạnh mẽ hơn (hỗ trợ xoay vòng endpoint) để lấy giá live mà không cần phụ thuộc TwelveData.
-    - Đã dọn dẹp các lệnh rác từ hôm qua.
-- **Trạng thái:** Tín hiệu mới `0e8ea547` (SELL EURUSD) đang được giám sát chặt chẽ.
+    - **Frontend:** Triển khai cơ chế **Hybrid API** (Railway + Supabase Fallback). Nếu Railway lỗi, web tự động chuyển sang đọc Supabase trực tiếp. (Đã áp dụng cho cả `quantix-live-execution` và `Telesignal`).
+    - **Core:** Bổ sung **Timeout (10s)** cho tất cả yêu cầu Database trong `connection.py` và bộ lọc **Sanity Filter** (loại bỏ giá ảo/spikes) trong `BinanceFeed`.
+    - **Giám sát:** Phát triển và triển khai **Dịch vụ Watchdog** mới để cảnh báo Telegram ngay lập tức nếu bất kỳ dịch vụ nào ngừng hoạt động quá 15 phút.
+- **Trạng thái:** ✅ ĐÃ KHÔI PHỤC TOÀN BỘ (FULL RECOVERY).
 
 ---
 
@@ -35,9 +43,10 @@
 
 ## 💓 3. Nhịp tim Hệ thống (Live Heartbeats)
 *Nhật ký Heartbeats gần nhất từ Cloud (Railway):*
-- [2026-02-25 01:02] **WATCHER** | Status: WATCHER_ONLINE_C850
-- [2026-02-25 00:58] **ANALYZER** | Status: ALIVE_C170
-- [2026-02-24 07:51] **VALIDATOR** | Status: ONLINE | cycle=350 (⚠️ STALE)
+- [2026-02-25 09:05] **WATCHDOG** | Status: ONLINE (Monitoring Analyzer, Watcher, Validator)
+- [2026-02-25 01:02] **WATCHER** | Status: ONLINE (Price Feed Restored)
+- [2026-02-25 00:58] **ANALYZER** | Status: ALIVE
+- [2026-02-25 09:05] **VALIDATOR** | Status: RESTARTED (Fixed stall & timeout logic)
 
 ---
 

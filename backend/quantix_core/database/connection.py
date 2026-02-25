@@ -92,14 +92,15 @@ class SupabaseQueryBuilder:
             params[k] = v
 
         try:
+            timeout = 10
             if self.method == "GET":
-                resp = requests.get(url, headers=self.client.headers, params=params)
+                resp = requests.get(url, headers=self.client.headers, params=params, timeout=timeout)
             elif self.method == "POST":
-                resp = requests.post(url, headers=self.client.headers, json=self.payload)
+                resp = requests.post(url, headers=self.client.headers, json=self.payload, timeout=timeout)
             elif self.method == "PATCH":
-                resp = requests.patch(url, headers=self.client.headers, json=self.payload, params=params)
+                resp = requests.patch(url, headers=self.client.headers, json=self.payload, params=params, timeout=timeout)
             elif self.method == "DELETE":
-                resp = requests.delete(url, headers=self.client.headers, params=params)
+                resp = requests.delete(url, headers=self.client.headers, params=params, timeout=timeout)
             else:
                 return MockResponse(None, "Unsupported method")
 
@@ -115,6 +116,7 @@ class SupabaseQueryBuilder:
 class MockResponse:
     def __init__(self, data, error=None):
         self.data = data
+        self.error = error
 
 class SupabaseConnection:
     _instance: Optional["SupabaseConnection"] = None

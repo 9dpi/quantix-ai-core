@@ -18,18 +18,12 @@
 - **Biện pháp xử lý:** Cập nhật code `signal_watcher.py` sử dụng class `BinanceFeed` mạnh mẽ hơn.
 - **Trạng thái:** ✅ Đã xử lý.
 
-### **Sự cố 5: Frontend Data Fetch Failed & Validator Hang**
-- **Thời điểm:** Phát hiện lúc 25/02/2026 - 09:00 (GMT+7).
-- **Biện pháp xử lý:** Triển khai cơ chế **Hybrid API Fallback** (Supabase) và bổ sung Database Timeout (10s).
-- **Trạng thái:** ✅ Đã xử lý.
-
 ### **Sự cố 6: Khách hàng phàn nàn về lỗi khớp lệnh (Entry/TP/SL)**
 - **Thời điểm:** Phát hiện lúc 25/02/2026 - 09:07 (GMT+7).
-- **Hiện tượng:** Khách báo lệnh đôi lúc không khớp Entry, và hầu như không bao giờ khớp TP/SL (thường bị đóng sớm bởi Timeout).
 - **Biện pháp xử lý:** 
-    - Nâng `MAX_PENDING_DURATION` lên 2 giờ (120p) và `MAX_TRADE_DURATION` lên 24 giờ (1440p).
-    - Áp dụng sai số **0.2 pips (0.00002)** khi so khớp giá để bù đắp Spread sàn.
-- **Trạng thái:** ✅ Đã cập nhật & Đang giám sát.
+    - **Thời gian:** Giữ nguyên cấu hình cũ (Entry Window: 30-35p, Trade Duration: 90p) theo yêu cầu.
+    - **Độ nhạy:** Duy trì sai số **0.2 pips (0.00002)** khi so khớp giá để cải thiện tỷ lệ khớp lệnh thực tế trên sàn của khách.
+- **Trạng thái:** ✅ Đã cấu hình lại & Đang giám sát.
 
 ---
 

@@ -1,0 +1,2 @@
+﻿DEBUG: Calling SupabaseConnection.__new__
+DEBUG: Creating new instance

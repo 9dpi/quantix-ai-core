@@ -59,9 +59,10 @@ class SignalWatcher:
         else:
             self.telegram = None
 
-        # Detection Buffers (in price units, e.g., 0.00002 = 0.2 pips)
+        # Detection Buffers (in price units, e.g., 0.00005 = 0.5 pips)
         # Accounts for difference between Binance (Mid) vs MT5 (Ask/Bid)
-        self.HIT_TOLERANCE = 0.00002 
+        self.HIT_TOLERANCE = 0.00005 
+        self.NEAR_MISS_THRESHOLD = 0.00020 # 2 pips
 
         logger.info(
             f"SignalWatcher initialized (check_interval={self.check_interval}s, tolerance={self.HIT_TOLERANCE})"
@@ -362,15 +363,34 @@ class SignalWatcher:
         return is_touched
     
     def is_tp_touched(self, signal: dict, candle: dict) -> bool:
-        """Check if TP hit with tolerance."""
+        """Check if TP hit with tolerance and Near Miss logging."""
         tp = signal.get("tp")
         direction = signal.get("direction")
         if not tp or not direction: return False
         
+        # BUY: High must rise to TP. SELL: Low must drop to TP.
         if direction == "BUY":
-            return candle["high"] >= (tp - self.HIT_TOLERANCE)
-        else:
-            return candle["low"] <= (tp + self.HIT_TOLERANCE)
+            distance = tp - candle["high"]
+            is_hit = candle["high"] >= (tp - self.HIT_TOLERANCE)
+        else:  # SELL
+            distance = candle["low"] - tp
+            is_hit = candle["low"] <= (tp + self.HIT_TOLERANCE)
+
+        # Log Near Miss (Price within 2 pips of TP)
+        if not is_hit and distance <= self.NEAR_MISS_THRESHOLD:
+            try:
+                self.db.table("fx_analysis_log").insert({
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "asset": signal.get("asset", "???"),
+                    "direction": direction,
+                    "status": "NEAR_TP_LOG",
+                    "price": candle["high"] if direction == "BUY" else candle["low"],
+                    "confidence": 0, "strength": 0,
+                    "refinement": f"Distance to TP: {distance*10000:.1f} pips"
+                }).execute()
+            except: pass
+
+        return is_hit
     
     def is_sl_touched(self, signal: dict, candle: dict) -> bool:
         """Check if SL hit with tolerance."""
@@ -379,9 +399,11 @@ class SignalWatcher:
         if not sl or not direction: return False
         
         if direction == "BUY":
-            return candle["low"] <= (sl + self.HIT_TOLERANCE)
+            is_hit = candle["low"] <= (sl + self.HIT_TOLERANCE)
         else:
-            return candle["high"] >= (sl - self.HIT_TOLERANCE)
+            is_hit = candle["high"] >= (sl - self.HIT_TOLERANCE)
+            
+        return is_hit
     
     # ========================================
     # STATE TRANSITION METHODS

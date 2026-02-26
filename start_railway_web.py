@@ -58,5 +58,5 @@ except Exception as e:
     print(f"❌ Diagnostic failed: {e}")
 
 # --- START UVICORN ---
-cmd = [sys.executable, "-m", "uvicorn", "quantix_core.api.main:app", "--host", "0.0.0.0", "--port", port, "--proxy-headers"]
+cmd = [sys.executable, "start_minimal.py"]
 subprocess.run(cmd, env=os.environ.copy())

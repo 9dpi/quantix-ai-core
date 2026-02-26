@@ -112,11 +112,12 @@ async def startup_event():
     # --- STARTUP TELEMETRY ---
     try:
         from quantix_core.database.connection import db
+        from quantix_core.config.settings import settings
         db.client.table("fx_analysis_log").insert({
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "asset": "SYSTEM_API",
             "direction": "STARTUP",
-            "status": f"ONLINE_PORT_{port}",
+            "status": f"ONLINE_PORT_{port} | SETTINGS: {settings.API_HOST}:{settings.API_PORT}",
             "price": 0,
             "confidence": 1.0,
             "strength": 1.0

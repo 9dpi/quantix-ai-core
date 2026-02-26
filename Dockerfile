@@ -26,4 +26,4 @@ COPY . .
 EXPOSE 8080
 
 # Use the python launcher to ensure all paths are handled
-CMD ["python", "start_railway_web.py"]
+CMD ["python", "start_minimal.py"]

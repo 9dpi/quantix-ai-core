@@ -24,7 +24,7 @@ try:
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "asset": "SYSTEM_WEB",
         "direction": "ENV_DEBUG",
-        "status": f"PORT={port} | KEYS: {env_keys[:150]}",
+        "status": f"PORT={port} | KEYS: {env_keys}",
         "price": 0, "confidence": 1.0, "strength": 1.0
     }).execute()
 

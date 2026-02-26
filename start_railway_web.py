@@ -58,10 +58,14 @@ try:
         "--forwarded-allow-ips", "*"
     ]
     
-    print(f"🚀 Executing: {' '.join(cmd)}")
-    # We use Popen so we can potentially monitor it, but for now just wait
-    # Actually, subprocess.run is safer to ensure it keeps running
-    subprocess.run(cmd, env=os.environ.copy())
+    print(f"🚀 Executing via os.execvp: {' '.join(cmd)}")
+    log_to_db("LAUNCHER", "EXECVP_START", f"Replacing launcher with uvicorn on port {port}")
+    
+    # Flush all prints/logs before exec
+    sys.stdout.flush()
+    sys.stderr.flush()
+    
+    os.execvp(cmd[0], cmd)
 
 except Exception as e:
     print(f"❌ Fatal Launcher Error: {e}")

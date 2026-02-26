@@ -36,6 +36,25 @@ app = FastAPI(
     description="Institutional Grade Market Intelligence and Sniper Signals API"
 )
 
+# --- MIDDLEWARE ---
+@app.middleware("http")
+async def db_log_requests(request, call_next):
+    path = request.url.path
+    try:
+        from quantix_core.database.connection import db
+        db.client.table("fx_analysis_log").insert({
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "asset": "SYSTEM_REQ",
+            "direction": "IN",
+            "status": f"{request.method} {path}",
+            "price": 0, "confidence": 0, "strength": 0
+        }).execute()
+    except Exception as e:
+        logger.error(f"Failed to log request: {e}")
+        
+    response = await call_next(request)
+    return response
+
 # --- CORS ---
 app.add_middleware(
     CORSMiddleware,

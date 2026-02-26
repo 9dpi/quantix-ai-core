@@ -1,6 +1,13 @@
 from fastapi import FastAPI
 import uvicorn
 import os
+import sys
+
+# Add backend to path
+backend_path = os.path.join(os.getcwd(), "backend")
+if os.path.exists(backend_path):
+    sys.path.append(backend_path)
+    os.environ["PYTHONPATH"] = backend_path
 
 import socket
 

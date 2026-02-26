@@ -6,6 +6,8 @@ from datetime import datetime, timezone
 
 print(f"--- Quantix Launcher Starting ---")
 print(f"Time: {datetime.now(timezone.utc).isoformat()}")
+print(f"Python: {sys.executable}")
+print(f"Version: {sys.version}")
 
 # Add backend to path
 backend_path = os.path.join(os.getcwd(), "backend")

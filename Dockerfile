@@ -26,4 +26,4 @@ COPY . .
 EXPOSE 8080
 
 # Use the python launcher to ensure all paths are handled
-CMD ["python", "start_minimal.py"]
+CMD ["python3", "start_minimal.py"]

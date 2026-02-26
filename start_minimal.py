@@ -1,3 +1,4 @@
+print("!!! MINIMAL APP STARTING !!!")
 from fastapi import FastAPI
 import uvicorn
 import os

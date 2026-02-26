@@ -16,6 +16,7 @@ from loguru import logger
 from supabase import Client
 from quantix_core.utils.market_hours import MarketHours
 from quantix_core.config.settings import settings
+from quantix_core.engine.janitor import Janitor
 
 
 class SignalWatcher:
@@ -95,8 +96,7 @@ class SignalWatcher:
 
         # 🧹 Maintenance: Clear stuck signals from previous session or weekend
         try:
-            from backend.expire_old_signals import expire_old
-            asyncio.run(expire_old())
+            Janitor.run_sync()
         except Exception as e:
             logger.warning(f"⚠️ Startup cleanup failed: {e}")
 

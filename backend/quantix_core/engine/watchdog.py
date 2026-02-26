@@ -11,6 +11,7 @@ from datetime import datetime, timezone, timedelta
 from loguru import logger
 from quantix_core.database.connection import db
 from quantix_core.config.settings import settings
+from quantix_core.engine.janitor import Janitor
 
 class QuantixWatchdog:
     def __init__(self, check_interval_sec: int = 300, stale_threshold_min: int = 15):
@@ -87,9 +88,14 @@ class QuantixWatchdog:
         logger.info("\n" + "\n".join(report))
 
         # Send Telegram alerts if needed
-        if alerts_needed and self.notifier:
-            alert_msg = "🚨 *QUANTIX CRITICAL ALERT*\n\n" + "\n".join(alerts_needed) + "\n\nCc: @admin"
-            self.notifier.send_message(alert_msg)
+        if alerts_needed:
+            # 🔥 ACTIVE HEALING: If any service is stalled, run the Janitor to clear stuck signals
+            logger.warning("🩹 Watchdog: Stalled services detected. Running Janitor active healing...")
+            Janitor.run_sync()
+
+            if self.notifier:
+                alert_msg = "🚨 *QUANTIX CRITICAL ALERT*\n\n" + "\n".join(alerts_needed) + "\n\n🩹 *Action:* Janitor auto-cleanup triggered.\n\nCc: @admin"
+                self.notifier.send_message(alert_msg)
 
 if __name__ == "__main__":
     watchdog = QuantixWatchdog()

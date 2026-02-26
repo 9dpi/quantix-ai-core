@@ -40,18 +40,7 @@ app = FastAPI(
 @app.middleware("http")
 async def db_log_requests(request, call_next):
     path = request.url.path
-    try:
-        from quantix_core.database.connection import db
-        db.client.table("fx_analysis_log").insert({
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "asset": "SYSTEM_REQ",
-            "direction": "IN",
-            "status": f"{request.method} {path}",
-            "price": 0, "confidence": 0, "strength": 0
-        }).execute()
-    except Exception as e:
-        logger.error(f"Failed to log request: {e}")
-        
+    # logger.info(f"API Request: {request.method} {path}")
     response = await call_next(request)
     return response
 
@@ -110,21 +99,7 @@ async def startup_event():
     asyncio.create_task(_startup_checks())
     
     # --- STARTUP TELEMETRY ---
-    try:
-        from quantix_core.database.connection import db
-        from quantix_core.config.settings import settings
-        db.client.table("fx_analysis_log").insert({
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "asset": "SYSTEM_API",
-            "direction": "STARTUP",
-            "status": f"ONLINE_PORT_{port} | SETTINGS: {settings.API_HOST}:{settings.API_PORT}",
-            "price": 0,
-            "confidence": 1.0,
-            "strength": 1.0
-        }).execute()
-        logger.success("✅ Startup telemetry logged to DB")
-    except Exception as e:
-        logger.error(f"❌ Failed to log startup telemetry: {e}")
+    logger.info(f"✅ Quantix API Start Sequence Complete | Port: {port}")
 
 
 async def _run_analyzer_loop():

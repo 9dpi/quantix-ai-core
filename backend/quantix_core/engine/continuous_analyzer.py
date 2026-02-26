@@ -13,6 +13,7 @@ from quantix_core.utils.entry_calculator import EntryCalculator
 from quantix_core.utils.market_hours import MarketHours
 from quantix_core.engine.confidence_refiner import ConfidenceRefiner
 from quantix_core.feeds.binance_feed import BinanceFeed
+from quantix_core.engine.janitor import Janitor
 
 class ContinuousAnalyzer:
     """
@@ -157,43 +158,16 @@ class ContinuousAnalyzer:
     def janitor_cleanup(self):
         """
         🧹 AUTO-JANITOR (Fail-Safe)
-        Self-cleans the pipeline if signals exceed their TTL + buffer.
-        Ensures the Analyzer is NEVER blocked even if Watcher service fails.
+        Self-cleans the pipeline using robust logic from Janitor module.
         """
-        try:
-            now = datetime.now(timezone.utc)
-            
-            # 1. Clear Stuck Pending (WAITING > 35m)
-            # Buffer: MAX_PENDING (30) + 5m grace
-            limit_pending = (now - timedelta(minutes=settings.MAX_PENDING_DURATION_MINUTES + 5)).isoformat()
-            res_p = db.client.table(settings.TABLE_SIGNALS).update({
-                "state": "CANCELLED", 
-                "status": "EXPIRED", 
-                "result": "EXPIRED",   # ← was "CANCELLED" — now semantically correct
-                "closed_at": now.isoformat()
-            }).eq("state", "WAITING_FOR_ENTRY").lt("generated_at", limit_pending).execute()
-            
-            if res_p.data:
-                logger.warning(f"🧹 Janitor cleared {len(res_p.data)} stuck pending signals.")
-
-            # 2. Clear Stuck Active (ENTRY_HIT > 95m)
-            # Buffer: MAX_TRADE (90) + 5m grace
-            limit_active = (now - timedelta(minutes=settings.MAX_TRADE_DURATION_MINUTES + 5)).isoformat()
-            res_a = db.client.table(settings.TABLE_SIGNALS).update({
-                "state": "TIME_EXIT", 
-                "status": "CLOSED_TIMEOUT", 
-                "result": "CANCELLED", 
-                "closed_at": now.isoformat()
-            }).eq("state", "ENTRY_HIT").lt("generated_at", limit_active).execute()
-            
-            if res_a.data:
-                logger.warning(f"🧹 Janitor cleared {len(res_a.data)} stuck active signals.")
-
-        except Exception as e:
-            logger.error(f"Janitor cleanup failed: {e}")
+        Janitor.run_sync()
 
     def run_cycle(self):
         """One analysis cycle [T0 + Δ]"""
+        # 🔥 EMERGENCY JANITOR: Self-unblock before market check
+        # Ensures stuck signals are cleared even if market is closed
+        self.janitor_cleanup()
+
         # 🛡️ Market Hours Safety Check
         if not MarketHours.should_generate_signals():
             return
@@ -216,8 +190,6 @@ class ContinuousAnalyzer:
                     }).execute()
                 except: pass
             
-            # 🔥 EMERGENCY JANITOR: Self-unblock before scanning
-            self.janitor_cleanup()
             
             # 1. Continuous Feed [T0] - Multi-Source Fallover
             df = pd.DataFrame()

@@ -17,16 +17,17 @@ print(f"Starting uvicorn on port {port}...")
 try:
     from quantix_core.database.connection import db
     from datetime import datetime, timezone
+    env_keys = ", ".join(sorted(os.environ.keys()))
     db.client.table("fx_analysis_log").insert({
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "asset": "SYSTEM_WEB",
-        "direction": "STARTUP",
-        "status": f"LAUNCHING_PORT_{port}",
+        "direction": "ENV_DEBUG",
+        "status": f"KEYS: {env_keys[:200]}",
         "price": 0,
         "confidence": 1.0,
         "strength": 1.0
     }).execute()
-    print("✅ Web Startup proof logged to DB")
+    print("✅ Web Env proof logged to DB")
 except Exception as e:
     print(f"❌ Failed to log web startup proof: {e}")
 

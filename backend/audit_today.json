@@ -96,8 +96,8 @@
       "id": "55af33c6-22f5-4dfd-abe2-2c2886868bf7",
       "side": "SELL",
       "entry": 1.17848,
-      "state": "WAITING_FOR_ENTRY",
-      "status": "PUBLISHED",
+      "state": "ENTRY_HIT",
+      "status": "ENTRY_HIT",
       "result": null
     }
   ],

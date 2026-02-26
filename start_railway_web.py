@@ -23,14 +23,14 @@ try:
     
     def log_to_db(direction, status, explain=None):
         try:
-            db.client.table("fx_analysis_log").insert({
+            payload = {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "asset": "SYSTEM_WEB",
                 "direction": direction,
-                "status": status,
-                "explainability": explain,
+                "status": f"{status} | {explain}" if explain else status,
                 "price": 0, "confidence": 1.0, "strength": 1.0
-            }).execute()
+            }
+            db.client.table("fx_analysis_log").insert(payload).execute()
         except Exception as e:
             print(f"DB Log Failed: {e}")
 

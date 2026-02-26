@@ -1,61 +1,45 @@
-# Quantix System Daily Report - 2026-02-25
+# Quantix System Daily Report - 2026-02-26
 
 ## 🏥 Overall System Health
 - **Dịch vụ Analyzer:** 🟢 ĐANG HOẠT ĐỘNG
-- **Dịch vụ Watcher:** � ĐANG HOẠT ĐỘNG (Đã khôi phục hoàn toàn)
-- **Dịch vụ Validator:** � ĐANG HOẠT ĐỘNG (Đã vá lỗi Stall & Timeout)
+- **Dịch vụ Watcher:** 🟢 ĐANG HOẠT ĐỘNG
+- **Dịch vụ Validator:** 🟡 ĐANG HOẠT ĐỘNG (Tiến trình chạy tốt, nhưng API gặp lỗi 502)
 - **Dịch vụ Watchdog:** 🟢 ĐANG HOẠT ĐỘNG
 - **Dữ liệu Database:** 🟢 KẾT NỐI TỐT
-- **Kênh Telegram:** 🟢 **FIXED** (Đã hết tin nhắn trùng)
-- **Độ chính xác tín hiệu:** 🔵 IMPROVED (Đã vá lỗi khớp lệnh & TP/SL)
+- **Kênh Telegram:** 🟢 ỔN ĐỊNH
+- **API Endpoint:** 🔴 **ERROR (502 Bad Gateway)**
 
 ---
 
 ## 🔍 1. Nhật ký Sự cố Kỹ thuật (Technical Incident Tracking)
-### **Sự cố 4: Validator Stalled & Watcher Price Feed Error**
-- **Thời điểm:** Phát hiện lúc 25/02/2026 - 08:20 (GMT+7).
-- **Hiện tượng:** Watcher báo lỗi TwelveData API Key không hợp lệ; Binance Feed bị lỗi kết nối tạm thời trên Cloud.
-- **Biện pháp xử lý:** Cập nhật code `signal_watcher.py` sử dụng class `BinanceFeed` mạnh mẽ hơn.
-- **Trạng thái:** ✅ Đã xử lý.
-
-### **Sự cố 6: Khách hàng phàn nàn về lỗi khớp lệnh (Entry/TP/SL)**
-- **Thời điểm:** Phát hiện lúc 25/02/2026 - 09:07 (GMT+7).
-- **Biện pháp xử lý:** 
-    - **Thời gian:** Giữ nguyên cấu hình cũ (Entry Window: 30-35p, Trade Duration: 90p) theo yêu cầu.
-    - **Độ nhạy:** Duy trì sai số **0.2 pips (0.00002)** khi so khớp giá để cải thiện tỷ lệ khớp lệnh thực tế trên sàn của khách.
-### **Sự cố 7: Tin nhắn Telegram bị trùng (Duplicate Notifications)**
-- **Thời điểm:** Phát hiện lúc 25/02/2026 - 13:50 (GMT+7).
-- **Hiện tượng:** Khách nhận được 2 tin nhắn y hệt nhau cho mỗi sự kiện (Tín hiệu mới, Entry Hit). Database cũng bị lưu 2-3 ID cho cùng một lệnh.
-- **Nguyên nhân:** Lỗi cấu hình "Auto-Worker" trong file `api/main.py`. Hệ thống vừa chạy Analyzer/Watcher độc lập qua Procfile, vừa chạy thêm bộ Analyzer/Watcher nhúng bên trong tiến trình API -> Dẫn đến việc 2 bộ worker chạy song song trên Cloud.
-- **Biện pháp xử lý:** Vô hiệu hóa các task chạy ngầm (async tasks) trong `api/main.py`. Chỉ sử dụng các Worker chuyên biệt theo đúng kiến trúc `Procfile`.
-- **Trạng thái:** ✅ ĐÃ XỬ LÝ (Đã deploy bản fix).
+### **Sự cố 8: API Endpoint 502 Bad Gateway**
+- **Thời điểm:** Phát hiện lúc 26/02/2026 - 08:06 (GMT+7).
+- **Hiện tượng:** Truy cập `/api/v1/validation-status` trả về lỗi 502 từ Railway Edge. Các script check mirror báo lỗi "validation-status API returned an error".
+- **Nguyên nhân chủ quan:** Có thể do quá trình deploy bản fix "Duplicate Notifications" hôm qua ảnh hưởng đến startup của API service hoặc cấu hình cổng (Port) trên Railway.
+- **Biện pháp xử lý:** Cần kiểm tra Logs trên Dashboard Railway. Tiến trình Database heartbeats vẫn nhận được từ Validator/Watcher cho thấy backend vẫn đang chạy ngầm, chỉ có lớp API gateway bị chặn.
+- **Trạng thái:** ⏳ Đang theo dõi.
 
 ---
 
 ## 🎯 2. Trạng thái Tín hiệu (Latest Signals Today)
 | Thời gian (UTC) | Asset | Trạng thái | Hướng | ID |
 | :--- | :--- | :--- | :--- | :--- |
-| 2026-02-25 01:03 | EURUSD | ANALYZED (Low Conf: 0.29) | BUY | - |
-| 2026-02-25 00:58 | EURUSD | ANALYZED (Conf: 0.70) | SELL | - |
-| 2026-02-24 16:39 | EURUSD | CANCELLED | SELL | 6a4f7536 |
-
-*Lưu ý: Tín hiệu 0.70 (SELL) lúc 00:58 không được phát hành do có thể bị ảnh hưởng bởi logic lọc của refiner hoặc Cooldown.*
+| 2026-02-26 00:00 | EURUSD | ENTRY_HIT | BUY | 693507fd |
 
 ---
 
 ## 💓 3. Nhịp tim Hệ thống (Live Heartbeats)
-*Nhật ký Heartbeats gần nhất từ Cloud (Railway):*
-- [2026-02-25 09:05] **WATCHDOG** | Status: ONLINE (Monitoring Analyzer, Watcher, Validator)
-- [2026-02-25 01:02] **WATCHER** | Status: ONLINE (Price Feed Restored)
-- [2026-02-25 00:58] **ANALYZER** | Status: ALIVE
-- [2026-02-25 09:05] **VALIDATOR** | Status: RESTARTED (Fixed stall & timeout logic)
+*Nhật ký Heartbeats gần nhất (UTC):*
+- [2026-02-26 01:02] **WATCHER** | Status: ONLINE (C1340)
+- [2026-02-26 01:03] **VALIDATOR** | Status: ONLINE (Feed: binance_proxy, Cycle: 615)
+- [2026-02-26 01:05] **ANALYZER** | Status: ALIVE (Price: 1.18208)
 
 ---
 
 ## 📉 4. Thống kê Hạn ngạch (Quota Usage)
-- **Tổng số Request trong ngày:** 48
+- **Tổng số Request trong ngày:** 27
 - **Giới hạn:** 800
-- **Dự báo:** Thoải mái cho cả ngày hôm nay.
+- **Dự báo:** Thoải mái.
 
 ---
-*Báo cáo kết thúc đợt kiểm tra `/daily_check_wf`. Dịch vụ Validator cần xử lý.*
+*Báo cáo kết thúc đợt kiểm tra theo workflow `/daily_check_wf`. Hệ thống cốt lõi (Core) vẫn vận hành chính xác, nhưng lớp hiển thị/API cần kiểm tra lại.*

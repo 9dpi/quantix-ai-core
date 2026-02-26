@@ -89,6 +89,23 @@ async def startup_event():
     # asyncio.create_task(_run_watcher_loop())
     
     asyncio.create_task(_startup_checks())
+    
+    # --- STARTUP TELEMETRY ---
+    try:
+        from quantix_core.database.connection import db
+        db.client.table("fx_analysis_log").insert({
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "asset": "SYSTEM_API",
+            "direction": "STARTUP",
+            "status": f"ONLINE_PORT_{port}",
+            "price": 0,
+            "confidence": 1.0,
+            "strength": 1.0
+        }).execute()
+        logger.success("✅ Startup telemetry logged to DB")
+    except Exception as e:
+        logger.error(f"❌ Failed to log startup telemetry: {e}")
+
 
 async def _run_analyzer_loop():
     """Embedded Analyzer Loop"""

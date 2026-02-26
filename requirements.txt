@@ -5,7 +5,6 @@ supabase
 requests
 python-dotenv
 statistics
-asyncio
 python-multipart
 pydantic
 pydantic-settings

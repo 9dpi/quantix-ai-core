@@ -23,7 +23,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Expose the port (Railway provides $PORT)
-EXPOSE 8080
+EXPOSE 8000
 
 # Use the python launcher to ensure all paths are handled
 CMD ["python", "start_railway_web.py"]

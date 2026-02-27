@@ -151,14 +151,14 @@ class SignalWatcher:
         if not hasattr(self, 'cycle_count'): self.cycle_count = 0
         self.cycle_count += 1
 
-        # 💓 Heartbeat (Every 5 cycles)
-        if self.cycle_count % 5 == 0:
+        # 💓 Heartbeat (Cycle 1 and every 5 cycles)
+        if self.cycle_count == 1 or self.cycle_count % 5 == 0:
             try:
                 self.db.table("fx_analysis_log").insert({
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                     "asset": "HEARTBEAT_WATCHER",
                     "direction": "SYSTEM",
-                    "status": f"WATCHER_ONLINE_C{self.cycle_count}",
+                    "status": f"WATCHER_ACTIVE_C{self.cycle_count} (Watching: {len(signals)})",
                     "confidence": 1.0,
                     "strength": 1.0,
                     "price": 0.0
@@ -306,8 +306,14 @@ class SignalWatcher:
                 self.transition_to_cancelled(signal)
                 return
 
-            # [2] ENTRY HIT CHECK
-            
+            # [2] INY VALIDITY CHECK (Stop Loss Touch)
+            # If price hits SL levels before Entry, the signal is invalidated.
+            if candle and self.is_sl_touched(signal, candle):
+                logger.info(f"🚫 Signal {signal_id} INVALIDATED: Price hit SL level before Entry")
+                self.transition_to_cancelled(signal, reason="SL_INVALIDATED")
+                return
+
+            # [3] ENTRY HIT CHECK
             if candle and self.is_entry_touched(signal, candle):
                 self.transition_to_entry_hit(signal, candle)
         
@@ -499,7 +505,7 @@ class SignalWatcher:
         except Exception as e:
             logger.error(f"❌ Failed to transition signal {signal_id} to SL_HIT: {e}")
 
-    def transition_to_cancelled(self, signal: dict):
+    def transition_to_cancelled(self, signal: dict, reason: str = "EXPIRED"):
         """
         Transition: WAITING_FOR_ENTRY → CANCELLED
         Atomic DB-First approach.
@@ -510,7 +516,7 @@ class SignalWatcher:
             # 1. ATOMIC DB UPDATE
             res = self.db.table("fx_signals").update({
                 "state": "CANCELLED",
-                "status": "EXPIRED",
+                "status": reason,
                 "result": "CANCELLED",
                 "closed_at": datetime.now(timezone.utc).isoformat()
             }).eq("id", signal_id).eq("state", "WAITING_FOR_ENTRY").execute()

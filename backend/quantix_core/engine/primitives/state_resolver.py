@@ -24,15 +24,15 @@ class StructureState:
     dominance: Dict[str, float]  # {"bullish": X, "bearish": Y}
     evidence: List[str]  # Human-readable evidence
     
-    # SMC Metadata
-    fvgs: List[FairValueGap] = field(default_factory=list)
-    sweeps: List[LiquiditySweep] = field(default_factory=list)
-    nearest_fvg: Optional[FairValueGap] = None
-
     # Metadata
     trace_id: str
     source: str
     timeframe: str
+    
+    # SMC Metadata
+    fvgs: List[FairValueGap] = field(default_factory=list)
+    sweeps: List[LiquiditySweep] = field(default_factory=list)
+    nearest_fvg: Optional[FairValueGap] = None
 
 
 class StateResolver:

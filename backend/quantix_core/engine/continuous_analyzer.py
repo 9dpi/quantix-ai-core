@@ -260,28 +260,32 @@ class ContinuousAnalyzer:
             # v3.5 SMC-LITE ENTRY LOGIC (FVG-Based)
             # ============================================
             
-            entry_calc = EntryCalculator(offset_pips=2.0)
-            entry_price, is_valid, validation_msg = entry_calc.calculate_fvg_entry(
-                market_price=price,
-                direction=direction,
-                fvg=getattr(state, 'nearest_fvg', None)
-            )
+            # --- STRATEGY UPGRADE v3.6 (Win 90% Target) ---
+            # 💡 Sáng kiến 1: Market Entry cho tín hiệu mạnh
+            is_market_entry = False
+            msg_type = "PENDING"
             
-            # Validation: Skip signal if entry invalid
-            if not is_valid:
-                logger.warning(f"SKIP_SIGNAL: {validation_msg}")
-                return
-            
-            # Log entry calculation for dry-run verification
-            offset_pips = abs(entry_price - price) / 0.0001
-            logger.info(
-                f"Entry calculated: market={price}, entry={entry_price}, "
-                f"offset={offset_pips:.1f} pips, direction={direction} | Type: {validation_msg}"
-            )
-            
-            # DYNAMIC RISK/REWARD RULE (ATR-Based)
-            # 1. Calculate ATR(14) for dynamic scaling
-            # 2. TP = 1.5x ATR, SL = 1.0x ATR (R:R 1.5)
+            # Nếu tin cậy tối cao (ULTRA) -> Vào Market ngay
+            if state.confidence >= 0.95:
+                entry_price = price
+                is_market_entry = True
+                msg_type = "MARKET_EXECUTION"
+                logger.success(f"🚀 ULTRA CONFIDENCE ({state.confidence:.2f}) -> MARKET ENTRY")
+            else:
+                # Ngược lại dùng FVG với offset hẹp hơn (1.5 pips thay vì 2.0)
+                entry_calc = EntryCalculator(offset_pips=1.5)
+                entry_price, is_valid, validation_msg = entry_calc.calculate_fvg_entry(
+                    market_price=price,
+                    direction=direction,
+                    fvg=getattr(state, 'nearest_fvg', None)
+                )
+                if not is_valid:
+                    logger.warning(f"SKIP_SIGNAL: {validation_msg}")
+                    return
+                msg_type = validation_msg
+
+            # 💡 Sáng kiến 2: Tight TP (0.8x ATR) / Wide SL (1.8x ATR) 
+            # Giúp tăng Win Rate đáng kể bằng cách chốt lời sớm và tránh quét SL
             try:
                 high_s = df['high'].astype(float)
                 low_s = df['low'].astype(float)
@@ -289,16 +293,15 @@ class ContinuousAnalyzer:
                 tr = pd.concat([high_s - low_s, (high_s - close_s.shift()).abs(), (low_s - close_s.shift()).abs()], axis=1).max(axis=1)
                 atr = tr.rolling(14).mean().iloc[-1]
                 
-                # Floor/Cap to prevent absurd values
-                # EURUSD typical ATR M15 is 0.0008 - 0.0025
-                tp_dist = max(0.0010, min(0.0040, atr * 1.5))
-                sl_dist = max(0.0008, min(0.0025, atr * 1.0))
+                # TP hẹp (8-15 pips), SL rộng (12-35 pips)
+                tp_dist = max(0.0008, min(0.0015, atr * 0.8))  
+                sl_dist = max(0.0015, min(0.0035, atr * 1.8))  
                 
-                logger.debug(f"Dynamic TP/SL: ATR={atr:.5f}, TP_Dist={tp_dist:.5f}, SL_Dist={sl_dist:.5f}")
+                logger.debug(f"v3.6 R:R: ATR={atr:.5f}, TP_Dist={tp_dist:.5f}, SL_Dist={sl_dist:.5f}")
             except Exception as e:
-                logger.error(f"ATR calculation failed, using fallback 15 pips: {e}")
-                tp_dist = 0.0015
-                sl_dist = 0.0015
+                logger.error(f"ATR failed, using scaled fallback: {e}")
+                tp_dist = 0.0008
+                sl_dist = 0.0020
 
             if direction == "BUY":
                 tp = round(entry_price + tp_dist, 5)
@@ -344,8 +347,9 @@ class ContinuousAnalyzer:
                 # Metadata
                 "ai_confidence": state.confidence,
                 "generated_at": now.isoformat(),
-                "explainability": f"Structure {state.state.upper()} | Strength {int(state.strength*100)}% | Entry offset: {offset_pips:.1f} pips",
+                "explainability": f"Structure {state.state.upper()} | Strength {int(state.strength*100)}% | Type: {msg_type}",
                 "is_test": False,
+                "is_market_entry": is_market_entry
             }
             
             # --- RELEASE CONFIDENCE REFINEMENT ---
@@ -411,7 +415,13 @@ class ContinuousAnalyzer:
                     
                     # Update to LIVE status immediately
                     signal_base["status"] = "PUBLISHED"
-                    signal_base["state"] = "WAITING_FOR_ENTRY"
+                    
+                    if signal_base.get("is_market_entry"):
+                        signal_base["state"] = "ENTRY_HIT"
+                        signal_base["entry_hit_at"] = now.isoformat()
+                        logger.success("🚀 MARKET EXECUTION: Signal born in ENTRY_HIT state")
+                    else:
+                        signal_base["state"] = "WAITING_FOR_ENTRY"
                     
                     # 3. DB COMMIT (Single Phase)
                     signal_id = self.lock_signal(signal_base)
@@ -480,7 +490,10 @@ class ContinuousAnalyzer:
 
         try:
             # Use the new state-based method for standardized reporting
-            msg_id = self.notifier.send_waiting_for_entry(signal)
+            if signal.get("is_market_entry"):
+                msg_id = self.notifier.send_market_execution(signal)
+            else:
+                msg_id = self.notifier.send_waiting_for_entry(signal)
             
             if msg_id:
                 logger.info(f"🚀 Signal released to Telegram (ID: {msg_id})")

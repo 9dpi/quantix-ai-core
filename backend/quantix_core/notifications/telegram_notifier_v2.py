@@ -131,6 +131,41 @@ class TelegramNotifierV2:
         logger.info(f"Sending WAITING_FOR_ENTRY message for {asset}")
         return self.send_message(message)
 
+    def send_market_execution(self, signal: dict) -> Optional[int]:
+        """
+        Send MARKET_EXECUTION message (State 1 - Immediate).
+        Triggered when ULTRA confidence or FVG proximity allows direct entry.
+        """
+        asset = signal.get("asset", "EURUSD").replace("/", "")
+        timeframe = signal.get("timeframe", "M15")
+        direction = signal.get("direction", "BUY")
+        entry = signal.get("entry_price", 0)
+        tp = signal.get("tp", 0)
+        sl = signal.get("sl", 0)
+        confidence = int(signal.get("release_confidence", 0) * 100)
+        
+        # Direction emoji
+        dir_emoji = "🟢" if direction == "BUY" else "🔴"
+        test_tag = "[TEST] " if signal.get("is_test") else ""
+        
+        message = (
+            f"{test_tag}🚀 *MARKET EXECUTION*\n\n"
+            f"Asset: {asset}\n"
+            f"Timeframe: {timeframe}\n"
+            f"Direction: {dir_emoji} {direction}\n\n"
+            f"Status: 🔥 ENTERING NOW\n"
+            f"Market Price: {entry}\n"
+            f"Take Profit: {tp}\n"
+            f"Stop Loss: {sl}\n\n"
+            f"Confidence: {confidence}%\n"
+            f"Strategy: ULTRA_SCALPER_V3.6\n\n"
+            f"⏱ *Max trade duration:* 90 minutes\n\n"
+            f"⚠️ High probability entry confirmed."
+        )
+        
+        logger.info(f"Sending MARKET_EXECUTION message for {asset}")
+        return self.send_message(message)
+
     def send_entry_hit(self, signal: dict) -> Optional[int]:
         """
         Send ENTRY_HIT message (State 2).

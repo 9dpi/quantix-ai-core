@@ -1,7 +1,7 @@
 
 import requests
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 URL = "https://wttsaprezgvircanthbk.supabase.co/rest/v1/fx_signals"
 HEADERS = {
@@ -10,9 +10,9 @@ HEADERS = {
 }
 
 def check_signals():
-    today = datetime.now(timezone.utc).date().isoformat()
+    start_date = (datetime.now(timezone.utc) - timedelta(days=7)).date().isoformat()
     params = {
-        "generated_at": f"gte.{today}",
+        "generated_at": f"gte.{start_date}",
         "order": "generated_at.desc"
     }
     
@@ -20,21 +20,7 @@ def check_signals():
         response = requests.get(URL, headers=HEADERS, params=params)
         response.raise_for_status()
         signals = response.json()
-        
-        print(f"Signals for {today}:")
-        print("-" * 120)
-        print(f"{'Generated At':<25} | {'ID':<38} | {'Asset':<10} | {'Dir':<5} | {'State':<20} | {'Exit Reason':<15}")
-        print("-" * 120)
-        
-        for s in signals:
-            gen_at = str(s.get('generated_at') or 'N/A')
-            sig_id = str(s.get('id') or 'N/A')
-            asset = str(s.get('asset') or 'N/A')
-            direction = str(s.get('direction') or 'N/A')
-            state = str(s.get('state') or 'N/A')
-            result = str(s.get('result') or 'N/A')
-            
-            print(f"{gen_at[:23]:<25} | {sig_id:<38} | {asset:<10} | {direction:<5} | {state:<20} | {result:<15}")
+        print(json.dumps(signals, indent=2))
             
     except Exception as e:
         print(f"Error: {e}")

@@ -60,7 +60,7 @@ class ContinuousAnalyzer:
             logger.critical("❌ [INIT_FAIL] Telegram configuration missing! Pipeline will proceed as INTERNAL ONLY.")
             # Fail-fast logic: If we have an admin channel, we'd alert here, but since config is missing...
         
-        logger.info(f"💓 Quantix AI Core v2.1 Initialized (Log: {self.audit_log_path})")
+        logger.info(f"💓 Quantix AI Core v3.5 Institutional Initialized (Log: {self.audit_log_path})")
 
     def convert_to_df(self, data) -> pd.DataFrame:
         """Convert feed data to StructureEngine compatible DataFrame"""
@@ -173,17 +173,18 @@ class ContinuousAnalyzer:
             return
 
         try:
+            start_time = time.perf_counter()
             self.cycle_count += 1
-            logger.info(f"🎬 Starting new analysis cycle #{self.cycle_count}...")
+            logger.info(f"🎬 [v3.5] Starting analysis cycle #{self.cycle_count}...")
             
-            # Log market status to DB every 5 cycles
+            # Log market status to DB every 5 cycles with performance metrics
             if self.cycle_count % 5 == 0:
                 try:
                     db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
                         "timestamp": datetime.now(timezone.utc).isoformat(),
                         "asset": "HEARTBEAT",
                         "direction": "SYSTEM",
-                        "status": f"ALIVE_C{self.cycle_count}",
+                        "status": f"ALIVE_V3.5_C{self.cycle_count}",
                         "confidence": 0.0,
                         "strength": 0.0,
                         "price": 0.0
@@ -219,6 +220,7 @@ class ContinuousAnalyzer:
 
             # 3. Prepare Common Data
             price = float(df.iloc[-1]["close"])
+            latency_ms = int((time.perf_counter() - start_time) * 1000)
 
             # --- HEARTBEAT LOG ---
             heartbeat_entry = {
@@ -226,12 +228,13 @@ class ContinuousAnalyzer:
                 "asset": "EURUSD",
                 "price": price,
                 "direction": "HEARTBEAT",
-                "status": "ANALYZING",
+                "status": f"V3.5_OK_{latency_ms}ms",
                 "strength": 0.0,
                 "confidence": 0.0
             }
             try:
                 db.client.table(settings.TABLE_ANALYSIS_LOG).insert(heartbeat_entry).execute()
+                logger.success(f"✅ Cycle #{self.cycle_count} complete in {latency_ms}ms")
             except: pass
 
             # 2. Market Analysis

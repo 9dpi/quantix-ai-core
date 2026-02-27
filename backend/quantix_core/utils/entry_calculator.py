@@ -1,22 +1,15 @@
-"""
-Entry Price Calculator for Future Entry Signals (v2.0)
-
-This module calculates entry prices that are different from current market price,
-implementing the "Future Entry" strategy where signals wait for price to reach
-a specific level before activation.
-"""
-
-from typing import Tuple
+from typing import Tuple, Optional
 from loguru import logger
+from quantix_core.engine.primitives.fvg_detector import FairValueGap
 
 
 class EntryCalculator:
     """
     Calculates and validates entry prices for trading signals.
     
-    Strategy: Fixed offset from market price
-    - BUY: Entry below market (buy the dip)
-    - SELL: Entry above market (sell the rally)
+    Strategy: Dynamic FVG Entry (New) with Fixed Offset Fallback.
+    - BUY: Entry at Bullish FVG midpoint below market.
+    - SELL: Entry at Bearish FVG midpoint above market.
     """
     
     def __init__(
@@ -149,6 +142,35 @@ class EntryCalculator:
         
         return True, "Valid"
     
+    def calculate_fvg_entry(
+        self,
+        market_price: float,
+        direction: str,
+        fvg: Optional[FairValueGap] = None
+    ) -> Tuple[float, bool, str]:
+        """
+        Calculate entry price based on Fair Value Gap (FVG).
+        If no FVG is provided or valid, falls back to fixed offset.
+        
+        Returns:
+            (entry_price, is_valid, message)
+        """
+        if fvg is not None:
+            # Use FVG midpoint as entry
+            entry = fvg.midpoint
+            
+            # Validate FVG entry direction
+            is_valid, msg = self.validate_entry_price(entry, market_price, direction)
+            
+            if is_valid:
+                logger.info(f"🎯 FVG Entry Selected: {entry} (Quality: {fvg.quality})")
+                return entry, True, f"FVG_ENTRY_RETRACEMENT (Quality: {fvg.quality})"
+            else:
+                logger.warning(f"FVG at {entry} invalid for {direction}: {msg}. Falling back to fixed offset.")
+
+        # Fallback to legacy fixed offset strategy
+        return self.calculate_and_validate(market_price, direction)
+
     def calculate_and_validate(
         self,
         market_price: float,

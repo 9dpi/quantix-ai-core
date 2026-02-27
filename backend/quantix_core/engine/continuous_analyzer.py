@@ -254,16 +254,14 @@ class ContinuousAnalyzer:
                 return
             
             # ============================================
-            # v2 FUTURE ENTRY LOGIC (2 pips offset)
+            # v3.5 SMC-LITE ENTRY LOGIC (FVG-Based)
             # ============================================
             
-            # Calculate future entry price (NOT market price)
-            # 2-pip offset from market for realistic fill rate on EURUSD M15
-            # (5-pip offset caused 100% EXPIRED rate — price rarely retraced that far)
             entry_calc = EntryCalculator(offset_pips=2.0)
-            entry_price, is_valid, validation_msg = entry_calc.calculate_and_validate(
+            entry_price, is_valid, validation_msg = entry_calc.calculate_fvg_entry(
                 market_price=price,
-                direction=direction
+                direction=direction,
+                fvg=getattr(state, 'nearest_fvg', None)
             )
             
             # Validation: Skip signal if entry invalid
@@ -275,24 +273,38 @@ class ContinuousAnalyzer:
             offset_pips = abs(entry_price - price) / 0.0001
             logger.info(
                 f"Entry calculated: market={price}, entry={entry_price}, "
-                f"offset={offset_pips:.1f} pips, direction={direction}"
+                f"offset={offset_pips:.1f} pips, direction={direction} | Type: {validation_msg}"
             )
             
-            # FIXED RISK/REWARD RULE (AUTO v1)
-            # TP = 15 pips, SL = 15 pips from ENTRY (intraday M15 range)
-            # Rationale: 10 pips was too tight for M15 noise — caused premature exits
-            # Rules.txt defines system as Type B: Intraday (15-40 pip SL)
-            FIXED_TP_PIPS = 0.0015  # 15 pips
-            FIXED_SL_PIPS = 0.0015  # 15 pips
-            
+            # DYNAMIC RISK/REWARD RULE (ATR-Based)
+            # 1. Calculate ATR(14) for dynamic scaling
+            # 2. TP = 1.5x ATR, SL = 1.0x ATR (R:R 1.5)
+            try:
+                high_s = df['high'].astype(float)
+                low_s = df['low'].astype(float)
+                close_s = df['close'].astype(float)
+                tr = pd.concat([high_s - low_s, (high_s - close_s.shift()).abs(), (low_s - close_s.shift()).abs()], axis=1).max(axis=1)
+                atr = tr.rolling(14).mean().iloc[-1]
+                
+                # Floor/Cap to prevent absurd values
+                # EURUSD typical ATR M15 is 0.0008 - 0.0025
+                tp_dist = max(0.0010, min(0.0040, atr * 1.5))
+                sl_dist = max(0.0008, min(0.0025, atr * 1.0))
+                
+                logger.debug(f"Dynamic TP/SL: ATR={atr:.5f}, TP_Dist={tp_dist:.5f}, SL_Dist={sl_dist:.5f}")
+            except Exception as e:
+                logger.error(f"ATR calculation failed, using fallback 15 pips: {e}")
+                tp_dist = 0.0015
+                sl_dist = 0.0015
+
             if direction == "BUY":
-                tp = round(entry_price + FIXED_TP_PIPS, 5)
-                sl = round(entry_price - FIXED_SL_PIPS, 5)
+                tp = round(entry_price + tp_dist, 5)
+                sl = round(entry_price - sl_dist, 5)
             else:  # SELL
-                tp = round(entry_price - FIXED_TP_PIPS, 5)
-                sl = round(entry_price + FIXED_SL_PIPS, 5)
+                tp = round(entry_price - tp_dist, 5)
+                sl = round(entry_price + sl_dist, 5)
             
-            rrr = 1.0  # Fixed 1:1 Risk/Reward Ratio
+            rrr = round(tp_dist / sl_dist, 2)
             
             # Calculate expiry time (Entry timeout: 30 minutes)
             now = datetime.now(timezone.utc)

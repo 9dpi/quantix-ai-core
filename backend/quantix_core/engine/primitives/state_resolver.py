@@ -5,8 +5,10 @@ Converts evidence scores into market state with confidence
 Principle: Relative dominance, not absolute thresholds
 """
 
-from typing import Dict, List, Tuple
-from dataclasses import dataclass
+from typing import Dict, List, Tuple, Optional, Any
+from dataclasses import dataclass, field
+from quantix_core.engine.primitives.fvg_detector import FairValueGap
+from quantix_core.engine.primitives.liquidity_filter import LiquiditySweep
 
 
 @dataclass
@@ -22,6 +24,11 @@ class StructureState:
     dominance: Dict[str, float]  # {"bullish": X, "bearish": Y}
     evidence: List[str]  # Human-readable evidence
     
+    # SMC Metadata
+    fvgs: List[FairValueGap] = field(default_factory=list)
+    sweeps: List[LiquiditySweep] = field(default_factory=list)
+    nearest_fvg: Optional[FairValueGap] = None
+
     # Metadata
     trace_id: str
     source: str
@@ -50,7 +57,10 @@ class StateResolver:
         evidence_items: List[str],
         trace_id: str,
         source: str = "oanda",
-        timeframe: str = "H4"
+        timeframe: str = "H4",
+        fvgs: List[FairValueGap] = None,
+        sweeps: List[LiquiditySweep] = None,
+        nearest_fvg: Optional[FairValueGap] = None
     ) -> StructureState:
         """
         Resolve final structure state from directional scores.
@@ -61,20 +71,12 @@ class StateResolver:
         3. If close → "range"
         
         Confidence = |bullish - bearish| / (bullish + bearish)
-        
-        Args:
-            bullish_score: Aggregated bullish evidence score
-            bearish_score: Aggregated bearish evidence score
-            evidence_items: List of evidence descriptions
-            trace_id: Trace ID for debugging
-            source: Data source
-            timeframe: Timeframe
-            
-        Returns:
-            StructureState with final decision
         """
         total_score = bullish_score + bearish_score
         
+        fvgs = fvgs or []
+        sweeps = sweeps or []
+
         # Case 1: Insufficient evidence
         if total_score < self.min_total_score:
             return StructureState(
@@ -86,6 +88,9 @@ class StateResolver:
                     "bearish": bearish_score
                 },
                 evidence=evidence_items or ["Insufficient structure evidence"],
+                fvgs=fvgs,
+                sweeps=sweeps,
+                nearest_fvg=nearest_fvg,
                 trace_id=trace_id,
                 source=source,
                 timeframe=timeframe
@@ -117,6 +122,9 @@ class StateResolver:
                 "bearish": round(bearish_score, 2)
             },
             evidence=final_evidence,
+            fvgs=fvgs,
+            sweeps=sweeps,
+            nearest_fvg=nearest_fvg,
             trace_id=trace_id,
             source=source,
             timeframe=timeframe

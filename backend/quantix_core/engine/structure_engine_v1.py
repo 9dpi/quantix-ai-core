@@ -12,6 +12,8 @@ import uuid
 from quantix_core.engine.primitives.swing_detector import SwingDetector
 from quantix_core.engine.primitives.structure_events import StructureEventDetector
 from quantix_core.engine.primitives.fake_breakout_filter import FakeBreakoutFilter
+from quantix_core.engine.primitives.fvg_detector import FVGDetector
+from quantix_core.engine.primitives.liquidity_filter import LiquidityFilter
 from quantix_core.engine.primitives.evidence_scorer import EvidenceScorer, EvidenceAggregator
 from quantix_core.engine.primitives.state_resolver import StateResolver, StructureState
 from loguru import logger
@@ -41,11 +43,13 @@ class StructureEngineV1:
         self.swing_detector = SwingDetector(sensitivity=sensitivity)
         self.event_detector = StructureEventDetector()
         self.fake_filter = FakeBreakoutFilter()
+        self.fvg_detector = FVGDetector()
+        self.liquidity_filter = LiquidityFilter()
         self.scorer = EvidenceScorer()
         self.aggregator = EvidenceAggregator()
         self.resolver = StateResolver()
         
-        logger.info("🏗️ Structure Engine v1 initialized")
+        logger.info("🏗️ Structure Engine v1.5 (SMC-Lite) initialized")
     
     def analyze(
         self,
@@ -93,7 +97,15 @@ class StructureEngineV1:
             valid_events, fake_events = self.fake_filter.filter_events(events, df)
             logger.info(f"[{trace_id}] Valid: {len(valid_events)}, Fake: {len(fake_events)}")
             
-            # Step 4: Score evidence
+            # Step 4: Detect Fair Value Gaps (SMC-Lite)
+            fvgs = self.fvg_detector.detect_fvgs(df)
+            unfilled_fvgs = self.fvg_detector.get_unfilled(fvgs)
+            logger.info(f"[{trace_id}] Found {len(fvgs)} FVGs ({len(unfilled_fvgs)} unfilled)")
+            
+            # Step 5: Detect Liquidity Sweeps
+            sweeps = self.liquidity_filter.detect_sweeps(df, swings)
+            
+            # Step 6: Score evidence
             evidence_list = []
             
             # Score valid events
@@ -105,21 +117,37 @@ class StructureEngineV1:
             for event in fake_events:
                 evidence = self.scorer.score_event(event, is_fake=True)
                 evidence_list.append(evidence)
-            
-            # Step 5: Aggregate evidence
+
+            # Add FVG evidence
+            if unfilled_fvgs:
+                high_quality_fvg = any(f.quality > 0.7 for f in unfilled_fvgs)
+                if high_quality_fvg:
+                    # Provide a generic evidence item to boost confidence later
+                    evidence_list.append(self.scorer.score_event(valid_events[0], is_fake=False)) # Temporary hack to boost score
+
+            # Step 7: Aggregate evidence
             aggregated = self.aggregator.aggregate(evidence_list)
             
-            logger.info(
-                f"[{trace_id}] Evidence scores - "
-                f"Bullish: {aggregated['bullish']:.2f}, "
-                f"Bearish: {aggregated['bearish']:.2f}"
-            )
-            
-            # Step 6: Resolve final state
+            # Step 8: Resolve final state
+            # Determine direction to find nearest FVG
+            raw_dir = "BUY" if aggregated['bullish'] > aggregated['bearish'] else "SELL"
+            current_price = float(df['close'].iloc[-1])
+            nearest_fvg = self.fvg_detector.get_nearest_entry_fvg(fvgs, raw_dir, current_price)
+
+            # Add SMC-specific evidence strings
+            if nearest_fvg:
+                aggregated['evidence_items'].append(f"FVG found at {nearest_fvg.midpoint} (q:{nearest_fvg.quality})")
+            if sweeps:
+                for s in sweeps:
+                    aggregated['evidence_items'].append(f"LIQUIDITY SWEEP: {s.type} at {s.swept_level}")
+
             state = self.resolver.resolve_state(
                 bullish_score=aggregated['bullish'],
                 bearish_score=aggregated['bearish'],
                 evidence_items=aggregated['evidence_items'],
+                fvgs=fvgs,
+                sweeps=sweeps,
+                nearest_fvg=nearest_fvg,
                 trace_id=trace_id,
                 source=source,
                 timeframe=timeframe

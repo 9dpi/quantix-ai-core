@@ -1,6 +1,7 @@
+import pandas as pd
 from datetime import datetime, timezone, time
 from loguru import logger
-from typing import Tuple
+from typing import Tuple, Optional
 
 class ConfidenceRefiner:
     """
@@ -33,13 +34,53 @@ class ConfidenceRefiner:
         # Outside London hours (Asia/NY) - allow with minor penalty
         return 0.8
 
-    def get_volatility_factor(self, df_last_rows) -> float:
+    def get_volatility_factor(self, df: Optional[pd.DataFrame]) -> float:
         """
-        Sanity check on volatility. 
-        In v1, we return 1.0 as a baseline.
-        Future: ATR comparison.
+        Real ATR-based volatility filter.
+        Ensures the market has enough 'gas' but isn't in a chaotic spike.
+        
+        Logic:
+        - Ratio = Current Candle Range / ATR(14)
+        - Ideal: 0.7x to 1.5x ATR
+        - Penalty for <0.5x (Too quiet) or >2.5x (Too volatile/news spike)
         """
-        return 1.0
+        if df is None or len(df) < 15:
+            return 1.0 # Baseline if data is missing
+            
+        try:
+            # Calculate ATR(14)
+            high = df['high'].astype(float)
+            low = df['low'].astype(float)
+            close = df['close'].astype(float)
+            
+            tr = pd.concat([
+                high - low, 
+                (high - close.shift()).abs(), 
+                (low - close.shift()).abs()
+            ], axis=1).max(axis=1)
+            
+            atr = tr.rolling(window=14).mean().iloc[-1]
+            
+            # Current candle range
+            current_range = float(high.iloc[-1] - low.iloc[-1])
+            
+            if atr == 0: return 1.0
+            
+            ratio = current_range / atr
+            
+            # Penalize extremes
+            if ratio < 0.5:
+                logger.debug(f"Volatility too low: {ratio:.2f}x ATR")
+                return 0.7 
+            elif ratio > 2.5:
+                logger.warning(f"Volatility too high (News?): {ratio:.2f}x ATR")
+                return 0.6
+                
+            return 1.0
+            
+        except Exception as e:
+            logger.error(f"Error calculating volatility factor: {e}")
+            return 1.0
 
     def get_spread_factor(self, symbol: str) -> float:
         """

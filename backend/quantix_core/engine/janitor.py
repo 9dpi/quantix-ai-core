@@ -30,7 +30,7 @@ class Janitor:
             # 1. Fetch all potentially stuck signals
             # States that should eventually transition: WAITING, ENTRY_HIT, ACTIVE, PUBLISHED
             res = db.client.table(settings.TABLE_SIGNALS).select("*").in_(
-                "state", ["WAITING_FOR_ENTRY", "ENTRY_HIT", "ACTIVE", "PUBLISHED"]
+                "state", ["WAITING_FOR_ENTRY", "ENTRY_HIT", "ACTIVE", "PUBLISHED", "PENDING"]
             ).execute()
             
             signals = res.data or []

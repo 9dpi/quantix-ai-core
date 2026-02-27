@@ -162,6 +162,14 @@ class PepperstoneValidator:
         for signal in signals:
             self._validate_signal(signal, market_data)
 
+        # PRUNING: Remove signals from local memory that are no longer active in DB
+        # This prevents the 'tracking=20' growth issue (Memory Leak)
+        active_ids = {sig["id"] for sig in signals}
+        stale_ids = [sid for sid in self.tracked_signals if sid not in active_ids]
+        for sid in stale_ids:
+            # logger.debug(f"🧹 Validator Memory: Removing stale signal {sid}")
+            del self.tracked_signals[sid]
+
     # ------------------------------------------------------------------
     # Database helpers
     # ------------------------------------------------------------------
@@ -169,11 +177,9 @@ class PepperstoneValidator:
     def _fetch_active_signals(self) -> List[Dict]:
         try:
             res = (
-                self.db.client
-                .table("fx_signals")
-                .select("*")
-                .in_("state", ["WAITING_FOR_ENTRY", "ENTRY_HIT"])
-                .execute()
+                self.db.client.table(settings.TABLE_SIGNALS).select("*").in_(
+                "state", ["WAITING_FOR_ENTRY", "ENTRY_HIT"]
+            ).execute()
             )
             return res.data or []
         except Exception as e:

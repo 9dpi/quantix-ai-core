@@ -33,8 +33,8 @@ class Settings(BaseSettings):
     
     # Telegram [T1]
     TELEGRAM_BOT_TOKEN: Optional[str] = None
-    TELEGRAM_CHAT_ID: str = "-1003211826302"
-    TELEGRAM_ADMIN_CHAT_ID: str = "7985984228"
+    TELEGRAM_CHAT_ID: Optional[str] = None
+    TELEGRAM_ADMIN_CHAT_ID: Optional[str] = None
     
     # Database Tables
     TABLE_SIGNALS: str = "fx_signals"
@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     
     # Trading Rules
     MIN_RR: float = 1.0  # Allow 1:1 RR
-    MIN_CONFIDENCE: float = 0.65
+    MIN_CONFIDENCE: float = 0.80
     MAX_SIGNALS_PER_ASSET: int = 3
     MAX_PENDING_DURATION_MINUTES: int = 35  # Reverted to 35m per user request
     MAX_TRADE_DURATION_MINUTES: int = 90    # Reverted to 90m per user request
@@ -85,7 +85,7 @@ class Settings(BaseSettings):
     ENABLE_LEARNING: bool = True
     ENABLE_LAB_SIGNALS: bool = True
     WATCHER_OBSERVE_MODE: bool = False
-    QUANTIX_PUBLIC_API_KEY: str = "quantix_dev_beta_2026"
+    QUANTIX_PUBLIC_API_KEY: Optional[str] = None
     
     class Config:
         env_file = ".env"

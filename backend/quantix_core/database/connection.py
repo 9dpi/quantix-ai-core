@@ -123,9 +123,7 @@ class SupabaseConnection:
     _client: Optional[Client] = None
 
     def __new__(cls):
-        print("DEBUG: Calling SupabaseConnection.__new__")
         if cls._instance is None:
-            print("DEBUG: Creating new instance")
             cls._instance = super().__new__(cls)
         return cls._instance
 

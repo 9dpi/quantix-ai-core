@@ -158,7 +158,6 @@ class TelegramNotifierV2:
             f"Take Profit: {tp}\n"
             f"Stop Loss: {sl}\n\n"
             f"Confidence: {confidence}%\n"
-            f"Strategy: ULTRA_SCALPER_V3.6\n\n"
             f"⏱ *Max trade duration:* 90 minutes\n\n"
             f"⚠️ High probability entry confirmed."
         )

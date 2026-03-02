@@ -24,6 +24,7 @@ Quantix AI Core is designed as a **Institutional-Grade Market Intelligence Engin
     *   **BOS Detection**: Identifies Bullish/Bearish Break of Structure with body-close confirmation.
     *   **FVG-Based Entry**: Calculates entry at Fair Value Gaps for optimized Reward/Risk.
     *   **Anti-Burst Rule**: Maintains a strict 30-minute cooldown and global active signal lock.
+    *   **Strategy v3.6 (Scalper Mode)**: Supports **Market Execution** for ULTRA signals (>=95% confidence) to capture immediate momentum.
 *   **Confidence Gate**: Institutional threshold set to **80%** minimum for signal release.
 
 ### 3. Signal Watcher (`start_railway_watcher.py`)
@@ -31,6 +32,7 @@ Quantix AI Core is designed as a **Institutional-Grade Market Intelligence Engin
 *   **Frequency**: High-speed (60s checks).
 *   **Cycle**:
     *   `WAITING_FOR_ENTRY`: Tracks price to detect the exact entry touch (FVG Re-entry).
+    *   **SL Invalidation**: Automatically cancels pending signals if price touches SL level before Entry.
     *   `ENTRY_HIT`: Monitors for Take Profit (TP), Stop Loss (SL), or 90m Time Timeout.
     *   Atomic Transitions: Uses DB-level checks to prevent duplicate Telegram notifications.
 
@@ -54,12 +56,13 @@ Translates OHLCV data into market states using:
 2.  **Liquidity Sweep**: Detects session high/low manipulation (Asian Range Sweep).
 3.  **FVG Identification**: Locates Fair Value Gaps for high-precision entries.
 
-### `ConfidenceRefiner`
-Applies a weighted scoring model (Target: >80% Win Rate):
+### `ConfidenceRefiner` (v3.6 Scalper Strategy)
+Applies a weighted scoring model (Target: 90% Win Rate):
 1.  **Structure (30%)**: Patterns & FVG quality.
 2.  **Session (25%)**: Timing (London/NY Open alignment).
 3.  **Volatility (20%)**: ATR-based dynamic risk validation.
 4.  **Trend Alignment (25%)**: Cross-verification of M15 with H1 direction.
+5.  **Dynamic R:R**: Optimized for Win Rate (TP 0.8x ATR / SL 1.8x ATR).
 
 ### `Janitor` & `EntryCalculator`
 *   **Janitor**: Specialized fail-safe for cleaning stuck signals (>35m WAITING, >90m ACTIVE).
@@ -98,6 +101,6 @@ Quantix_AI_Core/
 ```
 
 ---
-**Version**: 3.5 (Institutional SMC-Lite)  
-**Status**: Production Hardened  
+**Version**: 3.6 (Institutional Scalper v2)  
+**Status**: Production Hardened / Strategy Upgraded  
 **Active Healing**: Enabled

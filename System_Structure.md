@@ -23,8 +23,10 @@ Quantix AI Core is designed as a **Institutional-Grade Market Intelligence Engin
 *   **Logic (SMC-Lite M15 Architecture)**:
     *   **BOS Detection**: Identifies Bullish/Bearish Break of Structure with body-close confirmation.
     *   **FVG-Based Entry**: Calculates entry at Fair Value Gaps for optimized Reward/Risk.
-    *   **Anti-Burst Rule**: Maintains a strict 30-minute cooldown and global active signal lock.
-    *   **Strategy v3.6 (Scalper Mode)**: Supports **Market Execution** for ULTRA signals (>=95% confidence) to capture immediate momentum.
+    *   **Anti-Burst Rule**: Maintains a strict 20-minute cooldown and global active signal lock.
+    *   **Strategy v3.7 (Institutional Scalper)**: 
+        *   **Market Execution**: ULTRA signals (>=95% confidence) capture immediate movement.
+        *   **Dead-Zone Filter**: Blocks Sunday open, Asia low-liquidity, and Rollover hours (21:00-23:00 UTC).
 *   **Confidence Gate**: Institutional threshold set to **80%** minimum for signal release.
 
 ### 3. Signal Watcher (`start_railway_watcher.py`)
@@ -33,7 +35,8 @@ Quantix AI Core is designed as a **Institutional-Grade Market Intelligence Engin
 *   **Cycle**:
     *   `WAITING_FOR_ENTRY`: Tracks price to detect the exact entry touch (FVG Re-entry).
     *   **SL Invalidation**: Automatically cancels pending signals if price touches SL level before Entry.
-    *   `ENTRY_HIT`: Monitors for Take Profit (TP), Stop Loss (SL), or 90m Time Timeout.
+    *   `ENTRY_HIT`: Monitors for Take Profit (TP), Stop Loss (SL), or **180m (3h)** Time Timeout.
+    *   **Breakeven Lock (v3.7)**: Automatically moves SL to entry (Risk-Free) once price completes 60% of the distance to TP.
     *   Atomic Transitions: Uses DB-level checks to prevent duplicate Telegram notifications.
 
 ### 4. Institutional Validator (`start_railway_validator.py`)
@@ -56,16 +59,17 @@ Translates OHLCV data into market states using:
 2.  **Liquidity Sweep**: Detects session high/low manipulation (Asian Range Sweep).
 3.  **FVG Identification**: Locates Fair Value Gaps for high-precision entries.
 
-### `ConfidenceRefiner` (v3.6 Scalper Strategy)
+### `ConfidenceRefiner` (v3.7 Session-Aware Strategy)
 Applies a weighted scoring model (Target: 90% Win Rate):
 1.  **Structure (30%)**: Patterns & FVG quality.
 2.  **Session (25%)**: Timing (London/NY Open alignment).
 3.  **Volatility (20%)**: ATR-based dynamic risk validation.
 4.  **Trend Alignment (25%)**: Cross-verification of M15 with H1 direction.
-5.  **Dynamic R:R**: Optimized for Win Rate (TP 0.8x ATR / SL 1.8x ATR).
+5.  **Session-Aware R:R (v3.7)**: Optimized for Win Rate with session-based TP/SL distance (PEAK=1.0x ATR, HIGH=0.8x, LOW=0.5x).
+6.  **Duration (v3.7)**: Extended to 180 minutes to allow price maturity.
 
 ### `Janitor` & `EntryCalculator`
-*   **Janitor**: Specialized fail-safe for cleaning stuck signals (>35m WAITING, >90m ACTIVE).
+*   **Janitor**: Specialized fail-safe for cleaning stuck signals (>35m WAITING, >180m ACTIVE).
 *   **EntryCalculator**: Dynamic calculation of entry points based on **Fair Value Gaps (FVG)** instead of fixed offsets.
 
 ---
@@ -101,6 +105,6 @@ Quantix_AI_Core/
 ```
 
 ---
-**Version**: 3.6 (Institutional Scalper v2)  
+**Version**: 3.7 (Institutional Scalper v3)  
 **Status**: Production Hardened / Strategy Upgraded  
 **Active Healing**: Enabled

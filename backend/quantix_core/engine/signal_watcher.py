@@ -326,8 +326,12 @@ class SignalWatcher:
                 elif self.is_sl_touched(signal, candle):
                     self.transition_to_sl_hit(signal, candle)
                     return
+                
+                # [3.5] BREAKEVEN LOGIC (v3.7)
+                # If price moves 60%+ toward TP, move SL to entry (lock zero-risk)
+                self._check_breakeven(signal, candle)
             
-            # [4] TRADE TIMEOUT (90m)
+            # [4] TRADE TIMEOUT (180m)
             # Checked after TP/SL to ensure we don't miss a winner on the same candle
             start_time_str = signal.get("entry_hit_at") or signal.get("generated_at")
             if start_time_str:
@@ -411,6 +415,52 @@ class SignalWatcher:
             
         return is_hit
     
+    # ========================================
+    # BREAKEVEN LOGIC (v3.7)
+    # ========================================
+    
+    def _check_breakeven(self, signal: dict, candle: dict):
+        """
+        Move SL to entry price (breakeven) when price reaches 60%+ of TP distance.
+        This locks in zero-risk on winning trades during extended hold periods.
+        """
+        entry = signal.get("entry_price")
+        tp = signal.get("tp")
+        sl = signal.get("sl")
+        direction = signal.get("direction")
+        signal_id = signal.get("id")
+        
+        if not all([entry, tp, sl, direction]): return
+        
+        # Skip if SL is already at or past entry (already breakeven)
+        if direction == "BUY" and sl >= entry: return
+        if direction == "SELL" and sl <= entry: return
+        
+        # Calculate progress toward TP
+        tp_distance = abs(tp - entry)
+        if tp_distance == 0: return
+        
+        if direction == "BUY":
+            current_progress = candle["high"] - entry   # Best price achieved
+        else:
+            current_progress = entry - candle["low"]     # Best price achieved
+        
+        progress_pct = current_progress / tp_distance
+        
+        if progress_pct >= 0.6:  # 60% toward TP
+            new_sl = entry  # Move SL to entry (breakeven)
+            try:
+                self.db.table("fx_signals").update({
+                    "sl": new_sl
+                }).eq("id", signal_id).eq("state", "ENTRY_HIT").execute()
+                
+                logger.success(
+                    f"🔒 BREAKEVEN: Signal {signal_id} SL moved to entry ({new_sl}) | "
+                    f"Progress: {progress_pct*100:.0f}% toward TP"
+                )
+            except Exception as e:
+                logger.error(f"Failed to set breakeven for {signal_id}: {e}")
+
     # ========================================
     # STATE TRANSITION METHODS
     # ========================================

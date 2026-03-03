@@ -32,16 +32,34 @@ class MarketHours:
     @staticmethod
     def should_generate_signals() -> bool:
         """
-        Safety check: Don't generate new signals close to weekend gap.
-        Avoid Friday after 20:00 UTC.
+        Safety check: Don't generate new signals in low-quality periods.
+        - Friday after 17:00 UTC (pre-weekend)
+        - Sunday before Mon 00:00 UTC (low liquidity opening)
+        - Rollover hours (21:00-23:00 UTC) — high spread
         """
         if not MarketHours.is_market_open():
             return False
             
         now = datetime.now(timezone.utc)
+        
         # Friday safety buffer (Market gets thin after 17:00 UTC)
         if now.weekday() == 4 and now.hour >= 17:
             logger.warning("🕒 Market liquidity dropping near weekend. Skipping new signal generation.")
+            return False
+        
+        # Sunday opening: market opens 22:00 UTC Sunday but has terrible liquidity until Monday
+        if now.weekday() == 6:  # Sunday
+            logger.warning("🕒 Sunday session: Liquidity too low for reliable signals.")
+            return False
+        
+        # Monday early hours (before 01:00 UTC) — continuation of Sunday thin liquidity
+        if now.weekday() == 0 and now.hour < 1:
+            logger.warning("🕒 Monday early hours: Skipping signal due to thin liquidity.")
+            return False
+        
+        # Daily rollover window (21:00-23:00 UTC) — spread widens significantly
+        if 21 <= now.hour <= 23:
+            logger.warning("🕒 Rollover window (21-23 UTC): High spread, skipping signal.")
             return False
             
         return True

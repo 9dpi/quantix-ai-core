@@ -124,8 +124,8 @@ class TelegramNotifierV2:
             f"Confidence: {confidence}%\n"
             f"Valid Until: {expiry_str}\n\n"
             f"⏱ *Entry valid:* 35 minutes\n"
-            f"⏱ *Max trade duration:* 90 minutes\n\n"
-            f"⚠️ Signal will auto-close if TP/SL not hit within 90m."
+            f"⏱ *Max trade duration:* 3 hours\n\n"
+            f"⚠️ Signal will auto-close if TP/SL not hit within 3h."
         )
         
         logger.info(f"Sending WAITING_FOR_ENTRY message for {asset}")
@@ -158,7 +158,7 @@ class TelegramNotifierV2:
             f"Take Profit: {tp}\n"
             f"Stop Loss: {sl}\n\n"
             f"Confidence: {confidence}%\n"
-            f"⏱ *Max trade duration:* 90 minutes\n\n"
+            f"⏱ *Max trade duration:* 3 hours\n\n"
             f"⚠️ High probability entry confirmed."
         )
         

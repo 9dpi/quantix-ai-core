@@ -264,7 +264,7 @@ class ContinuousAnalyzer:
             # v3.5 SMC-LITE ENTRY LOGIC (FVG-Based)
             # ============================================
             
-            # --- STRATEGY UPGRADE v3.6 (Win 90% Target) ---
+            # --- STRATEGY UPGRADE v3.7 (Win 90% Target + Session-Aware) ---
             # 💡 Sáng kiến 1: Market Entry cho tín hiệu mạnh
             is_market_entry = False
             msg_type = "PENDING"
@@ -288,8 +288,9 @@ class ContinuousAnalyzer:
                     return
                 msg_type = validation_msg
 
-            # 💡 Sáng kiến 2: Tight TP (0.8x ATR) / Wide SL (1.8x ATR) 
-            # Giúp tăng Win Rate đáng kể bằng cách chốt lời sớm và tránh quét SL
+            # 💡 Sáng kiến 2 (v3.7): Session-Aware TP/SL
+            # Phiên biến động cao -> TP rộng hơn (dễ chạm trong 1-2 nến)
+            # Phiên yếu -> TP siêu hẹp (5 pips) để chốt nhanh
             try:
                 high_s = df['high'].astype(float)
                 low_s = df['low'].astype(float)
@@ -297,15 +298,30 @@ class ContinuousAnalyzer:
                 tr = pd.concat([high_s - low_s, (high_s - close_s.shift()).abs(), (low_s - close_s.shift()).abs()], axis=1).max(axis=1)
                 atr = tr.rolling(14).mean().iloc[-1]
                 
-                # TP hẹp (8-15 pips), SL rộng (12-35 pips)
-                tp_dist = max(0.0008, min(0.0015, atr * 0.8))  
-                sl_dist = max(0.0015, min(0.0035, atr * 1.8))  
+                # Detect session for dynamic TP/SL
+                hour_utc = now.hour if 'now' in dir() else datetime.now(timezone.utc).hour
                 
-                logger.debug(f"v3.6 R:R: ATR={atr:.5f}, TP_Dist={tp_dist:.5f}, SL_Dist={sl_dist:.5f}")
+                if 13 <= hour_utc < 17:  # London-NY Overlap (PEAK)
+                    tp_mult = 1.0   # TP = 1.0x ATR (~10-15 pips)
+                    sl_mult = 2.0   # SL = 2.0x ATR (~20-30 pips)  
+                    session_tag = "PEAK"
+                elif 6 <= hour_utc < 13:  # London (HIGH)
+                    tp_mult = 0.8   # TP = 0.8x ATR (~8-12 pips)
+                    sl_mult = 1.8   # SL = 1.8x ATR (~15-25 pips)
+                    session_tag = "HIGH"
+                else:  # Asia/Late NY (LOW volatility)
+                    tp_mult = 0.5   # TP = 0.5x ATR (~5-8 pips - siêu gần)
+                    sl_mult = 1.5   # SL = 1.5x ATR (~12-20 pips)
+                    session_tag = "LOW"
+                
+                tp_dist = max(0.0005, min(0.0018, atr * tp_mult))  
+                sl_dist = max(0.0012, min(0.0035, atr * sl_mult))  
+                
+                logger.info(f"v3.7 R:R: ATR={atr:.5f} | Session={session_tag} | TP={tp_dist:.5f} ({tp_mult}x) | SL={sl_dist:.5f} ({sl_mult}x)")
             except Exception as e:
                 logger.error(f"ATR failed, using scaled fallback: {e}")
-                tp_dist = 0.0008
-                sl_dist = 0.0020
+                tp_dist = 0.0006
+                sl_dist = 0.0018
 
             if direction == "BUY":
                 tp = round(entry_price + tp_dist, 5)

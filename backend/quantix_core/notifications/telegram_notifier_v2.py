@@ -424,16 +424,17 @@ class TelegramNotifierV2:
                 self._send_to_chat(target_chat_id, "⚙️ Đang quét và giải phóng hệ thống...", use_markdown=False)
                 
                 # 1. Clear Stuck Pending (WAITING > 35m)
-                limit_30 = (datetime.now(timezone.utc) - timedelta(minutes=35)).isoformat()
+                limit_pending = (datetime.now(timezone.utc) - timedelta(minutes=35)).isoformat()
                 res_p = db.client.table(settings.TABLE_SIGNALS).update({
                     "state": "CANCELLED", "status": "EXPIRED", "result": "EXPIRED", "closed_at": datetime.now(timezone.utc).isoformat()
-                }).eq("state", "WAITING_FOR_ENTRY").lt("generated_at", limit_30).execute()
+                }).eq("state", "WAITING_FOR_ENTRY").lt("generated_at", limit_pending).execute()
                 count_p = len(res_p.data) if res_p.data else 0
                 
-                # 2. Clear Stuck Active (ENTRY_HIT > 35m)
+                # 2. Clear Stuck Active (ENTRY_HIT > 90m)
+                limit_active = (datetime.now(timezone.utc) - timedelta(minutes=90)).isoformat()
                 res_a = db.client.table(settings.TABLE_SIGNALS).update({
                     "state": "CANCELLED", "status": "CLOSED_TIMEOUT", "result": "CLOSED_TIMEOUT", "closed_at": datetime.now(timezone.utc).isoformat()
-                }).eq("state", "ENTRY_HIT").lt("generated_at", limit_90).execute()
+                }).eq("state", "ENTRY_HIT").lt("generated_at", limit_active).execute()
                 count_a = len(res_a.data) if res_a.data else 0
                 
                 total = count_p + count_a
@@ -531,8 +532,17 @@ class TelegramNotifierV2:
             return None
     
     # ========================================
-    # HELPER METHODS
+    # ALERT & HELPER METHODS
     # ========================================
+
+    def send_critical_alert(self, message: str) -> Optional[int]:
+        """
+        Send a critical system alert to the admin chat.
+        Used by Watcher/Analyzer when API is blocked or system errors occur.
+        """
+        target = self.admin_chat_id or self.chat_id
+        alert_text = f"🚨 *CRITICAL ALERT*\n\n{message}"
+        return self._send_to_chat(target, alert_text, use_markdown=True)
     
     def _format_expiry_time(self, expiry_at: Optional[str]) -> str:
         """

@@ -8,6 +8,7 @@ Fallback chain: global → US → developer API endpoint.
 import requests
 from datetime import datetime, timezone
 from typing import Optional, Dict
+from loguru import logger
 
 from .base_feed import BaseFeed
 

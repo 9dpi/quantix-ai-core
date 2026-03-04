@@ -483,8 +483,81 @@ class ContinuousAnalyzer:
             except Exception as e:
                 logger.error(f"Failed to update dashboard learning data: {e}")
 
+            # 7. INTEGRATED WATCHDOG — Check Watcher health every 24 cycles (~120 min)
+            if self.cycle_count % 24 == 0:
+                self._check_watcher_health()
+
         except Exception as e:
             logger.error(f"Heartbeat cycle failed: {e}")
+
+    def _check_watcher_health(self):
+        """
+        Integrated Watchdog: Check if Signal Watcher is alive.
+        Called every 24 cycles (~120 minutes) from run_cycle.
+        If Watcher is stale > 30 min:
+          1. Run Janitor to clear stuck signals
+          2. Send Telegram alert to Admin
+        """
+        WATCHER_STALE_THRESHOLD_MIN = 30
+        
+        try:
+            now = datetime.now(timezone.utc)
+            
+            # Query last Watcher heartbeat
+            res = db.client.table(settings.TABLE_ANALYSIS_LOG)\
+                .select("timestamp, status")\
+                .eq("asset", "HEARTBEAT_WATCHER")\
+                .order("timestamp", desc=True)\
+                .limit(1)\
+                .execute()
+            
+            if not res.data:
+                logger.warning("🏥 Watchdog: No Watcher heartbeat found in DB!")
+                stale_min = 9999
+            else:
+                hb_time = datetime.fromisoformat(res.data[0]["timestamp"].replace("Z", "+00:00"))
+                stale_min = (now - hb_time).total_seconds() / 60
+                logger.info(f"🏥 Watchdog: Watcher last heartbeat {stale_min:.0f}m ago ({res.data[0]['status']})")
+            
+            if stale_min > WATCHER_STALE_THRESHOLD_MIN:
+                logger.warning(f"🚨 Watchdog: Watcher is STALE ({stale_min:.0f}m > {WATCHER_STALE_THRESHOLD_MIN}m threshold)!")
+                
+                # 1. Run Janitor to clean stuck signals 
+                from quantix_core.engine.janitor import Janitor
+                logger.info("🧹 Running Janitor auto-cleanup for stuck signals...")
+                Janitor.run_sync()
+                
+                # 2. Send Alert to Admin via Telegram
+                if self.notifier:
+                    alert_msg = (
+                        f"🚨 *WATCHER OFFLINE ALERT*\n\n"
+                        f"Signal Watcher has not reported heartbeat for *{stale_min:.0f} minutes*.\n\n"
+                        f"🧹 Janitor has cleaned up stuck signals.\n"
+                        f"⚠️ Manual restart may be required on Railway.\n\n"
+                        f"Cc: @admin"
+                    )
+                    try:
+                        self.notifier.send_critical_alert(alert_msg)
+                    except Exception as te:
+                        logger.error(f"Failed to send Watcher alert: {te}")
+                
+                # 3. Log to DB for tracking
+                try:
+                    db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
+                        "timestamp": now.isoformat(),
+                        "asset": "WATCHDOG_ALERT",
+                        "direction": "SYSTEM",
+                        "status": f"WATCHER_STALE_{int(stale_min)}m",
+                        "confidence": 0.0,
+                        "strength": 0.0,
+                        "price": 0.0
+                    }).execute()
+                except: pass
+            else:
+                logger.info(f"🏥 Watchdog: Watcher is HEALTHY ({stale_min:.0f}m)")
+                
+        except Exception as e:
+            logger.error(f"Watchdog health check failed: {e}")
 
     def push_to_telegram(self, signal: dict) -> Optional[int]:
         """Proactive Broadcast for High Confidence Signals"""

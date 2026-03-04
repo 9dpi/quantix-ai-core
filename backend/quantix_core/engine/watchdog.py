@@ -47,7 +47,7 @@ class QuantixWatchdog:
         
         services = {
             "ANALYZER": {"asset": "HEARTBEAT", "status_prefix": "ALIVE"},
-            "WATCHER":  {"asset": "HEARTBEAT_WATCHER", "status_prefix": "WATCHER_ONLINE"},
+            "WATCHER":  {"asset": "HEARTBEAT_WATCHER", "status_prefix": "WATCHER_ACTIVE"},
             "VALIDATOR": {"asset": "VALIDATOR", "status_prefix": "ONLINE"}
         }
         

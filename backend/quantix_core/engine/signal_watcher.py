@@ -110,7 +110,20 @@ class SignalWatcher:
                 error_msg = str(e)
                 logger.error(f"Error in watcher cycle: {error_msg}")
                 if "API_BLOCKED" in error_msg and self.telegram:
-                    self.telegram.send_critical_alert(f"TwelveData API Blocked or Invalid: {error_msg}")
+                    try:
+                        self.telegram.send_critical_alert(f"TwelveData API Blocked or Invalid: {error_msg}")
+                    except: pass
+                # Safety: sleep extra on repeated errors to avoid CPU spin
+                if not hasattr(self, '_consecutive_errors'):
+                    self._consecutive_errors = 0
+                self._consecutive_errors += 1
+                if self._consecutive_errors > 10:
+                    logger.warning(f"Too many consecutive errors ({self._consecutive_errors}). Sleeping 60s...")
+                    time.sleep(60)
+                    self._consecutive_errors = 0
+            else:
+                # Reset error counter on successful cycle
+                self._consecutive_errors = 0
             
             time.sleep(self.check_interval)
         
@@ -128,14 +141,25 @@ class SignalWatcher:
                 self.transition_to_cancelled(sig)
 
     def _listen_for_commands(self):
-        """Infinite loop for Telegram command polling (runs in thread)."""
+        """Infinite loop for Telegram command polling (runs in thread).
+        Memory-safe: catches ALL exceptions and has circuit-breaker."""
+        error_count = 0
+        MAX_CMD_ERRORS = 20
+        
         while self._running:
             try:
                 if self.telegram:
                     self.telegram.handle_commands(watcher_instance=self)
+                error_count = 0  # Reset on success
             except Exception as e:
-                logger.error(f"Error in command listener: {e}")
-            time.sleep(3) # Poll every 3 seconds for responsive feel
+                error_count += 1
+                if error_count <= 3:  # Only log first few
+                    logger.error(f"Error in command listener: {e}")
+                if error_count >= MAX_CMD_ERRORS:
+                    logger.warning(f"Command listener circuit breaker triggered ({error_count} errors). Pausing 120s.")
+                    time.sleep(120)
+                    error_count = 0
+            time.sleep(3)
     
     def check_cycle(self):
         """

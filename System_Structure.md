@@ -23,6 +23,7 @@ Quantix AI Core is designed as a **Institutional-Grade Market Intelligence Engin
 *   **Logic (SMC-Lite M15 Architecture)**:
     *   **BOS Detection**: Identifies Bullish/Bearish Break of Structure with body-close confirmation.
     *   **FVG-Based Entry**: Calculates entry at Fair Value Gaps for optimized Reward/Risk.
+    *   **Integrated Watchdog (v3.8)**: Analyzer monitors the health of the Watcher service every 120 minutes. If Watcher is stale (>30m), it triggers Janitor healing and broadcasts a critical Telegram alert.
     *   **Anti-Burst Rule**: Maintains a strict 20-minute cooldown and global active signal lock.
     *   **Strategy v3.7 (Institutional Scalper)**: 
         *   **Market Execution**: ULTRA signals (>=95% confidence) capture immediate movement.
@@ -37,6 +38,7 @@ Quantix AI Core is designed as a **Institutional-Grade Market Intelligence Engin
     *   **SL Invalidation**: Automatically cancels pending signals if price touches SL level before Entry.
     *   `ENTRY_HIT`: Monitors for Take Profit (TP), Stop Loss (SL), or **180m (3h)** Time Timeout.
     *   **Breakeven Lock (v3.7)**: Automatically moves SL to entry (Risk-Free) once price completes 60% of the distance to TP.
+    *   **Circuit Breakers (v3.8)**: Protects against memory leaks and API spam by pausing processing if consecutive errors or command polling failures occur.
     *   Atomic Transitions: Uses DB-level checks to prevent duplicate Telegram notifications.
 
 ### 4. Institutional Validator (`start_railway_validator.py`)
@@ -46,7 +48,8 @@ Quantix AI Core is designed as a **Institutional-Grade Market Intelligence Engin
 
 ### 5. Watchdog & Active Healing (`start_railway_watchdog.py`)
 *   **Role**: System self-preservation.
-*   **Heartbeat Check**: Monitors every 5 minutes.
+*   **Frequency**: Heartbeat Check every 5 minutes.
+*   **Armored Launcher (v3.8)**: Now includes an auto-restart loop (max 50 retries) and DB-logged restart events, ensuring the watchdog itself stays online even if the process crashes.
 *   **Active Healing**: If any worker stalls for >15 mins, Watchdog automatically runs `Janitor.run_sync()` to release stuck signals and broadcasts a critical alert to Admin.
 
 ---
@@ -105,6 +108,6 @@ Quantix_AI_Core/
 ```
 
 ---
-**Version**: 3.7 (Institutional Scalper v3)  
+**Version**: 3.8 (Resilience Hardened)  
 **Status**: Production Hardened / Strategy Upgraded  
 **Active Healing**: Enabled

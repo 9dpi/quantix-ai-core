@@ -64,12 +64,13 @@ try:
     sys.stdout.flush()
     sys.stderr.flush()
     
-    # Run uvicorn and catch crashes
-    result = subprocess.run(cmd, env=os.environ.copy(), capture_output=True, text=True)
-    if result.returncode != 0:
-        err_msg = result.stderr[:200]
-        print(f"❌ Uvicorn Crashed: {err_msg}")
-        log_to_db("CRASH", f"UVICORN_EXIT_{result.returncode}", err_msg)
+    # Run uvicorn without capturing output to avoid pipe deadlocks
+    process = subprocess.Popen(cmd, env=os.environ.copy())
+    exit_code = process.wait()
+    
+    if exit_code != 0:
+        print(f"❌ Uvicorn Crashed with code {exit_code}")
+        log_to_db("CRASH", f"UVICORN_EXIT_{exit_code}", "Check Railway logs for stderr")
         sys.exit(1)
         
 except Exception as e:

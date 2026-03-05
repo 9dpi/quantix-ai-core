@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     
     # Trading Rules
     MIN_RR: float = 1.0  # Allow 1:1 RR
-    MIN_CONFIDENCE: float = 0.80
+    MIN_CONFIDENCE: float = 0.70
     MAX_SIGNALS_PER_ASSET: int = 3
     MAX_PENDING_DURATION_MINUTES: int = 35  # Entry window before auto-cancel
     MAX_TRADE_DURATION_MINUTES: int = 180   # v3.7: Extended from 90m to 180m (3h) for scalper signals

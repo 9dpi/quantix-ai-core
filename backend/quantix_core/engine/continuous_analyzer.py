@@ -288,9 +288,9 @@ class ContinuousAnalyzer:
                     return
                 msg_type = validation_msg
 
-            # 💡 Sáng kiến 2 (v3.7): Session-Aware TP/SL
+            # 💡 Sáng kiến 2 (v3.8): Session-Aware TP/SL (Tightened for Hit Rate)
             # Phiên biến động cao -> TP rộng hơn (dễ chạm trong 1-2 nến)
-            # Phiên yếu -> TP siêu hẹp (5 pips) để chốt nhanh
+            # Phiên yếu -> TP siêu hẹp (3-4 pips) để chốt nhanh
             try:
                 high_s = df['high'].astype(float)
                 low_s = df['low'].astype(float)
@@ -302,22 +302,22 @@ class ContinuousAnalyzer:
                 hour_utc = now.hour if 'now' in dir() else datetime.now(timezone.utc).hour
                 
                 if 13 <= hour_utc < 17:  # London-NY Overlap (PEAK)
-                    tp_mult = 1.0   # TP = 1.0x ATR (~10-15 pips)
-                    sl_mult = 2.0   # SL = 2.0x ATR (~20-30 pips)  
+                    tp_mult = 0.8   # TP = 0.8x ATR (~8-12 pips)
+                    sl_mult = 1.5   # SL = 1.5x ATR (~15-20 pips)  
                     session_tag = "PEAK"
                 elif 6 <= hour_utc < 13:  # London (HIGH)
-                    tp_mult = 0.8   # TP = 0.8x ATR (~8-12 pips)
-                    sl_mult = 1.8   # SL = 1.8x ATR (~15-25 pips)
+                    tp_mult = 0.6   # TP = 0.6x ATR (~6-8 pips)
+                    sl_mult = 1.5   # SL = 1.5x ATR (~12-18 pips)
                     session_tag = "HIGH"
                 else:  # Asia/Late NY (LOW volatility)
-                    tp_mult = 0.5   # TP = 0.5x ATR (~5-8 pips - siêu gần)
-                    sl_mult = 1.5   # SL = 1.5x ATR (~12-20 pips)
+                    tp_mult = 0.35  # TP = 0.35x ATR (~3-4 pips - siêu gần)
+                    sl_mult = 1.2   # SL = 1.2x ATR (~8-12 pips)
                     session_tag = "LOW"
                 
-                tp_dist = max(0.0005, min(0.0018, atr * tp_mult))  
-                sl_dist = max(0.0012, min(0.0035, atr * sl_mult))  
+                tp_dist = max(0.00030, min(0.00120, atr * tp_mult))  # min 3 pips, max 12 pips
+                sl_dist = max(0.00080, min(0.00200, atr * sl_mult))  # min 8 pips, max 20 pips
                 
-                logger.info(f"v3.7 R:R: ATR={atr:.5f} | Session={session_tag} | TP={tp_dist:.5f} ({tp_mult}x) | SL={sl_dist:.5f} ({sl_mult}x)")
+                logger.info(f"v3.8 R:R: ATR={atr:.5f} | Session={session_tag} | TP={tp_dist:.5f} ({tp_mult}x) | SL={sl_dist:.5f} ({sl_mult}x)")
             except Exception as e:
                 logger.error(f"ATR failed, using scaled fallback: {e}")
                 tp_dist = 0.0006
@@ -601,10 +601,240 @@ class ContinuousAnalyzer:
             logger.error(f"Telegram push error: {e}")
             return None
 
+    # ========================================
+    # EMBEDDED WATCHER (v3.8) — Replaces standalone Watcher
+    # ========================================
+
+    def _embedded_watcher_check(self):
+        """
+        Embedded Signal Watcher — runs inside the Analyzer process.
+        This eliminates the standalone Watcher crash problem.
+        
+        Fetches active signals, gets latest price (Binance), and checks TP/SL/Entry.
+        Uses multi-candle detection (5 candles) for better accuracy.
+        """
+        try:
+            # 1. Fetch active signals
+            res = db.client.table(settings.TABLE_SIGNALS).select("*").in_(
+                "state", ["WAITING_FOR_ENTRY", "ENTRY_HIT"]
+            ).execute()
+            signals = res.data or []
+            
+            if not signals:
+                logger.debug("[EmbeddedWatcher] No active signals.")
+                return
+            
+            # Skip if market closed
+            if not MarketHours.is_market_open():
+                logger.debug("[EmbeddedWatcher] Market closed, skipping.")
+                return
+            
+            logger.info(f"👁️ [EmbeddedWatcher] Monitoring {len(signals)} active signals")
+            
+            # 2. Fetch latest candle from Binance (FREE, no quota)
+            candle = None
+            try:
+                market_data = self.binance.get_price("EURUSD")
+                if market_data:
+                    candle = {
+                        "timestamp": market_data["timestamp"],
+                        "open": market_data["open"],
+                        "high": market_data["high"],
+                        "low": market_data["low"],
+                        "close": market_data["close"]
+                    }
+            except Exception as e:
+                logger.warning(f"[EmbeddedWatcher] Binance feed failed: {e}")
+            
+            # 2b. Multi-candle: Get last 5 candles for wider detection
+            multi_candle = None
+            try:
+                history = self.binance.get_history("EURUSD", interval="1m", limit=5)
+                if history and len(history) > 0:
+                    multi_candle = {
+                        "timestamp": history[-1]["datetime"],
+                        "open": history[0]["open"],
+                        "high": max(c["high"] for c in history),
+                        "low": min(c["low"] for c in history),
+                        "close": history[-1]["close"]
+                    }
+            except Exception as e:
+                logger.debug(f"[EmbeddedWatcher] Multi-candle fetch failed: {e}")
+            
+            # Use multi-candle for wider TP/SL detection, single candle as fallback
+            detection_candle = multi_candle or candle
+            if not detection_candle:
+                logger.warning("[EmbeddedWatcher] No market data available.")
+                return
+            
+            logger.debug(f"[EmbeddedWatcher] Price H:{detection_candle['high']} L:{detection_candle['low']} C:{detection_candle['close']}")
+            
+            # 3. Check each signal
+            HIT_TOLERANCE = 0.00005  # 0.5 pips tolerance
+            now = datetime.now(timezone.utc)
+            
+            for sig in signals:
+                try:
+                    sig_id = sig.get("id")
+                    state = sig.get("state")
+                    direction = sig.get("direction")
+                    entry = sig.get("entry_price")
+                    tp = sig.get("tp")
+                    sl = sig.get("sl")
+                    
+                    if not all([sig_id, state, direction, entry, tp, sl]):
+                        continue
+                    
+                    h = detection_candle["high"]
+                    l = detection_candle["low"]
+                    c = detection_candle["close"]
+                    ts = detection_candle["timestamp"]
+                    
+                    if state == "WAITING_FOR_ENTRY":
+                        # --- Entry Window Check ---
+                        gen_at_str = sig.get("generated_at")
+                        if gen_at_str:
+                            gen_at = datetime.fromisoformat(gen_at_str.replace("Z", "+00:00"))
+                            if (now - gen_at).total_seconds() / 60 >= settings.MAX_PENDING_DURATION_MINUTES:
+                                self._ew_transition(sig_id, "WAITING_FOR_ENTRY", {
+                                    "state": "CANCELLED", "status": "EXPIRED",
+                                    "result": "CANCELLED", "closed_at": now.isoformat()
+                                }, "EXPIRED")
+                                continue
+                        
+                        # --- SL Invalidation ---
+                        if direction == "BUY" and l <= (sl + HIT_TOLERANCE):
+                            self._ew_transition(sig_id, "WAITING_FOR_ENTRY", {
+                                "state": "CANCELLED", "status": "SL_INVALIDATED",
+                                "result": "CANCELLED", "closed_at": now.isoformat()
+                            }, "SL_INVALIDATED")
+                            continue
+                        if direction == "SELL" and h >= (sl - HIT_TOLERANCE):
+                            self._ew_transition(sig_id, "WAITING_FOR_ENTRY", {
+                                "state": "CANCELLED", "status": "SL_INVALIDATED",
+                                "result": "CANCELLED", "closed_at": now.isoformat()
+                            }, "SL_INVALIDATED")
+                            continue
+                        
+                        # --- Entry Hit Check ---
+                        entry_hit = False
+                        if direction == "BUY" and l <= (entry + HIT_TOLERANCE):
+                            entry_hit = True
+                        elif direction == "SELL" and h >= (entry - HIT_TOLERANCE):
+                            entry_hit = True
+                        
+                        if entry_hit:
+                            self._ew_transition(sig_id, "WAITING_FOR_ENTRY", {
+                                "state": "ENTRY_HIT", "status": "ENTRY_HIT",
+                                "entry_hit_at": ts if isinstance(ts, str) else now.isoformat()
+                            }, "ENTRY_HIT")
+                            # Send entry hit notification
+                            if self.notifier and sig.get("telegram_message_id"):
+                                try: self.notifier.send_entry_hit(sig)
+                                except: pass
+                    
+                    elif state == "ENTRY_HIT":
+                        # --- TP Hit Check ---
+                        tp_hit = False
+                        if direction == "BUY" and h >= (tp - HIT_TOLERANCE):
+                            tp_hit = True
+                        elif direction == "SELL" and l <= (tp + HIT_TOLERANCE):
+                            tp_hit = True
+                        
+                        if tp_hit:
+                            self._ew_transition(sig_id, "ENTRY_HIT", {
+                                "state": "TP_HIT", "status": "CLOSED_TP",
+                                "result": "PROFIT", "closed_at": now.isoformat()
+                            }, "TP_HIT")
+                            if self.notifier and sig.get("telegram_message_id"):
+                                try: self.notifier.send_tp_hit(sig)
+                                except: pass
+                            continue
+                        
+                        # --- SL Hit Check ---
+                        sl_hit = False
+                        if direction == "BUY" and l <= (sl + HIT_TOLERANCE):
+                            sl_hit = True
+                        elif direction == "SELL" and h >= (sl - HIT_TOLERANCE):
+                            sl_hit = True
+                        
+                        if sl_hit:
+                            self._ew_transition(sig_id, "ENTRY_HIT", {
+                                "state": "SL_HIT", "status": "CLOSED_SL",
+                                "result": "LOSS", "closed_at": now.isoformat()
+                            }, "SL_HIT")
+                            if self.notifier and sig.get("telegram_message_id"):
+                                try: self.notifier.send_sl_hit(sig)
+                                except: pass
+                            continue
+                        
+                        # --- Breakeven Check ---
+                        tp_distance = abs(tp - entry)
+                        if tp_distance > 0:
+                            if direction == "BUY":
+                                progress = h - entry
+                            else:
+                                progress = entry - l
+                            if progress / tp_distance >= 0.6 and (
+                                (direction == "BUY" and sl < entry) or
+                                (direction == "SELL" and sl > entry)
+                            ):
+                                try:
+                                    db.client.table(settings.TABLE_SIGNALS).update({
+                                        "sl": entry
+                                    }).eq("id", sig_id).eq("state", "ENTRY_HIT").execute()
+                                    logger.success(f"🔒 [EmbeddedWatcher] BREAKEVEN: {sig_id} SL -> {entry}")
+                                except: pass
+                        
+                        # --- Timeout Check ---
+                        start_str = sig.get("entry_hit_at") or sig.get("generated_at")
+                        if start_str:
+                            start_time = datetime.fromisoformat(start_str.replace("Z", "+00:00"))
+                            if (now - start_time).total_seconds() / 60 >= settings.MAX_TRADE_DURATION_MINUTES:
+                                self._ew_transition(sig_id, "ENTRY_HIT", {
+                                    "state": "CANCELLED", "status": "CLOSED_TIMEOUT",
+                                    "result": "CANCELLED", "closed_at": now.isoformat()
+                                }, "TIMEOUT")
+                                if self.notifier and sig.get("telegram_message_id"):
+                                    try: self.notifier.send_time_exit(sig, c)
+                                    except: pass
+                
+                except Exception as e:
+                    logger.error(f"[EmbeddedWatcher] Error processing signal {sig.get('id')}: {e}")
+            
+            # 4. Log heartbeat
+            try:
+                db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
+                    "timestamp": now.isoformat(),
+                    "asset": "HEARTBEAT_WATCHER",
+                    "direction": "SYSTEM",
+                    "status": f"EMBEDDED_WATCHER_OK (Watching: {len(signals)})",
+                    "confidence": 1.0, "strength": 1.0, "price": 0.0
+                }).execute()
+            except: pass
+                
+        except Exception as e:
+            logger.error(f"[EmbeddedWatcher] Cycle failed: {e}")
+
+    def _ew_transition(self, sig_id: str, from_state: str, update_data: dict, label: str):
+        """Atomic state transition for embedded watcher."""
+        try:
+            res = db.client.table(settings.TABLE_SIGNALS).update(
+                update_data
+            ).eq("id", sig_id).eq("state", from_state).execute()
+            
+            if res.data:
+                logger.success(f"👁️ [EmbeddedWatcher] {sig_id[:8]} -> {label}")
+            else:
+                logger.debug(f"[EmbeddedWatcher] Transition skipped for {sig_id[:8]} (already processed)")
+        except Exception as e:
+            logger.error(f"[EmbeddedWatcher] Transition failed for {sig_id[:8]}: {e}")
+
     def start(self):
-        """Start the continuous evaluation loop"""
+        """Start the continuous evaluation loop with EMBEDDED WATCHER"""
         interval = settings.MONITOR_INTERVAL_SECONDS
         logger.info(f"💓 Continuous analyzer started with {interval}s interval")
+        logger.info(f"👁️ EMBEDDED WATCHER MODE: Signal monitoring runs inside Analyzer")
         
         # Immediate Startup Proof using absolute path
         try:
@@ -613,7 +843,7 @@ class ContinuousAnalyzer:
                 f.write(json.dumps({
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                     "status": "SYSTEM_STARTUP",
-                    "message": "Quantix AI Core Heartbeat Thread Initialized"
+                    "message": "Quantix AI Core v3.8 with Embedded Watcher"
                 }) + "\n")
         except Exception as e:
             logger.error(f"Startup log failed: {e}")
@@ -627,6 +857,12 @@ class ContinuousAnalyzer:
                 logger.error(f"Cycle error: {error_msg}")
                 if "API_BLOCKED" in error_msg and self.notifier:
                     self.notifier.send_critical_alert(f"TwelveData API Blocked: {error_msg}")
+            
+            # 🆕 EMBEDDED WATCHER: Check active signals after every cycle
+            try:
+                self._embedded_watcher_check()
+            except Exception as e:
+                logger.error(f"Embedded Watcher error: {e}")
             
             time.sleep(interval)
 

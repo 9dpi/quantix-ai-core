@@ -25,17 +25,38 @@ def main():
     """Initialize and run signal watcher"""
     
     # Configure logging
-    logger.add(
-        "logs/signal_watcher_{time}.log",
-        rotation="1 day",
-        retention="30 days",
-        level="INFO"
-    )
-    
+    try:
+        log_dir = Path("logs")
+        log_dir.mkdir(exist_ok=True)
+        logger.add(
+            "logs/signal_watcher_{time}.log",
+            rotation="1 day",
+            retention="30 days",
+            level="INFO"
+        )
+    except Exception as e:
+        print(f"Warning: Could not setup file logging: {e}")
+
     logger.info("============================================================")
     instance_name = settings.INSTANCE_NAME
     logger.info(f"SIGNAL WATCHER STARTING - INSTANCE: {instance_name}")
     logger.info("============================================================")
+    
+    # --- SCRIPT STARTUP HEARTBEAT ---
+    try:
+        from quantix_core.database.connection import db
+        from datetime import datetime, timezone
+        db.client.table("fx_analysis_log").insert({
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "asset": "HEARTBEAT_WATCHER",
+            "direction": "SYSTEM",
+            "status": "WATCHER_SCRIPT_START",
+            "price": 0,
+            "confidence": 1.0,
+            "strength": 1.0
+        }).execute()
+    except Exception as e:
+        logger.warning(f"Could not log script startup heartbeat: {e}")
     
     # Initialize Supabase client
     supabase_url = settings.SUPABASE_URL

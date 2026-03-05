@@ -37,26 +37,34 @@ cmd = [sys.executable, script_path]
 for attempt in range(1, MAX_RESTARTS + 1):
     print(f"\n🔄 [Attempt {attempt}/{MAX_RESTARTS}] Starting Watcher...")
     try:
-        result = subprocess.run(cmd, env=os.environ.copy())
+        # Capture stderr to debug crash-at-launch
+        result = subprocess.run(cmd, env=os.environ.copy(), capture_output=True, text=True)
         exit_code = result.returncode
-        print(f"⚠️ Watcher exited with code {exit_code}")
-    except KeyboardInterrupt:
-        print("🛑 Watcher stopped by user (Ctrl+C)")
-        break
+        
+        if exit_code != 0:
+            print(f"⚠️ Watcher exited with code {exit_code}")
+            print(f"❌ Stderr: {result.stderr}")
+            error_reason = f"Exit {exit_code}: {result.stderr[:100]}"
+        else:
+            print(f"✅ Watcher exited normally (code 0)")
+            error_reason = "Normal Exit"
+            
     except Exception as e:
-        print(f"❌ Watcher crashed: {e}")
+        print(f"❌ Launcher crash: {e}")
+        error_reason = str(e)
     
     if attempt < MAX_RESTARTS:
         print(f"⏳ Restarting in {COOLDOWN_SEC}s...")
         try:
-            # Log restart event to DB
+            # Log restart event with REASON to DB
             from quantix_core.database.connection import db
             from datetime import datetime, timezone
             db.client.table("fx_analysis_log").insert({
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "asset": "SYSTEM_WATCHER",
                 "direction": "SYSTEM",
-                "status": f"AUTO_RESTART_ATTEMPT_{attempt}",
+                "status": f"AUTO_RESTART_{attempt}",
+                "message": f"Reason: {error_reason[:150]}",
                 "price": 0,
                 "confidence": 0.0,
                 "strength": 0.0

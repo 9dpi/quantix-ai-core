@@ -50,5 +50,88 @@ def check_health():
         except Exception as e:
             print(f"❌ {asset:<18} | {'Error':<10} | {e}")
 
+    # --- Log Sniffing ---
+    print("\n--- RECENT SERVICE LOGS (Live Stream) ---")
+    
+    # 1. Uvicorn (Web)
+    try:
+        res = db.client.table("fx_analysis_log")\
+            .select("timestamp, status")\
+            .eq("direction", "UVICORN_LOG")\
+            .order("timestamp", desc=True)\
+            .limit(3)\
+            .execute()
+        print(f"\n>> UVICORN_LOG:")
+        if res.data:
+            for log in reversed(res.data):
+                print(f"   [{log['timestamp'][11:19]}] {log['status'][:120]}")
+        else:
+            print("   (No logs found)")
+    except: pass
+
+    # 2. Analyzer
+    try:
+        res = db.client.table("fx_analysis_log")\
+            .select("timestamp, status")\
+            .eq("asset", "ANALYZER_LOG")\
+            .order("timestamp", desc=True)\
+            .limit(3)\
+            .execute()
+        print(f"\n>> ANALYZER_LOG:")
+        if res.data:
+            for log in reversed(res.data):
+                print(f"   [{log['timestamp'][11:19]}] {log['status'][:120]}")
+        else:
+            print("   (No logs found)")
+    except: pass
+
+    # 3. Watcher
+    try:
+        res = db.client.table("fx_analysis_log")\
+            .select("timestamp, status")\
+            .eq("asset", "WATCHER_LOG")\
+            .order("timestamp", desc=True)\
+            .limit(3)\
+            .execute()
+        print(f"\n>> WATCHER_LOG:")
+        if res.data:
+            for log in reversed(res.data):
+                print(f"   [{log['timestamp'][11:19]}] {log['status'][:120]}")
+        else:
+            print("   (No logs found)")
+    except: pass
+
+    # 4. Validator
+    try:
+        res = db.client.table("fx_analysis_log")\
+            .select("timestamp, status")\
+            .eq("asset", "VALIDATOR_LOG")\
+            .order("timestamp", desc=True)\
+            .limit(3)\
+            .execute()
+        print(f"\n>> VALIDATOR_LOG:")
+        if res.data:
+            for log in reversed(res.data):
+                print(f"   [{log['timestamp'][11:19]}] {log['status'][:120]}")
+        else:
+            print("   (No logs found)")
+    except: pass
+
+    # 5. Watchdog
+    try:
+        res = db.client.table("fx_analysis_log")\
+            .select("timestamp, status")\
+            .eq("asset", "WATCHDOG_LOG")\
+            .order("timestamp", desc=True)\
+            .limit(3)\
+            .execute()
+        print(f"\n>> WATCHDOG_LOG:")
+        if res.data:
+            for log in reversed(res.data):
+                print(f"   [{log['timestamp'][11:19]}] {log['status'][:120]}")
+        else:
+            print("   (No logs found)")
+    except: pass
+
 if __name__ == "__main__":
     check_health()

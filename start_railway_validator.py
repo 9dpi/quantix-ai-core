@@ -10,40 +10,66 @@ os.environ["PYTHONPATH"] = backend_path
 print(f"--- Quantix Validator Launcher ---")
 print(f"CWD: {os.getcwd()}")
 
-try:
-    from quantix_core.database.connection import db
-    from datetime import datetime, timezone
-
-    def log_crash(msg):
-        try:
-            db.client.table("fx_analysis_log").insert({
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "asset": "VALIDATOR",
-                "status": "CRASH_REPORT",
-                "direction": "ERROR",
-                "price": 0,
-                "confidence": 0,
-                "strength": 0,
-                "disclaimer": msg[:200]
-            }).execute()
-        except:
-            pass
-
-    # Validator is a script in backend folder
-    script_path = os.path.join(backend_path, "run_pepperstone_validator.py")
-    cmd = [sys.executable, script_path]
-    print(f"Starting validator: {cmd}")
-    
-    # Use Popen to allow better control if needed, but run is fine for basic
-    result = subprocess.run(cmd, env=os.environ.copy())
-    
-    if result.returncode != 0:
-        log_crash(f"Validator exited with code {result.returncode}")
-
-except Exception as e:
-    print(f"Launcher level crash: {e}")
+# --- HELPER: DB LOGGING ---
+def log_to_db(asset, status, direction="SYSTEM"):
     try:
-        log_crash(f"Launcher crash: {e}")
+        from quantix_core.database.connection import db
+        from datetime import datetime, timezone
+        db.client.table("fx_analysis_log").insert({
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "asset": asset,
+            "direction": direction,
+            "status": str(status)[:200],
+            "price": 0,
+            "confidence": 0,
+            "strength": 0
+        }).execute()
     except:
         pass
-    sys.exit(1)
+
+# --- AUTO-RESTART LOOP ---
+MAX_RESTARTS = 100
+COOLDOWN_SEC = 20
+script_path = os.path.join(backend_path, "run_pepperstone_validator.py")
+cmd = [sys.executable, script_path]
+
+for attempt in range(1, MAX_RESTARTS + 1):
+    print(f"\n[Attempt {attempt}/{MAX_RESTARTS}] Starting Validator...")
+    log_to_db("VALIDATOR", f"STARTING_ATTEMPT_{attempt}", "LAUNCHER")
+    
+    try:
+        process = subprocess.Popen(
+            cmd, 
+            env=os.environ.copy(), 
+            stdout=subprocess.PIPE, 
+            stderr=subprocess.STDOUT, 
+            text=True,
+            bufsize=1
+        )
+        
+        import threading
+        def log_stream(stream):
+            for line in iter(stream.readline, ''):
+                clean_line = line.strip()
+                if clean_line:
+                    print(f"[VALIDATOR] {clean_line}")
+                    log_to_db("VALIDATOR_LOG", clean_line[:200], "STDOUT")
+                    
+        t = threading.Thread(target=log_stream, args=(process.stdout,), daemon=True)
+        t.start()
+        
+        exit_code = process.wait()
+        print(f"⚠️ Validator exited with code {exit_code}")
+        log_to_db("VALIDATOR", f"EXITED_CODE_{exit_code}", "LAUNCHER")
+        
+    except KeyboardInterrupt:
+        print("🛑 Validator stopped by user (Ctrl+C)")
+        break
+    except Exception as e:
+        print(f"❌ Validator error: {e}")
+        log_to_db("VALIDATOR", f"ERROR_{str(e)[:50]}", "LAUNCHER")
+    
+    if attempt < MAX_RESTARTS:
+        print(f"⏳ Restarting in {COOLDOWN_SEC}s...")
+        import time
+        time.sleep(COOLDOWN_SEC)

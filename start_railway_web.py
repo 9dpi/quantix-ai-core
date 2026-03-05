@@ -58,16 +58,22 @@ try:
         "--forwarded-allow-ips", "*"
     ]
     
-    print(f"🚀 Executing via os.execvp: {' '.join(cmd)}")
-    log_to_db("LAUNCHER", "EXECVP_START", f"Replacing launcher with uvicorn on port {port}")
+    print(f"🚀 Launching Uvicorn: {' '.join(cmd)}")
+    log_to_db("LAUNCHER", "STARTING_UVICORN", f"Port: {port}")
     
-    # Flush all prints/logs before exec
     sys.stdout.flush()
     sys.stderr.flush()
     
-    os.execvp(cmd[0], cmd)
-
+    # Run uvicorn and catch crashes
+    result = subprocess.run(cmd, env=os.environ.copy(), capture_output=True, text=True)
+    if result.returncode != 0:
+        err_msg = result.stderr[:200]
+        print(f"❌ Uvicorn Crashed: {err_msg}")
+        log_to_db("CRASH", f"UVICORN_EXIT_{result.returncode}", err_msg)
+        sys.exit(1)
+        
 except Exception as e:
+
     print(f"❌ Fatal Launcher Error: {e}")
     try:
         from quantix_core.database.connection import db

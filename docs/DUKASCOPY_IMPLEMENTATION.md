@@ -157,10 +157,10 @@ Return: OHLCV DataFrame
 
 ```bash
 # Test 1: Health check
-curl https://quantixaicore-production.up.railway.app/api/v1/health
+curl https://quantixapiserver-production.up.railway.app/api/v1/health
 
 # Test 2: Structure endpoint (CRITICAL)
-curl "https://quantixaicore-production.up.railway.app/api/v1/internal/feature-state/structure?symbol=EURUSD&tf=H4&period=3mo"
+curl "https://quantixapiserver-production.up.railway.app/api/v1/internal/feature-state/structure?symbol=EURUSD&tf=H4&period=3mo"
 
 # Expected: 200 OK with structure analysis
 # OR: 400 with DukascopyFetcherError (if data unavailable)
@@ -252,3 +252,4 @@ Currently supported:
 **Last Updated:** 2026-01-15 09:20 UTC  
 **Status:** ⏳ Awaiting Railway deployment  
 **ETA:** 09:24 UTC
+

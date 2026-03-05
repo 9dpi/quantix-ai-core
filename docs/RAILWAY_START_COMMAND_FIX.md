@@ -119,7 +119,7 @@ Setting Start Command in Railway Settings that conflicts with Dockerfile.
 - [ ] Save changes in Railway
 - [ ] Railway auto-redeploys (no git push needed)
 - [ ] Monitor logs for 3 indicators
-- [ ] Test health endpoint: `curl https://quantixaicore-production.up.railway.app/api/v1/health`
+- [ ] Test health endpoint: `curl https://quantixapiserver-production.up.railway.app/api/v1/health`
 
 ---
 
@@ -147,3 +147,4 @@ docker run -p 8080:8080 -e PORT=8080 quantix-test sh -c "uvicorn quantix_core.ap
 **Status:** ⏳ Waiting for manual Railway Settings update  
 **Action Required:** Remove or fix Start Command in Railway Dashboard  
 **ETA:** Instant redeploy after settings change (no rebuild needed)
+

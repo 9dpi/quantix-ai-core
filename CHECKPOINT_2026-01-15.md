@@ -9,7 +9,7 @@
 
 ### Architecture Status
 - **Frontend:** GitHub Pages (9dpi.github.io/quantix-ai-core)
-- **Backend API:** Railway (quantixaicore-production.up.railway.app)
+- **Backend API:** Railway (quantixapiserver-production.up.railway.app)
 - **Database:** Supabase (PostgreSQL)
 - **Deployment:** Automated via GitHub Actions
 
@@ -253,7 +253,7 @@ Quantix_AI_Core/
 - **Status:** 🟢 LIVE
 
 ### Railway (Backend)
-- **URL:** https://quantixaicore-production.up.railway.app
+- **URL:** https://quantixapiserver-production.up.railway.app
 - **Region:** US-WEST-1
 - **Auto-Deploy:** ✅ Enabled (on push to `main`)
 - **Build Time:** ~3-5 minutes
@@ -339,3 +339,4 @@ a34d9b6 style(footer): aligned footer with main content container
 
 **END OF CHECKPOINT**  
 *All systems operational. Ready for production traffic.*
+

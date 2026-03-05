@@ -287,7 +287,7 @@ class PreDeployChecker:
             import requests
             url = os.getenv(
                 "QUANTIX_API_URL",
-                "https://quantixaicore-production.up.railway.app/api/v1/validation-logs?limit=1"
+                "https://quantixapiserver-production.up.railway.app/api/v1/validation-logs?limit=1"
             )
             resp = requests.get(url, timeout=8)
             if resp.status_code == 200:

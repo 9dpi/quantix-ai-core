@@ -52,7 +52,7 @@ const UI_MANAGER = {
 
     async refreshGlobalStats() {
         try {
-            const baseUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'https://quantixaicore-production.up.railway.app/api/v1';
+            const baseUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'https://quantixapiserver-production.up.railway.app/api/v1';
 
             const buster = typeof API_CONFIG !== 'undefined' ? API_CONFIG.getBuster() : `t=${Date.now()}`;
             const response = await fetch(`${baseUrl}/ingestion/global-stats?${buster}`);

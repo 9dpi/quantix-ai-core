@@ -34,7 +34,7 @@ const SIGNALS = {
         container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 100px; color: var(--text-dim);"><div class="pulse-small" style="margin: 0 auto 20px;"></div><div style="font-size: 0.9rem;">Connecting to Quantix Lab Engine...</div></div>`;
 
         try {
-            const baseUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'https://quantixaicore-production.up.railway.app/api/v1';
+            const baseUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'https://quantixapiserver-production.up.railway.app/api/v1';
 
             // 1. Fetch Audit Trail (High Reliability)
             const auditResponse = await fetch(`${baseUrl}/health/audit?_=${Date.now()}`);
@@ -204,3 +204,4 @@ const SIGNALS = {
 };
 
 document.addEventListener('DOMContentLoaded', () => SIGNALS.init());
+

@@ -1,8 +1,19 @@
+import os, sys
+sys.path.append(os.path.join(os.getcwd(), "backend"))
 from quantix_core.database.connection import db
-from datetime import datetime, timezone, timedelta
+from loguru import logger
+logger.remove()
 
-five_min_ago = (datetime.now(timezone.utc) - timedelta(minutes=10)).isoformat()
-res = db.client.table("fx_analysis_log").select("asset, timestamp, status").gte("timestamp", five_min_ago).execute()
+print("=== UVICORN OUTPUT LOGS ===")
+res = db.client.table("fx_analysis_log")\
+    .select("timestamp, status")\
+    .eq("direction", "SELF_PING")\
+    .order("timestamp", desc=True)\
+    .limit(20)\
+    .execute()
 
-for r in res.data:
-    print(f"[{r['timestamp']}] {r['asset']}: {r['status']}")
+logs = sorted(res.data, key=lambda x: x['timestamp'])
+with open("uvicorn_dump.txt", "w", encoding="utf-8") as f:
+    for r in logs:
+        f.write(f"[{r['timestamp'][11:19]}] {r['status']}\n")
+print("Logs dumped to uvicorn_dump.txt")

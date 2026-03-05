@@ -1,54 +1,66 @@
-# 📋 Quantix AI Core - Daily Audit Checklist (v3.7 Standard)
+# 📋 Quantix AI Core - Daily Audit Checklist (v3.8.5 Standard)
 **Last Audit Date:** 2026-03-05  
 **Auditor:** Antigravity (Assistant)
+**System Status:** 🟢 PRODUCTION STABILIZED
 
 ---
 
-## 🏥 1. System Infrastructure Health
-| Service | Status | Heartbeat | Note |
+## 🏥 1. Institutional Infrastructure Health
+| Service | Status | Heartbeat | Observability (Sniffer) |
 | :--- | :--- | :--- | :--- |
-| **Analyzer** | [OK] | Every 5m | Heartbeat: 2026-03-05 00:53 UTC |
-| **Watcher** | [FAIL] | **OFFLINE** | Last heartbeat: 2026-03-04 01:10 UTC |
-| **Validator** | [OK] | Every 5m | Cycle 1410 (Active) |
-| **Watchdog** | [OK] | **ACTIVE** | **Successfully triggered alerts/Janitor** |
-| **Database** | [OK] | - | Connection stable |
-| **Launchers** | [WARN] | - | Watcher failing to reach ACTIVE state |
+| **API Server** | 🟢 OK | < 1m | `UVICORN_LOG`: Active (HTTP 200) |
+| **Analyzer** | 🟢 OK | < 5m | `ANALYZER_LOG`: Cycle processing |
+| **Watcher** | 🟢 OK | < 1m | `WATCHER_LOG`: Real-time monitoring |
+| **Validator** | 🟢 OK | < 5m | `VALIDATOR_LOG`: Price verifying |
+| **Watchdog** | 🟢 OK | < 5m | `WATCHDOG_LOG`: System safe |
 
 ---
 
-## 🚀 2. Strategy v3.7 Performance Audit
-### ✅ Criteria for High-Yield Signals:
-1.  **Session Alignment**:
-    *   [ ] **PEAK Session (13-17 UTC)**: TP = 1.0x ATR.
-    *   [ ] **HIGH Session (06-13 UTC)**: TP = 0.8x ATR.
-    *   [ ] **LOW Session (Rest)**: TP = 0.5x ATR (~5 pips).
-2.  **Breakeven Verification**:
-    *   [ ] Did SL move to Entry at 60% progress?
-3.  **Duration Discipline**:
-    *   [ ] Signals closed within 180 minutes window.
-4.  **Dead-Zone Blocking**:
-    *   [OK] 0 Signals during Rollover (21-23 UTC).
-    *   [OK] 0 Signals during Sunday Open.
+## 🔬 2. Observability & Sniffer Audit
+### ✅ Live Log Verification:
+Run the following command to verify all cloud services are communicating:
+`python backend/internal_health_check.py`
+
+- [ ] **UVICORN_LOG**: Verify 200 OK responses from Gateway.
+- [ ] **ANALYZER_LOG**: Ensure "Starting analysis cycle" appears every 5m.
+- [ ] **WATCHER_LOG**: Confirm price polling is active for open signals.
+- [ ] **DB Connectivity**: Pulse Age < 5.0 mins for all primary assets.
 
 ---
 
-## 🎯 3. Today's Signal Analytics
-**Current Snapshot (2026-03-05):**
-- **Signals Born**: 1 (`1bce8888`)
-- **Success Rate**: N/A (1 Active/Open)
-- **Gate Rejections**: ~3 (TwelveData Credits remaining: 797/800)
+## 🚀 3. Strategy v3.8 Institutional Audit
+### ✅ Execution Protocol:
+1.  **Market-Only Entry**:
+    *   [ ] Signals (Conf >= 80%) MUST execute as Market Orders (Zero Miss Policy).
+2.  **5W1H Metadata Check**:
+    *   [ ] Verify `intelligence_reasoning` field exists for all today's signals.
+3.  **Capital Efficiency**:
+    *   [ ] **Duration Lock**: Ensure signals close at exactly **150 minutes** (v3.8 limit) if TP/SL not hit.
+4.  **Risk-Free Protocol**:
+    *   [ ] **Breakeven**: SL must move to Entry at **70%** distance to TP.
 
-| Asset | Result | Duration | Session | Note |
+---
+
+## 🎯 4. Signal Intelligence Snapshot
+**Target Win Rate: 90%**
+
+| Asset | Result | Confidence | 5W1H Reasoning | Note |
 | :--- | :--- | :--- | :--- | :--- |
-| EURUSD | ACTIVE | Open | LOW | Generated at 00:23 UTC. **Unmonitored** due to Watcher dead. |
-| EURUSD | TIMEOUT | 186m | - | Closed by **Janitor** (Watchdog success). |
+| EURUSD | ... | 82% | Structure: BOS, Session: NY | ... |
 
 ---
 
-## 🛡️ 4. Survivability & Logs
-- **Auto-Restarts Today:** 0 (Watcher stalled in LAUNCHING state).
-- **API Errors:** 0.
-- **Critical Alerts:** Watcher Offline alert sent by Integrated Watchdog (Confirmed 17:12 UTC).
+## 🛡️ 5. Survivability & Resilience
+### ✅ Fail-safe Verification:
+- **API Domain**: `https://quantixapiserver-production.up.railway.app` (Verified).
+- **Auto-Restarts**: Audit `fx_analysis_log` for `AUTO_RESTART_ATTEMPT` entries.
+- **Janitor Cleanup**: Verify no signals are stuck in `WAITING` state > 35m.
+- **Critical Alerts**: Admin Telegram must receive heartbeat "System Stabilized" after deployment recovery.
 
 ---
-*End of Report. System is operating within v3.7 Institutional Parameters.*
+### 🛠️ Audit Toolbox (CLI)
+*   **Full Health**: `python backend/internal_health_check.py`
+*   **Signals Check**: `python backend/check_signals.py`
+*   **Log Sniffer**: `python backend/clean_crash.py`
+
+*End of Report. System is operating within v3.8.5 Institutional Parameters.*

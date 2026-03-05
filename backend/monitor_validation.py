@@ -42,7 +42,7 @@ from loguru import logger
 
 API_BASE = os.getenv(
     "QUANTIX_API_URL",
-    "https://quantixaicore-production.up.railway.app/api/v1"
+    "https://quantixapiserver-production.up.railway.app/api/v1"
 )
 
 THRESHOLDS = {

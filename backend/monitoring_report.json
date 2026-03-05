@@ -1,8 +1,36 @@
 {
-  "checked_at": "2026-03-05 03:13 UTC",
-  "health": "UNKNOWN",
+  "checked_at": "2026-03-05 05:49 UTC",
+  "health": "CRITICAL",
   "alerts": [
-    "\ud83d\udea8 /validation-status API returned an error"
+    "\ud83d\udea8 Discrepancy rate HIGH: 100.00% (threshold: 5.0%)"
   ],
-  "status_snapshot": {}
+  "status_snapshot": {
+    "success": true,
+    "health": "CRITICAL",
+    "health_emoji": "\ud83d\udd34",
+    "generated_at": "2026-03-05T05:49:27.655752+00:00",
+    "period_days": 7,
+    "validator": {
+      "online": true,
+      "last_heartbeat_utc": "2026-03-05T05:44:55.543662+00:00",
+      "heartbeat_age_min": 4.5,
+      "heartbeat_detail": "ONLINE | feed=binance_proxy | tracking=0 | cycle=65",
+      "active_feed": "binance_proxy"
+    },
+    "accuracy": {
+      "total_validations": 260,
+      "discrepancy_count": 260,
+      "discrepancy_rate_pct": 100.0,
+      "tp_mismatches": 4,
+      "sl_mismatches": 7,
+      "entry_mismatches": 249,
+      "last_event_at": "2026-03-04T17:31:05.291484+00:00"
+    },
+    "spread": {
+      "avg_pips": 0.2,
+      "max_pips": 0.2,
+      "min_pips": 0.2
+    },
+    "recommendation": "\ud83d\udea8 Immediate attention required \u2014 high discrepancy or validator offline."
+  }
 }

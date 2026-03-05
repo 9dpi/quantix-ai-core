@@ -76,12 +76,12 @@ Sau khi Railway deploy xong (2-3 phút), kiểm tra:
 
 ### ✅ Health Check
 ```bash
-curl https://quantixaicore-production.up.railway.app/api/v1/health
+curl https://quantixapiserver-production.up.railway.app/api/v1/health
 ```
 
 ### ✅ Feature State API
 ```bash
-curl "https://quantixaicore-production.up.railway.app/api/v1/internal/feature-state?symbol=EURUSD&tf=H4"
+curl "https://quantixapiserver-production.up.railway.app/api/v1/internal/feature-state?symbol=EURUSD&tf=H4"
 ```
 
 ### ✅ Railway Logs
@@ -120,3 +120,4 @@ Kiểm tra logs không còn `ModuleNotFoundError`
 **Status:** ✅ Fix deployed - Waiting for Railway rebuild  
 **Timestamp:** 2026-01-15 08:16 UTC  
 **Commit:** `0d7ac16`
+

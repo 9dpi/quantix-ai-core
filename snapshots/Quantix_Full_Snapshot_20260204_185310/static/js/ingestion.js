@@ -1,5 +1,5 @@
 // API_CONFIG is loaded via static/js/api.js script tag as a global
-const API_BASE = window.API_CONFIG ? window.API_CONFIG.getBaseUrl() : 'https://quantixaicore-production.up.railway.app/api/v1';
+const API_BASE = window.API_CONFIG ? window.API_CONFIG.getBaseUrl() : 'https://quantixapiserver-production.up.railway.app/api/v1';
 
 document.addEventListener('DOMContentLoaded', () => {
     initIngestion();
@@ -184,3 +184,4 @@ async function fetchAuditLogs() {
         console.error('Audit Log Sync Failed');
     }
 }
+

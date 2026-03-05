@@ -21,7 +21,7 @@ echo [OK] Project structure verified.
 :: 2. Kiểm tra API Server
 echo.
 echo [2/4] Checking Cloud API Status...
-set "URL=https://quantixaicore-production.up.railway.app/"
+set "URL=https://quantixapiserver-production.up.railway.app/"
 :: Ghi thẳng kết quả vào file để tránh lỗi hiển thị JSON
 curl.exe -s --max-time 15 %URL% > logs\api_resp.tmp
 
@@ -87,3 +87,4 @@ echo.
 echo Press any key to refresh (Auto-refresh in 60s)...
 timeout /t 60 > nul
 goto :top
+

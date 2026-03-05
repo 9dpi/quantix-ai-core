@@ -190,8 +190,8 @@ backend/quantix_core/
 2. 🔍 **Verify 3 indicators** in Railway logs
 3. ✅ **Test endpoints:**
    ```bash
-   curl https://quantixaicore-production.up.railway.app/api/v1/health
-   curl "https://quantixaicore-production.up.railway.app/api/v1/internal/feature-state/structure?symbol=EURUSD&tf=H4"
+   curl https://quantixapiserver-production.up.railway.app/api/v1/health
+   curl "https://quantixapiserver-production.up.railway.app/api/v1/internal/feature-state/structure?symbol=EURUSD&tf=H4"
    ```
 4. 📊 **Update documentation** with final results
 
@@ -200,3 +200,4 @@ backend/quantix_core/
 **Last Updated:** 2026-01-15 08:54 UTC  
 **Status:** ⏳ Awaiting Railway rebuild completion  
 **Expected Resolution:** 08:57 UTC
+

@@ -63,10 +63,10 @@ CMD ["sh", "-c", "uvicorn quantix_core.api.main:app --host 0.0.0.0 --port ${PORT
 
 ```bash
 # Test health
-curl https://quantixaicore-production.up.railway.app/api/v1/health
+curl https://quantixapiserver-production.up.railway.app/api/v1/health
 
 # Test structure API
-curl "https://quantixaicore-production.up.railway.app/api/v1/internal/feature-state/structure?symbol=EURUSD&tf=H4"
+curl "https://quantixapiserver-production.up.railway.app/api/v1/internal/feature-state/structure?symbol=EURUSD&tf=H4"
 ```
 
 ### Expected logs (Railway):
@@ -152,3 +152,4 @@ docker run -p 8080:8080 -e PORT=8080 quantix-test
 
 **Timestamp:** 2026-01-15 08:24 UTC  
 **Commit:** `cc33ffc`
+

@@ -201,7 +201,7 @@ const DASHBOARD = {
         const timeoutId = setTimeout(() => controller.abort(), 10000);
 
         try {
-            const baseUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'https://quantixaicore-production.up.railway.app/api/v1';
+            const baseUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'https://quantixapiserver-production.up.railway.app/api/v1';
             const response = await fetch(`${baseUrl}/internal/feature-state/structure?symbol=${symbol}&tf=${tf}&period=1mo`, {
                 signal: controller.signal
             });
@@ -220,7 +220,7 @@ const DASHBOARD = {
         const timeoutId = setTimeout(() => controller.abort(), 10000);
 
         try {
-            const baseUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'https://quantixaicore-production.up.railway.app/api/v1';
+            const baseUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'https://quantixapiserver-production.up.railway.app/api/v1';
             const response = await fetch(`${baseUrl}/lab/signal-candidate?symbol=${symbol}&tf=${tf}`, {
                 signal: controller.signal
             });
@@ -276,3 +276,4 @@ const DASHBOARD = {
 };
 
 document.addEventListener('DOMContentLoaded', () => DASHBOARD.init());
+

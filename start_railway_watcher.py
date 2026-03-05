@@ -28,49 +28,67 @@ try:
 except Exception as e:
     print(f"❌ Failed to log startup proof: {e}")
 
+# --- HELPER: DB LOGGING ---
+def log_to_db(asset, status, direction="SYSTEM"):
+    try:
+        from quantix_core.database.connection import db
+        from datetime import datetime, timezone
+        db.client.table("fx_analysis_log").insert({
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "asset": asset,
+            "direction": direction,
+            "status": str(status)[:200],
+            "price": 0,
+            "confidence": 0,
+            "strength": 0
+        }).execute()
+    except:
+        pass
+
 # --- AUTO-RESTART LOOP ---
-MAX_RESTARTS = 50
-COOLDOWN_SEC = 10
+MAX_RESTARTS = 100
+COOLDOWN_SEC = 15
 script_path = os.path.join(backend_path, "run_signal_watcher.py")
 cmd = [sys.executable, script_path]
 
 for attempt in range(1, MAX_RESTARTS + 1):
     print(f"\n🔄 [Attempt {attempt}/{MAX_RESTARTS}] Starting Watcher...")
+    log_to_db("SYSTEM_WATCHER", f"STARTING_ATTEMPT_{attempt}", "LAUNCHER")
+    
     try:
-        # Capture stderr to debug crash-at-launch
-        result = subprocess.run(cmd, env=os.environ.copy(), capture_output=True, text=True)
-        exit_code = result.returncode
+        process = subprocess.Popen(
+            cmd, 
+            env=os.environ.copy(), 
+            stdout=subprocess.PIPE, 
+            stderr=subprocess.STDOUT, 
+            text=True,
+            bufsize=1
+        )
         
-        if exit_code != 0:
-            print(f"⚠️ Watcher exited with code {exit_code}")
-            print(f"❌ Stderr: {result.stderr}")
-            error_reason = f"Exit {exit_code}: {result.stderr[:100]}"
-        else:
-            print(f"✅ Watcher exited normally (code 0)")
-            error_reason = "Normal Exit"
-            
+        import threading
+        def log_stream(stream):
+            for line in iter(stream.readline, ''):
+                clean_line = line.strip()
+                if clean_line:
+                    print(f"[WATCHER] {clean_line}")
+                    log_to_db("WATCHER_LOG", clean_line[:200], "STDOUT")
+                    
+        t = threading.Thread(target=log_stream, args=(process.stdout,), daemon=True)
+        t.start()
+        
+        exit_code = process.wait()
+        print(f"⚠️ Watcher exited with code {exit_code}")
+        log_to_db("SYSTEM_WATCHER", f"EXITED_CODE_{exit_code}", "LAUNCHER")
+        
+    except KeyboardInterrupt:
+        print("🛑 Watcher stopped by user (Ctrl+C)")
+        break
     except Exception as e:
-        print(f"❌ Launcher crash: {e}")
-        error_reason = str(e)
+        print(f"❌ Watcher error: {e}")
+        log_to_db("SYSTEM_WATCHER", f"ERROR_{str(e)[:50]}", "LAUNCHER")
     
     if attempt < MAX_RESTARTS:
         print(f"⏳ Restarting in {COOLDOWN_SEC}s...")
-        try:
-            # Log restart event with REASON to DB
-            from quantix_core.database.connection import db
-            from datetime import datetime, timezone
-            db.client.table("fx_analysis_log").insert({
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "asset": "SYSTEM_WATCHER",
-                "direction": "SYSTEM",
-                "status": f"AUTO_RESTART_{attempt}",
-                "message": f"Reason: {error_reason[:150]}",
-                "price": 0,
-                "confidence": 0.0,
-                "strength": 0.0
-            }).execute()
-        except:
-            pass
         time.sleep(COOLDOWN_SEC)
 
 print("🛑 Watcher max restarts reached. Exiting launcher.")

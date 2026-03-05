@@ -264,20 +264,23 @@ class ContinuousAnalyzer:
             # v3.5 SMC-LITE ENTRY LOGIC (FVG-Based)
             # ============================================
             
-            # --- STRATEGY UPGRADE v3.7 (Win 90% Target + Session-Aware) ---
-            # 💡 Sáng kiến 1: Market Entry cho tín hiệu mạnh
+            # --- STRATEGY UPGRADE v3.8 (Market Execution First) ---
+            # 💡 Entry Logic: Market Entry for ALL released signals
+            # Root cause analysis showed 100% pending orders with avg 9.9 pip gap
+            # = 50% of signals never hit entry. Fix: execute at market price.
             is_market_entry = False
             msg_type = "PENDING"
             
-            # Nếu tin cậy tối cao (ULTRA) -> Vào Market ngay
-            if state.confidence >= 0.95:
+            # v3.8: All signals that pass confidence gate (80%) use MARKET EXECUTION
+            # This eliminates the entry miss problem entirely
+            if state.confidence >= settings.MIN_CONFIDENCE:
                 entry_price = price
                 is_market_entry = True
                 msg_type = "MARKET_EXECUTION"
-                logger.success(f"🚀 ULTRA CONFIDENCE ({state.confidence:.2f}) -> MARKET ENTRY")
+                logger.success(f"🚀 MARKET EXECUTION ({state.confidence:.2f}) -> Entry at {price:.5f}")
             else:
-                # Ngược lại dùng FVG với offset hẹp hơn (1.5 pips thay vì 2.0)
-                entry_calc = EntryCalculator(offset_pips=1.5)
+                # Fallback: FVG with tighter offset (0.5 pips)
+                entry_calc = EntryCalculator(offset_pips=0.5)
                 entry_price, is_valid, validation_msg = entry_calc.calculate_fvg_entry(
                     market_price=price,
                     direction=direction,

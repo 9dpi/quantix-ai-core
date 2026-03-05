@@ -9,14 +9,14 @@ def check_signals():
     
     res = db.client.table("fx_signals")\
         .select("*")\
-        .gte("created_at", start_of_day.isoformat())\
+        .gte("generated_at", start_of_day.isoformat())\
         .execute()
     
     signals = res.data or []
     print(f"--- SIGNALS BORN TODAY: {len(signals)} ---")
     for s in signals:
         reason = s.get("intelligence_reasoning", "NONE")
-        print(f"[{s['created_at'][11:16]}] {s['asset']:7} | {s['state']:15} | Conf: {s['confidence']*100:.0f}% | Reason: {str(reason)[:50]}")
+        print(f"[{s['generated_at'][11:16]}] {s['asset']:7} | {s['state']:15} | Conf: {s.get('confidence', 0)*100:.0f}% | Reason: {str(reason)[:50]}")
 
 if __name__ == "__main__":
     check_signals()

@@ -471,7 +471,7 @@ class SignalWatcher:
         
         progress_pct = current_progress / tp_distance
         
-        if progress_pct >= 0.6:  # 60% toward TP
+        if progress_pct >= 0.7:  # 70% toward TP
             new_sl = entry  # Move SL to entry (breakeven)
             try:
                 self.db.table("fx_signals").update({

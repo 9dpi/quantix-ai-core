@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-03-05 05:49 UTC",
+  "checked_at": "2026-03-05 07:22 UTC",
   "health": "CRITICAL",
   "alerts": [
     "\ud83d\udea8 Discrepancy rate HIGH: 100.00% (threshold: 5.0%)"
@@ -8,13 +8,13 @@
     "success": true,
     "health": "CRITICAL",
     "health_emoji": "\ud83d\udd34",
-    "generated_at": "2026-03-05T05:49:27.655752+00:00",
+    "generated_at": "2026-03-05T07:22:02.867088+00:00",
     "period_days": 7,
     "validator": {
       "online": true,
-      "last_heartbeat_utc": "2026-03-05T05:44:55.543662+00:00",
-      "heartbeat_age_min": 4.5,
-      "heartbeat_detail": "ONLINE | feed=binance_proxy | tracking=0 | cycle=65",
+      "last_heartbeat_utc": "2026-03-05T07:21:24.632243+00:00",
+      "heartbeat_age_min": 0.6,
+      "heartbeat_detail": "ONLINE | feed=binance_proxy | tracking=0 | cycle=75",
       "active_feed": "binance_proxy"
     },
     "accuracy": {

@@ -48,7 +48,7 @@ class Settings(BaseSettings):
     MIN_CONFIDENCE: float = 0.70
     MAX_SIGNALS_PER_ASSET: int = 3
     MAX_PENDING_DURATION_MINUTES: int = 35  # Entry window before auto-cancel
-    MAX_TRADE_DURATION_MINUTES: int = 180   # v3.7: Extended from 90m to 180m (3h) for scalper signals
+    MAX_TRADE_DURATION_MINUTES: int = 150   # v3.8: Adjusted from 180m to 150m per institutional audit
     
     # 🔒 ANTI-BURST RULES
     MIN_RELEASE_INTERVAL_MINUTES: int = 20  # v3.7: Reduced from 30m to 20m for better signal flow

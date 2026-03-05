@@ -838,7 +838,7 @@ class ContinuousAnalyzer:
                                 progress = h - entry
                             else:
                                 progress = entry - l
-                            if progress / tp_distance >= 0.6 and (
+                            if progress / tp_distance >= 0.7 and (
                                 (direction == "BUY" and sl < entry) or
                                 (direction == "SELL" and sl > entry)
                             ):

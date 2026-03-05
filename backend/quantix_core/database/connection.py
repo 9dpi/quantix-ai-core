@@ -138,7 +138,7 @@ class SupabaseConnection:
             key = settings.SUPABASE_SERVICE_ROLE_KEY or settings.SUPABASE_KEY
             
             if not url or not key:
-                logger.warning("⚠️ SUPABASE_URL or Key is missing!")
+                logger.warning("[WARN] SUPABASE_URL or Key is missing!")
                 return
             
             try:
@@ -147,16 +147,16 @@ class SupabaseConnection:
                     supabase_url=url,
                     supabase_key=key
                 )
-                logger.info("✅ Supabase client initialized (Official SDK)")
+                logger.info("[OK] Supabase client initialized (Official SDK)")
             except ImportError:
-                logger.warning("⚠️ Supabase SDK not found. Using SupabaseLite (Requests fallback)")
+                logger.warning("[WARN] Supabase SDK not found. Using SupabaseLite (Requests fallback)")
                 self._client = SupabaseLite(url, key)
             except Exception as e:
-                logger.error(f"❌ Official Supabase client init failed: {e}. Falling back to Lite.")
+                logger.error(f"[FAIL] Official Supabase client init failed: {e}. Falling back to Lite.")
                 self._client = SupabaseLite(url, key)
                 
         except Exception as e:
-            logger.error(f"❌ Failed to initialize Supabase client: {e}")
+            logger.error(f"[FAIL] Failed to initialize Supabase client: {e}")
             self._client = None
 
 
@@ -174,7 +174,7 @@ class SupabaseConnection:
             self._client.table(settings.TABLE_SIGNALS).select("id").limit(1).execute()
             return True
         except Exception as e:
-            logger.error(f"❌ Database connection failed: {str(e)}")
+            logger.error(f"[FAIL] Database connection failed: {str(e)}")
             return False
 
     async def execute(self, query: str, *args):

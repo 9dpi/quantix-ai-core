@@ -77,3 +77,8 @@ tmp/
 snapshots/
 *.zip
 *.jsonl
+audit_result.txt
+audit_result_online.txt
+dashboard/*.json
+backend/*.json
+backend/*.jsonl

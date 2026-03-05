@@ -8,6 +8,8 @@ Each state has its own dedicated message template.
 import os
 import json
 import requests
+import subprocess
+import sys
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 from loguru import logger
@@ -454,9 +456,42 @@ class TelegramNotifierV2:
             except Exception as e:
                 logger.error(f"Error processing /unblock command: {e}")
                 self._send_to_chat(target_chat_id, f"❌ *Lỗi khi giải phóng hệ thống:*\n`{e}`", use_markdown=True)
+        elif cmd == "/audit":
+            self._send_to_chat(target_chat_id, "🔍 *Đang thực hiện Audit hệ thống...*", use_markdown=True)
+            try:
+                # Use relative pathing based on this file's location
+                # This file is in: root/backend/quantix_core/notifications/telegram_notifier_v2.py
+                current_dir = os.path.dirname(os.path.abspath(__file__))
+                backend_dir = os.path.abspath(os.path.join(current_dir, "..", ".."))
+                
+                audit_online_path = os.path.join(backend_dir, "audit_online.py")
+                health_check_path = os.path.join(backend_dir, "internal_health_check.py")
+                
+                # Execute scripts and capture output
+                # Ensure we run from the correct directory so internal imports work
+                res_online = subprocess.run([sys.executable, audit_online_path], capture_output=True, text=True, timeout=30, cwd=backend_dir)
+                res_health = subprocess.run([sys.executable, health_check_path], capture_output=True, text=True, timeout=30, cwd=backend_dir)
+                
+                report = (
+                    f"📊 *SYSTEM AUDIT REPORT*\n"
+                    f"Time: `{datetime.now().strftime('%H:%M:%S UTC')}`\n\n"
+                    f"*1. Online Status:*\n```\n{res_online.stdout[:1500]}\n```\n"
+                    f"*2. Internal Health:*\n```\n{res_health.stdout[:2000]}\n```"
+                )
+                
+                # Split if too long
+                if len(report) > 4000:
+                    self._send_to_chat(target_chat_id, report[:4000], use_markdown=True)
+                    self._send_to_chat(target_chat_id, report[4000:], use_markdown=True)
+                else:
+                    self._send_to_chat(target_chat_id, report, use_markdown=True)
+                    
+            except Exception as e:
+                logger.error(f"Audit command failed: {e}")
+                self._send_to_chat(target_chat_id, f"❌ *Audit thất bại:* `{str(e)}`", use_markdown=True)
         else:
             self._send_to_chat(target_chat_id, "❓ *Lệnh không hợp lệ.*\n\n"
-                                                "Các lệnh được hỗ trợ: `/status`, `/echo <text>`, `/unblock`", use_markdown=True)
+                                                "Các lệnh được hỗ trợ: `/status`, `/audit`, `/unblock`", use_markdown=True)
 
     def handle_commands(self, watcher_instance=None):
         """

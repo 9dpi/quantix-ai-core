@@ -42,13 +42,13 @@ def check_health():
                 ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
                 age = (now - ts).total_seconds() / 60
                 
-                status_icon = "🟢" if age < 30 else "🟡" if age < 120 else "🔴"
-                print(f"{status_icon} {asset:<18} | {age:<10.1f} | {status}")
+                status_label = "[OK]  " if age < 30 else "[WARN]" if age < 120 else "[FAIL]"
+                print(f"{status_label} {asset:<18} | {age:<10.1f} | {status}")
             else:
-                print(f"⚪ {asset:<18} | {'N/A':<10} | No data found")
+                print(f"[NONE] {asset:<18} | {'N/A':<10} | No data found")
                 
         except Exception as e:
-            print(f"❌ {asset:<18} | {'Error':<10} | {e}")
+            print(f"[ERR] {asset:<18} | {'Error':<10} | {e}")
 
     # --- Log Sniffing ---
     print("\n--- RECENT SERVICE LOGS (Live Stream) ---")

@@ -1,7 +1,7 @@
 # Quantix AI Core - System Structure Overview
 
-## 🏗️ Architecture Philosophy: Distributed Intelligence
-Quantix AI Core is designed as a **Institutional-Grade Market Intelligence Engine** using a distributed micro-services architecture. Instead of a monolithic app, the system is split into specialized "Workers" that communicate via a shared **Supabase** database layer.
+## 🏗️ Architecture Philosophy: Distributed Intelligence & Transparency
+Quantix AI Core is an **Institutional-Grade Market Intelligence Engine** designed with the **5W1H Transparency Framework** (Who, What, Where, When, Why, How). It uses a distributed micro-services architecture for maximum uptime and verifiable decision-making.
 
 ---
 
@@ -25,10 +25,12 @@ Quantix AI Core is designed as a **Institutional-Grade Market Intelligence Engin
     *   **FVG-Based Entry**: Calculates entry at Fair Value Gaps for optimized Reward/Risk.
     *   **Integrated Watchdog (v3.8)**: Analyzer monitors the health of the Watcher service every 120 minutes. If Watcher is stale (>30m), it triggers Janitor healing and broadcasts a critical Telegram alert.
     *   **Anti-Burst Rule**: Maintains a strict 20-minute cooldown and global active signal lock.
-    *   **Strategy v3.7 (Institutional Scalper)**: 
-        *   **Market Execution**: ULTRA signals (>=95% confidence) capture immediate movement.
+    *   **Strategy v3.8 (Market Regime Hunter)**: 
+        *   **Dynamic Entry**: All signals (>=80% confidence) now utilize **Market Execution** (Market Order) to ensure zero entry miss-rate. Pending FVG orders are only used as fallback in low-liquidity states.
+        *   **5W1H Metadata**: Every signal caches detailed "Intelligence Reasoning" including session context, ATR volatility, and exact technical "Why" labels.
+        *   **Watcher Health (v3.8.1)**: Analyzer performs a cross-process check on the Watcher every **120 minutes**. If the Watcher pulse is missing, Analyzer triggers an immediate restart command.
         *   **Dead-Zone Filter**: Blocks Sunday open, Asia low-liquidity, and Rollover hours (21:00-23:00 UTC).
-*   **Confidence Gate**: Institutional threshold set to **80%** minimum for signal release.
+*   **Confidence Gate**: Institutional threshold set to **80%** minimum for release.
 
 ### 3. Signal Watcher (`start_railway_watcher.py`)
 *   **Role**: Real-time monitor for active signal results.
@@ -36,9 +38,10 @@ Quantix AI Core is designed as a **Institutional-Grade Market Intelligence Engin
 *   **Cycle**:
     *   `WAITING_FOR_ENTRY`: Tracks price to detect the exact entry touch (FVG Re-entry).
     *   **SL Invalidation**: Automatically cancels pending signals if price touches SL level before Entry.
-    *   `ENTRY_HIT`: Monitors for Take Profit (TP), Stop Loss (SL), or **180m (3h)** Time Timeout.
-    *   **Breakeven Lock (v3.7)**: Automatically moves SL to entry (Risk-Free) once price completes 60% of the distance to TP.
-    *   **Circuit Breakers (v3.8)**: Protects against memory leaks and API spam by pausing processing if consecutive errors or command polling failures occur.
+    *   `ENTRY_HIT`: Monitors Take Profit (TP), Stop Loss (SL), or **150m (2.5h)** Duration Timeout. 
+    *   **Retroactive Audit (v3.8)**: An automated cleaning layer verifies historical 'Expired' signals against Binance price data to recover missing Win/Loss events.
+    *   **Breakeven Lock**: Automatically moves SL to entry (Risk-Free) once price completes 70% of distance to TP.
+    *   **Resilience Protocol (v3.8.1)**: Watcher is now monitored by the Analyzer; failure to update the heartbeat for >30m triggers an automated system reboot.
     *   Atomic Transitions: Uses DB-level checks to prevent duplicate Telegram notifications.
 
 ### 4. Institutional Validator (`start_railway_validator.py`)
@@ -69,7 +72,10 @@ Applies a weighted scoring model (Target: 90% Win Rate):
 3.  **Volatility (20%)**: ATR-based dynamic risk validation.
 4.  **Trend Alignment (25%)**: Cross-verification of M15 with H1 direction.
 5.  **Session-Aware R:R (v3.7)**: Optimized for Win Rate with session-based TP/SL distance (PEAK=1.0x ATR, HIGH=0.8x, LOW=0.5x).
-6.  **Duration (v3.7)**: Extended to 180 minutes to allow price maturity.
+6.  **5W1H Reasoning (v3.8)**: Full transparency on decision-making:
+        *   **WHY**: Technical labels (Structure, FVG, Confidence, ATR, Session weighting).
+        *   **HOW**: Data source validation and execution method.
+7.  **Duration (v3.8)**: Tightened to **150 minutes** for capital efficiency.
 
 ### `Janitor` & `EntryCalculator`
 *   **Janitor**: Specialized fail-safe for cleaning stuck signals (>35m WAITING, >180m ACTIVE).
@@ -108,6 +114,6 @@ Quantix_AI_Core/
 ```
 
 ---
-**Version**: 3.8 (Resilience Hardened)  
-**Status**: Production Hardened / Strategy Upgraded  
-**Active Healing**: Enabled
+**Version**: 3.8.1 (Transparency & Intelligence Enabled)  
+**Status**: Production Hardened / Intelligence Modal Active  
+**Active Healing**: Enabled (Analyzer-to-Watcher Monitoring)

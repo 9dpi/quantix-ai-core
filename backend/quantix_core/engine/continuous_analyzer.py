@@ -536,7 +536,7 @@ class ContinuousAnalyzer:
                 logger.error(f"Failed to update dashboard learning data: {e}")
 
             # 7. INTEGRATED WATCHDOG — Check Watcher health every 24 cycles (~120 min)
-            if self.cycle_count % 24 == 0:
+            if self.cycle_count > 0 and self.cycle_count % 24 == 0:
                 self._check_watcher_health()
 
         except Exception as e:
@@ -672,8 +672,19 @@ class ContinuousAnalyzer:
             ).execute()
             signals = res.data or []
             
+            # 1. Log heartbeat immediately to show watcher is alive
+            try:
+                db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
+                    "timestamp": now.isoformat(),
+                    "asset": "HEARTBEAT_WATCHER",
+                    "direction": "SYSTEM",
+                    "status": f"EMBEDDED_WATCHER_IDLE",
+                    "confidence": 1.0, "strength": 1.0, "price": 0.0
+                }).execute()
+            except: pass
+
             if not signals:
-                logger.debug("[EmbeddedWatcher] No active signals.")
+                logger.debug("[EmbeddedWatcher] No active signals. Heartbeat logged.")
                 return
             
             # Skip if market closed
@@ -854,7 +865,7 @@ class ContinuousAnalyzer:
                 except Exception as e:
                     logger.error(f"[EmbeddedWatcher] Error processing signal {sig.get('id')}: {e}")
             
-            # 4. Log heartbeat
+            # 4. Update heartbeat with stats if we processed signals
             try:
                 db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
                     "timestamp": now.isoformat(),

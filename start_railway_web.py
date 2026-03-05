@@ -64,13 +64,32 @@ try:
     sys.stdout.flush()
     sys.stderr.flush()
     
-    # Run uvicorn without capturing output to avoid pipe deadlocks
-    process = subprocess.Popen(cmd, env=os.environ.copy())
+    # Run uvicorn and capture output to DB continuously to debug 502
+    process = subprocess.Popen(
+        cmd, 
+        env=os.environ.copy(), 
+        stdout=subprocess.PIPE, 
+        stderr=subprocess.STDOUT, 
+        text=True,
+        bufsize=1
+    )
+    
+    import threading
+    def log_stream(stream):
+        for line in iter(stream.readline, ''):
+            clean_line = line.strip()
+            if clean_line:
+                print(f"[UVICORN] {clean_line}")
+                log_to_db("UVICORN_LOG", clean_line[:200])
+                
+    t = threading.Thread(target=log_stream, args=(process.stdout,), daemon=True)
+    t.start()
+    
     exit_code = process.wait()
     
     if exit_code != 0:
         print(f"❌ Uvicorn Crashed with code {exit_code}")
-        log_to_db("CRASH", f"UVICORN_EXIT_{exit_code}", "Check Railway logs for stderr")
+        log_to_db("CRASH", f"UVICORN_EXIT_{exit_code}")
         sys.exit(1)
         
 except Exception as e:

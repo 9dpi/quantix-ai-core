@@ -372,7 +372,56 @@ class ContinuousAnalyzer:
                 "generated_at": now.isoformat(),
                 "explainability": f"Structure {state.state.upper()} | Strength {int(state.strength*100)}% | Type: {msg_type}",
                 "is_test": False,
-                "is_market_entry": is_market_entry
+                "is_market_entry": is_market_entry,
+                
+                # --- 5W1H TRANSPARENCY (v3.8) ---
+                "strategy": f"Quantix_v3.8_SMC",
+                "refinement": (
+                    f"Structure: {state.state.upper()} | "
+                    f"Conf: {state.confidence:.0%} | "
+                    f"Vol: {state.strength:.1f} | "
+                    f"Spread: {1.0:.1f} | "
+                    f"[{msg_type}]"
+                ),
+                "signal_metadata": {
+                    # WHO - Model Identity
+                    "model": "Quantix_v3.8_SMC",
+                    "engine": "StructureEngine_v1",
+                    
+                    # WHAT - Risk Profile
+                    "entry_type": msg_type,
+                    "tp_pips": round(tp_dist * 10000, 1),
+                    "sl_pips": round(sl_dist * 10000, 1),
+                    "rr_ratio": rrr,
+                    "strength_label": strength_label,
+                    
+                    # WHERE - Market Context
+                    "session": session_tag,
+                    "market_price_at_signal": price,
+                    "atr_value": round(atr if 'atr' in dir() else 0.0, 5),
+                    "structure_state": state.state.upper(),
+                    "zone": f"{'Discount' if direction == 'BUY' else 'Premium'} Zone",
+                    
+                    # WHEN - Timing
+                    "generated_utc": now.isoformat(),
+                    "session_hour_utc": now.hour,
+                    "entry_window_mins": settings.MAX_PENDING_DURATION_MINUTES,
+                    "max_trade_mins": settings.MAX_TRADE_DURATION_MINUTES,
+                    
+                    # WHY - Technical Reasoning
+                    "why": (
+                        f"SMC {state.state.upper()} structure detected on M15. "
+                        f"AI confidence {state.confidence:.0%} exceeds {settings.MIN_CONFIDENCE:.0%} threshold. "
+                        f"Session: {session_tag} ({['Asia/Late NY','Asia/Late NY','Asia/Late NY','Asia/Late NY','Asia/Late NY','Asia/Late NY','London','London','London','London','London','London','London','London-NY Overlap','London-NY Overlap','London-NY Overlap','London-NY Overlap','New York','New York','New York','New York','New York','Asia/Late NY','Asia/Late NY'][now.hour]}). "
+                        f"ATR-based TP: {round(tp_dist*10000,1)} pips, SL: {round(sl_dist*10000,1)} pips. "
+                        f"R:R = 1:{rrr}."
+                    ),
+                    
+                    # HOW - Market Regime
+                    "volatility": session_tag,
+                    "data_source": "TwelveData/Binance",
+                    "execution_method": msg_type,
+                }
             }
             
             # --- RELEASE CONFIDENCE REFINEMENT ---

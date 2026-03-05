@@ -25,9 +25,9 @@ class StructureState:
     evidence: List[str]  # Human-readable evidence
     
     # Metadata
-    trace_id: str
-    source: str
-    timeframe: str
+    trace_id: str = ""
+    source: str = ""
+    timeframe: str = ""
     
     # SMC Metadata
     fvgs: List[FairValueGap] = field(default_factory=list)

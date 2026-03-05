@@ -64,7 +64,6 @@ try:
     sys.stdout.flush()
     sys.stderr.flush()
     
-    # Run uvicorn and capture output to DB continuously to debug 502
     process = subprocess.Popen(
         cmd, 
         env=os.environ.copy(), 
@@ -75,6 +74,7 @@ try:
     )
     
     import threading
+    import time
     def log_stream(stream):
         for line in iter(stream.readline, ''):
             clean_line = line.strip()
@@ -84,6 +84,23 @@ try:
                 
     t = threading.Thread(target=log_stream, args=(process.stdout,), daemon=True)
     t.start()
+    
+    # NEW: Self-Ping diagnostic
+    def self_ping():
+        time.sleep(10) # wait for uvicorn to boot
+        import urllib.request
+        ping_url = f"http://127.0.0.1:{port}/api/v1/health"
+        try:
+            req = urllib.request.Request(ping_url, method="GET")
+            with urllib.request.urlopen(req, timeout=5) as response:
+                status = response.status
+                body = response.read().decode('utf-8')[:100]
+                log_to_db("SELF_PING", f"SUCCESS | HTTP {status} | Body: {body}")
+        except Exception as e:
+            log_to_db("SELF_PING", f"FAILED | {e}")
+            
+    pinger = threading.Thread(target=self_ping, daemon=True)
+    pinger.start()
     
     exit_code = process.wait()
     

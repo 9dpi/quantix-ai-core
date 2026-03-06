@@ -319,13 +319,17 @@ class ContinuousAnalyzer:
                 
                 # 5 Pips Sniper Mode (v4.0 Hybrid)
                 tp_dist = 0.00050  # Fixed 5 pips
-                sl_dist = max(0.00100, min(0.00150, atr * sl_mult))  # Min 10 pips, Max 15 pips
+                sl_dist = max(0.00100, min(0.00150, (atr * sl_mult) if 'atr' in locals() else 0.0015))
                 
-                logger.info(f"v3.8 R:R: ATR={atr:.5f} | Session={session_tag} | TP={tp_dist:.5f} ({tp_mult}x) | SL={sl_dist:.5f} ({sl_mult}x)")
+                # CRITICAL SAFETY GUARD: Prevent 0-pip SL/TP
+                if tp_dist < 0.0003: tp_dist = 0.0005
+                if sl_dist < 0.0008: sl_dist = 0.0012
+                
+                logger.info(f"v4.0 R:R: ATR={atr if 'atr' in locals() else 0:.5f} | TP={tp_dist:.5f} | SL={sl_dist:.5f}")
             except Exception as e:
-                logger.error(f"ATR failed, using scaled fallback: {e}")
-                tp_dist = 0.0006
-                sl_dist = 0.0018
+                logger.error(f"ATR failed, using hard safety fallback: {e}")
+                tp_dist = 0.0005
+                sl_dist = 0.0012
 
             if direction == "BUY":
                 tp = round(entry_price + tp_dist, 5)

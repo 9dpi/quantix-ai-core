@@ -32,8 +32,8 @@ Quantix is designed as a **Distributed Market Intelligence Engine** operating on
 graph TD
     A[Market Data: Binance/12Data] -->|T0: 300s Cycle| B(Analyzer Brain)
     B -->|Neural Reasoning 5W1H| C{Confidence Gate}
-    C -->|< 70%| D[Drop: Lab Candidate]
-    C -->|>= 70%| E[Release: PUBLISHED]
+    C -->|< 75%| D[Drop: Lab Candidate]
+    C -->|>= 75%| E[Release: PUBLISHED]
     E -->|Embedded Watcher| F[Supabase: fx_signals]
     F -->|Webhook| G[Telegram: Active Signal]
     G -->|Admin Interaction| H[Telegram: Remote audit]
@@ -50,14 +50,10 @@ graph TD
 *   **Asset**: EURUSD (M15 Primary).
 *   **Refinement**: Neural weighted scoring (Structure + Session + Volatility).
 
-### Dynamic TP/SL Logic (v4.0 PRO - Intraday Scaling):
-*   **Calculation**: Multiplier based on 14-period ATR (M15).
-*   **PEAK (13:00 - 17:00 UTC)**: TP 1.5x ATR | SL 1.0x ATR.
-*   **HIGH (06:00 - 13:00 UTC)**: TP 1.2x ATR | SL 0.8x ATR.
-*   **LOW (Other)**: TP 1.0x ATR | SL 0.7x ATR.
-*   **Hard Bounds (Safety Caps)**:
-    *   **TP**: Min 10.0 pips | Max 25.0 pips.
-    *   **SL**: Min 7.0 pips | Max 15.0 pips.
+### Dynamic TP/SL Logic (v4.0 Hybrid - Sniper Edition):
+*   **Take Profit (TP)**: **Fixed 5.0 pips** (Fast execution).
+*   **Stop Loss (SL)**: Dynamic 1.0x ATR | **Min 10.0 pips** / Max 15.0 pips.
+*   **R:R Baseline**: ~ 1 : 2 (Mạo hiểm 10 pips ăn 5 pips).
 
 ### Dynamic Risk Management:
 *   **Risk-Free Protocol**: Move SL to Entry (Breakeven) when price reaches **70%** toward TP.
@@ -75,7 +71,9 @@ Admin can control the production engine directly from mobile:
 *   `/status`: Checks real-time pulse of all worker instances.
 *   `/free`: Release signal blockages (Janitor force run).
 
-### Audit Tooling:
+### Institutional Transparency (v4.0):
+*   **Dynamic R:R Disclosure**: Telegram broadcasts now compute and display real-time Risk-to-Reward ratios per signal (e.g., `R:R: 1 : 1.52`).
+*   **5W1H Explainability**: Every signal includes a "Why" metadata tag explaining the structural and volatility basis.
 *   `audit.bat`: Local/PC command for deep diagnostic reports.
 *   `backend/audit_online.py`: External verify via Public API Gateway.
 

@@ -317,9 +317,9 @@ class ContinuousAnalyzer:
                     sl_mult = 0.7   # SL = 0.7x ATR (~7-10 pips)
                     session_tag = "LOW"
                 
-                # Professional Intraday Caps (v4.0)
-                tp_dist = max(0.00100, min(0.00250, atr * tp_mult))  # Min 10 pips, Max 25 pips
-                sl_dist = max(0.00070, min(0.00150, atr * sl_mult))  # Min 7 pips, Max 15 pips
+                # 5 Pips Sniper Mode (v4.0 Hybrid)
+                tp_dist = 0.00050  # Fixed 5 pips
+                sl_dist = max(0.00100, min(0.00150, atr * sl_mult))  # Min 10 pips, Max 15 pips
                 
                 logger.info(f"v3.8 R:R: ATR={atr:.5f} | Session={session_tag} | TP={tp_dist:.5f} ({tp_mult}x) | SL={sl_dist:.5f} ({sl_mult}x)")
             except Exception as e:

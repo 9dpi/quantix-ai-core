@@ -142,7 +142,7 @@ class ContinuousAnalyzer:
                     db_payload["explainability"] = f"{db_payload.get('explainability', '')} | {db_payload['refinement_reason']}"
 
             # 2. Remove fields not in DB schema to prevent PGRST204 errors
-            for key in ["valid_until", "activation_limit_mins", "max_monitoring_mins", "refinement_reason", "is_market_entry"]:
+            for key in ["valid_until", "activation_limit_mins", "max_monitoring_mins", "refinement_reason", "is_market_entry", "refinement"]:
                 if key in db_payload:
                     if key == "is_market_entry" and db_payload[key]:
                         # Optional: Mark in explainability that it was a Market Entry
@@ -558,7 +558,8 @@ class ContinuousAnalyzer:
             # Query last Watcher heartbeat
             res = db.client.table(settings.TABLE_ANALYSIS_LOG)\
                 .select("timestamp, status")\
-                .eq("asset", "HEARTBEAT_WATCHER")\
+                .eq("asset", "HEARTBEAT")\
+                .ilike("status", "%WATCHER_%")\
                 .order("timestamp", desc=True)\
                 .limit(1)\
                 .execute()
@@ -869,7 +870,7 @@ class ContinuousAnalyzer:
             try:
                 db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
                     "timestamp": now.isoformat(),
-                    "asset": "HEARTBEAT_WATCHER",
+                    "asset": "HEARTBEAT",
                     "direction": "SYSTEM",
                     "status": f"EMBEDDED_WATCHER_OK (Watching: {len(signals)})",
                     "confidence": 1.0, "strength": 1.0, "price": 0.0
@@ -926,6 +927,13 @@ class ContinuousAnalyzer:
                 self._embedded_watcher_check()
             except Exception as e:
                 logger.error(f"Embedded Watcher error: {e}")
+
+            # 🆕 ADMIN BOT: Process Telegram commands
+            if self.notifier:
+                try:
+                    self.notifier.handle_commands(self)
+                except Exception as e:
+                    logger.error(f"Telegram command handler error: {e}")
             
             time.sleep(interval)
 

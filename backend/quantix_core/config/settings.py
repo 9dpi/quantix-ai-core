@@ -86,6 +86,7 @@ class Settings(BaseSettings):
     ENABLE_LAB_SIGNALS: bool = True
     WATCHER_OBSERVE_MODE: bool = False
     QUANTIX_PUBLIC_API_KEY: Optional[str] = None
+    RAILWAY_API_KEY: Optional[str] = None
     
     class Config:
         env_file = ".env"

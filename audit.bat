@@ -43,6 +43,12 @@ echo --- [5/5] PIPELINE INTEGRITY --- >> %RESULT_FILE%
 python backend/check_stuck.py >> %RESULT_FILE% 2>&1
 echo. >> %RESULT_FILE%
 
+:: Step 6: Hidden Engine Error Scan
+echo [6/6] Scanning for Hidden Engine/Database Errors...
+echo --- [6/6] ENGINE LOG ANALYSIS --- >> %RESULT_FILE%
+python backend/check_analyzer_errors.py >> %RESULT_FILE% 2>&1
+echo. >> %RESULT_FILE%
+
 echo ======================================================= >> %RESULT_FILE%
 echo    ✅ GLOBAL AUDIT COMPLETED AT %TIME%                 >> %RESULT_FILE%
 echo ======================================================= >> %RESULT_FILE%

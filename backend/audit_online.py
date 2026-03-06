@@ -59,7 +59,7 @@ def audit_online():
                 for sig in signals:
                     asset = sig.get("asset", "UNK")
                     direction = sig.get("direction", "???")
-                    state = sig.get("state", "UNKNOWN")
+                    state = sig.get("status", "UNKNOWN")
                     gen_at = sig.get("generated_at", "N/A")[11:16]
                     conf = sig.get("ai_confidence", 0) * 100
                     report.append(f"[{gen_at}] {asset:7} | {direction:4} | {state:15} | Conf: {conf:.0f}%")
@@ -85,4 +85,6 @@ def audit_online():
     return result_text
 
 if __name__ == "__main__":
+    import sys
+    sys.stdout.reconfigure(encoding='utf-8')
     print(audit_online())

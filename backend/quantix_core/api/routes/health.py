@@ -45,6 +45,21 @@ async def get_audit_log():
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+@router.get("/health/thinking")
+async def get_thinking_logs(limit: int = 15):
+    """
+    Returns the latest thinking logs from the continuous analyzer.
+    """
+    try:
+        from quantix_core.database.connection import db
+        res = db.client.table('fx_analysis_log').select('timestamp,status').eq('asset', 'ANALYZER_LOG').order('timestamp', desc=True).limit(limit).execute()
+        return {
+            "status": "online",
+            "logs": res.data
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
 @router.get("/health/ping")
 async def ping():
     """Lightweight ping endpoint for quick availability checks"""

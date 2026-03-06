@@ -180,11 +180,11 @@ class SignalWatcher:
             try:
                 self.db.table("fx_analysis_log").insert({
                     "timestamp": datetime.now(timezone.utc).isoformat(),
-                    "asset": "HEARTBEAT_WATCHER",
+                    "asset": "HEARTBEAT",
                     "direction": "SYSTEM",
                     "status": f"WATCHER_ACTIVE_C{self.cycle_count} (Watching: {len(signals)})",
-                    "confidence": 1.0,
-                    "strength": 1.0,
+                    "confidence": 0.0,
+                    "strength": 0.0,
                     "price": 0.0
                 }).execute()
             except Exception as e:

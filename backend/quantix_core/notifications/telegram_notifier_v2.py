@@ -414,61 +414,90 @@ class TelegramNotifierV2:
         
         if cmd == "/status":
             self._send_to_chat(target_chat_id, "✅ *Bot is running.*\n\n"
-                                                f"Chat ID: `{self.chat_id}`\n"
-                                                f"Admin Chat ID: `{self.admin_chat_id}`", use_markdown=True)
+                                                 f"Chat ID: `{self.chat_id}`\n"
+                                                 f"Admin Chat ID: `{self.admin_chat_id}`", use_markdown=True)
         elif cmd == "/echo":
             self._send_to_chat(target_chat_id, f"Echo: `{args}`", use_markdown=True)
-        elif cmd == "/unblock" or cmd == "/clear":
+        elif cmd in ["/unblock", "/clear", "/free"]:
             try:
                 from quantix_core.database.connection import db
                 from quantix_core.config.settings import settings
                 
-                self._send_to_chat(target_chat_id, "⚙️ Đang quét và giải phóng hệ thống...", use_markdown=False)
+                is_force = (cmd == "/free")
+                self._send_to_chat(target_chat_id, "⚙️ Đang quét và giải phóng hệ thống..." if not is_force else "🔥 ĐANG CƯỠNG CHẾ GIẢI PHÓNG HỆ THỐNG...", use_markdown=False)
                 
-                # 1. Clear Stuck Pending (WAITING > 35m)
+                now_iso = datetime.now(timezone.utc).isoformat()
+                
+                # 1. Clear Stuck Pending (WAITING)
                 limit_pending = (datetime.now(timezone.utc) - timedelta(minutes=35)).isoformat()
-                res_p = db.client.table(settings.TABLE_SIGNALS).update({
-                    "state": "CANCELLED", "status": "EXPIRED", "result": "EXPIRED", "closed_at": datetime.now(timezone.utc).isoformat()
-                }).eq("state", "WAITING_FOR_ENTRY").lt("generated_at", limit_pending).execute()
+                q_p = db.client.table(settings.TABLE_SIGNALS).update({
+                    "state": "CANCELLED", "status": "EXPIRED", "result": "EXPIRED", "closed_at": now_iso
+                })
+                
+                if is_force:
+                    # Force clear ALL pending signals
+                    res_p = q_p.in_("state", ["WAITING_FOR_ENTRY", "PUBLISHED", "WAITING"]).execute()
+                else:
+                    # Only clear old pending
+                    res_p = q_p.eq("state", "WAITING_FOR_ENTRY").lt("generated_at", limit_pending).execute()
+                
                 count_p = len(res_p.data) if res_p.data else 0
                 
-                # 2. Clear Stuck Active (ENTRY_HIT > 90m)
+                # 2. Clear Stuck Active (ENTRY_HIT)
                 limit_active = (datetime.now(timezone.utc) - timedelta(minutes=90)).isoformat()
-                res_a = db.client.table(settings.TABLE_SIGNALS).update({
-                    "state": "CANCELLED", "status": "CLOSED_TIMEOUT", "result": "CLOSED_TIMEOUT", "closed_at": datetime.now(timezone.utc).isoformat()
-                }).eq("state", "ENTRY_HIT").lt("generated_at", limit_active).execute()
+                q_a = db.client.table(settings.TABLE_SIGNALS).update({
+                    "state": "CANCELLED", "status": "CLOSED_TIMEOUT", "result": "CANCELLED", "closed_at": now_iso
+                })
+                
+                if is_force:
+                    # Force clear ALL active signals
+                    res_a = q_a.eq("state", "ENTRY_HIT").execute()
+                else:
+                    # Only clear old active
+                    res_a = q_a.eq("state", "ENTRY_HIT").lt("generated_at", limit_active).execute()
+                
                 count_a = len(res_a.data) if res_a.data else 0
                 
+                # Reset Cooldown if in-memory instance is provided
+                cooldown_reset = False
+                if is_force and hasattr(self, '_executor_instance') and self._executor_instance:
+                    if hasattr(self._executor_instance, 'last_pushed_at'):
+                        self._executor_instance.last_pushed_at = None
+                        cooldown_reset = True
+                
                 total = count_p + count_a
-                if total > 0:
+                if total > 0 or cooldown_reset:
                     report = (
                         f"✅ *HỆ THỐNG ĐÃ ĐƯỢC GIẢI PHÓNG*\n\n"
-                        f"• Đã đóng {count_p} lệnh chờ quá hạn (35m)\n"
-                        f"• Đã đóng {count_a} lệnh chạy quá hạn (35m)\n\n"
-                        f"🚀 Tổng cộng: `{total}` vật cản đã được dọn dẹp.\n"
-                        f"Máy chủ `{settings.INSTANCE_NAME}` đã sẵn sàng bắn tín hiệu mới."
+                        f"• Đã giải phóng {count_p} lệnh chờ\n"
+                        f"• Đã giải phóng {count_a} lệnh đang chạy\n"
+                        f"• Cooldown: {'Đã reset ⚡' if cooldown_reset else 'Không đổi'}\n\n"
+                        f"🚀 Máy chủ `{settings.INSTANCE_NAME}` đã sẵn sàng bắn tín hiệu mới."
                     )
                 else:
-                    report = "✅ *HỆ THỐNG SẠCH*\n\nKhông có lệnh nào bị kẹt cần giải phóng."
+                    report = "✅ *HỆ THỐNG SẠCH*\n\nKhông có lệnh nào kẹt cần giải phóng."
                 
                 self._send_to_chat(target_chat_id, report, use_markdown=True)
                 
             except Exception as e:
-                logger.error(f"Error processing /unblock command: {e}")
-                self._send_to_chat(target_chat_id, f"❌ *Lỗi khi giải phóng hệ thống:*\n`{e}`", use_markdown=True)
+                logger.error(f"Error processing command {cmd}: {e}")
+                self._send_to_chat(target_chat_id, f"❌ *Lỗi khi giải phóng:*\n`{e}`", use_markdown=True)
+
+        elif cmd == "/restart":
+            self._send_to_chat(target_chat_id, "🔄 *Đang yêu cầu restart các service tại Railway...*", use_markdown=True)
+            res = self._restart_railway_services()
+            self._send_to_chat(target_chat_id, f"📊 *Railway Restart Report:*\n\n{res}", use_markdown=True)
+
         elif cmd == "/audit":
             self._send_to_chat(target_chat_id, "🔍 *Đang thực hiện Audit hệ thống...*", use_markdown=True)
             try:
-                # Use relative pathing based on this file's location
-                # This file is in: root/backend/quantix_core/notifications/telegram_notifier_v2.py
                 current_dir = os.path.dirname(os.path.abspath(__file__))
                 backend_dir = os.path.abspath(os.path.join(current_dir, "..", ".."))
                 
                 audit_online_path = os.path.join(backend_dir, "audit_online.py")
                 health_check_path = os.path.join(backend_dir, "internal_health_check.py")
                 
-                # Execute scripts and capture output
-                # Ensure we run from the correct directory so internal imports work
+                import subprocess, sys
                 res_online = subprocess.run([sys.executable, audit_online_path], capture_output=True, text=True, timeout=30, cwd=backend_dir)
                 res_health = subprocess.run([sys.executable, health_check_path], capture_output=True, text=True, timeout=30, cwd=backend_dir)
                 
@@ -479,7 +508,6 @@ class TelegramNotifierV2:
                     f"*2. Internal Health:*\n```\n{res_health.stdout[:2000]}\n```"
                 )
                 
-                # Split if too long
                 if len(report) > 4000:
                     self._send_to_chat(target_chat_id, report[:4000], use_markdown=True)
                     self._send_to_chat(target_chat_id, report[4000:], use_markdown=True)
@@ -491,16 +519,90 @@ class TelegramNotifierV2:
                 self._send_to_chat(target_chat_id, f"❌ *Audit thất bại:* `{str(e)}`", use_markdown=True)
         else:
             self._send_to_chat(target_chat_id, "❓ *Lệnh không hợp lệ.*\n\n"
-                                                "Các lệnh được hỗ trợ: `/status`, `/audit`, `/unblock`", use_markdown=True)
+                                                 "Các lệnh được hỗ trợ: `/status`, `/audit`, `/unblock`, `/free`, `/restart`", use_markdown=True)
 
-    def handle_commands(self, watcher_instance=None):
+    def _restart_railway_services(self) -> str:
+        """
+        Restart all services in the Railway project.
+        """
+        from quantix_core.config.settings import settings
+        
+        api_key = settings.RAILWAY_API_KEY
+        project_id = os.environ.get("RAILWAY_PROJECT_ID")
+        env_id = os.environ.get("RAILWAY_ENVIRONMENT_ID")
+        
+        if not api_key:
+            return "❌ Chưa cấu hình `RAILWAY_API_KEY` trong settings."
+        if not project_id:
+            return "❌ Không tìm thấy `RAILWAY_PROJECT_ID` trong environment."
+        if not env_id:
+            return "❌ Không tìm thấy `RAILWAY_ENVIRONMENT_ID` trong environment."
+            
+        url = "https://backboard.railway.app/graphql/v2"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        query_services = {
+            "query": """
+            query GetServices($projectId: String!) {
+              project(id: $projectId) {
+                services {
+                  nodes {
+                    id
+                    name
+                  }
+                }
+              }
+            }
+            """,
+            "variables": {"projectId": project_id}
+        }
+        
+        try:
+            resp = requests.post(url, json=query_services, headers=headers, timeout=15)
+            data = resp.json()
+            services = data.get("data", {}).get("project", {}).get("services", {}).get("nodes", [])
+            
+            if not services:
+                return f"⚠️ Không tìm thấy service nào trong project `{project_id}`."
+            
+            results = []
+            for svc in services:
+                svc_id = svc["id"]
+                svc_name = svc["name"]
+                
+                mutation = {
+                    "query": """
+                    mutation serviceInstanceRestart($serviceId: String!, $environmentId: String!) {
+                      serviceInstanceRestart(serviceId: $serviceId, environmentId: $environmentId)
+                    }
+                    """,
+                    "variables": {
+                        "serviceId": svc_id,
+                        "environmentId": env_id
+                    }
+                }
+                
+                resp_restart = requests.post(url, json=mutation, headers=headers, timeout=15)
+                if resp_restart.status_code == 200:
+                    results.append(f"✅ {svc_name} (Started)")
+                else:
+                    results.append(f"❌ {svc_name} (Failed)")
+            
+            return "\n".join(results)
+            
+        except Exception as e:
+            return f"❌ Lỗi kết nối Railway: {str(e)}"
+
+    def handle_commands(self, exec_instance=None, **kwargs):
         """
         Public interface for polling commands.
-        Compatible with SignalWatcher.
-        
-        Args:
-            watcher_instance: Optional reference to SignalWatcher (unused for now but kept for compatibility)
+        exec_instance: analyzer or watcher instance for cross-module control.
+        Supports 'watcher_instance' for backward compatibility.
         """
+        self._executor_instance = exec_instance or kwargs.get('watcher_instance')
         self._get_updates()
 
     def _get_updates(self):

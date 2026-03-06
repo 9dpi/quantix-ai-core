@@ -1,0 +1,6 @@
+[2026-03-06T01:05:15] 2026-03-06 01:05:13.330 | INFO     | __main__:run_cycle:527 - 🔍 Score below threshold (0.56 < 0.7) - No action.
+[2026-03-06T01:05:15] 2026-03-06 01:05:12.958 | INFO     | __main__:run_cycle:436 - Signal Evaluated: BUY @ 1.16108 | Raw Conf: 1.00 | Release Score: 0.56 | Raw: 1.00 | Session: 0.8 | Vol: 0.7 | Spread: 1.0
+[2026-03-06T01:00:14] 2026-03-06 01:00:11.821 | ERROR    | __main__:run_cycle:523 - ❌ Failed to create LIVE signal in DB.
+[2026-03-06T01:00:14] 2026-03-06 01:00:11.821 | ERROR    | __main__:lock_signal:159 - ❌ Failed to LOCK signal in [T1]: {'message': "Could not find the 'refinement' column of 'fx_signals' in the schema cache", 'code': 'PGRS
+[2026-03-06T01:00:13] 2026-03-06 01:00:11.059 | INFO     | __main__:run_cycle:436 - Signal Evaluated: BUY @ 1.16106 | Raw Conf: 1.00 | Release Score: 0.80 | Raw: 1.00 | Session: 0.8 | Vol: 1.0 | Spread: 1.0
+[2026-03-06T00:55:12] 2026-03-06 00:55:09.879 | ERROR    | __main__:run_cycle:523 - ❌ Failed to create LIVE signal in DB.

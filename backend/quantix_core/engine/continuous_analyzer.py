@@ -142,7 +142,7 @@ class ContinuousAnalyzer:
                     db_payload["explainability"] = f"{db_payload.get('explainability', '')} | {db_payload['refinement_reason']}"
 
             # 2. Remove fields not in DB schema to prevent PGRST204 errors
-            for key in ["valid_until", "activation_limit_mins", "max_monitoring_mins", "refinement_reason", "is_market_entry", "refinement"]:
+            for key in ["valid_until", "activation_limit_mins", "max_monitoring_mins", "refinement_reason", "is_market_entry", "refinement", "signal_metadata"]:
                 if key in db_payload:
                     if key == "is_market_entry" and db_payload[key]:
                         # Optional: Mark in explainability that it was a Market Entry

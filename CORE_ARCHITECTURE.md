@@ -50,10 +50,10 @@ graph TD
 *   **Asset**: EURUSD (M15 Primary).
 *   **Refinement**: Neural weighted scoring (Structure + Session + Volatility).
 
-### Dynamic TP/SL Logic (v4.0.2 - Standard Edition):
-*   **Take Profit (TP)**: **Fixed 10.0 pips** (Stable execution).
+### Dynamic TP/SL Logic (v4.0.3 - Standard Edition):
+*   **Take Profit (TP)**: **Fixed 7.0 pips** (Stable execution).
 *   **Stop Loss (SL)**: Dynamic 1.0x ATR | **Min 10.0 pips** / Max 15.0 pips.
-*   **R:R Baseline**: ~ 1 : 1 (Mạo hiểm 10 pips ăn 10 pips).
+*   **R:R Baseline**: ~ 1 : 0.7 (Mạo hiểm 10 pips ăn 7 pips).
 
 ### Dynamic Risk Management:
 *   **Risk-Free Protocol**: Move SL to Entry (Breakeven) when price reaches **70%** toward TP.

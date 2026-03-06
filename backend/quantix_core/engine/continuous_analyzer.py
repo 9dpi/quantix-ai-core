@@ -317,12 +317,12 @@ class ContinuousAnalyzer:
                     sl_mult = 0.7   # SL = 0.7x ATR (~7-10 pips)
                     session_tag = "LOW"
                 
-                # 10 Pips Standard Mode (v4.0.2)
-                tp_dist = 0.00100  # Fixed 10 pips
+                # 7 Pips Standard Mode (v4.0.3)
+                tp_dist = 0.00070  # Fixed 7 pips
                 sl_dist = max(0.00100, min(0.00150, (atr * sl_mult) if 'atr' in locals() else 0.0015))
                 
                 # CRITICAL SAFETY GUARD: Prevent 0-pip SL/TP
-                if tp_dist < 0.0008: tp_dist = 0.0010
+                if tp_dist < 0.0005: tp_dist = 0.0007
                 if sl_dist < 0.0008: sl_dist = 0.0012
                 
                 logger.info(f"v4.0 R:R: ATR={atr if 'atr' in locals() else 0:.5f} | TP={tp_dist:.5f} | SL={sl_dist:.5f}")

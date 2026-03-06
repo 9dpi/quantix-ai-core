@@ -1,4 +1,4 @@
-# 🌌 Quantix AI Core - Master Architecture v3.8.7
+# 🌌 Quantix AI Core - Master Architecture v4.0 PRO
 *The Single Source of Truth for Institutional Intelligence & Execution*
 
 ---
@@ -43,12 +43,21 @@ graph TD
 
 ---
 
-## 🧠 4. Strategy & Trading Rules (Institutional v3.8.7)
+## 🧠 4. Strategy & Trading Rules (Institutional v4.0 PRO)
 
 ### Signal Release Logic:
-*   **Confidence Threshold**: **70% (0.70)**.
+*   **Confidence Threshold**: **75% (0.75)** (Raised for v4.0).
 *   **Asset**: EURUSD (M15 Primary).
 *   **Refinement**: Neural weighted scoring (Structure + Session + Volatility).
+
+### Dynamic TP/SL Logic (v4.0 PRO - Intraday Scaling):
+*   **Calculation**: Multiplier based on 14-period ATR (M15).
+*   **PEAK (13:00 - 17:00 UTC)**: TP 1.5x ATR | SL 1.0x ATR.
+*   **HIGH (06:00 - 13:00 UTC)**: TP 1.2x ATR | SL 0.8x ATR.
+*   **LOW (Other)**: TP 1.0x ATR | SL 0.7x ATR.
+*   **Hard Bounds (Safety Caps)**:
+    *   **TP**: Min 10.0 pips | Max 25.0 pips.
+    *   **SL**: Min 7.0 pips | Max 15.0 pips.
 
 ### Dynamic Risk Management:
 *   **Risk-Free Protocol**: Move SL to Entry (Breakeven) when price reaches **70%** toward TP.
@@ -64,6 +73,7 @@ Admin can control the production engine directly from mobile:
 *   `/audit`: Triggers a comprehensive global health check (Online + DB integrity).
 *   `/unblock`: Manually triggers the Janitor to release stuck signals/pipelines.
 *   `/status`: Checks real-time pulse of all worker instances.
+*   `/free`: Release signal blockages (Janitor force run).
 
 ### Audit Tooling:
 *   `audit.bat`: Local/PC command for deep diagnostic reports.
@@ -74,9 +84,9 @@ Admin can control the production engine directly from mobile:
 ## 📁 6. Repository Ecosystem
 The project is split into two specialized repositories:
 1.  **`Quantix_AI_Core`**: The "Backend/Brain" containing analysis logic, database wrappers, and service launchers.
-2.  **`quantix-live-execution`**: The "Frontend/Terminal" focused on real-time signal display and execution visualization.
+2.  **`Telesignal` / `quantix-live-execution`**: The "Frontend/Terminal" focused on real-time signal display and execution visualization.
 
 ---
-**Version**: 3.8.7 | **Build**: 2026-03-05-UTC  
-*Document verified 2026-03-05 by Antigravity AI.*
+**Version**: 4.0 PRO | **Build**: 2026-03-06-UTC  
+*Document verified 2026-03-06 by Antigravity AI.*
 

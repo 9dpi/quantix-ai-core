@@ -1,0 +1,86 @@
+{
+  "test_date": "2025-01-10",
+  "symbol": "EURUSD",
+  "timeframe": "H4",
+  "results": {
+    "download": {
+      "status": "success",
+      "chunks_received": 21,
+      "expected_chunks": 24
+    },
+    "parsing": {
+      "status": "success",
+      "total_ticks": 100650,
+      "first_tick_timestamp": "2025-01-10T00:00:00.092000",
+      "last_tick_timestamp": "2025-01-10T20:59:59.220000",
+      "first_tick_bid": 1.02965
+    },
+    "resampling": {
+      "status": "success",
+      "candles_created": 6,
+      "expected_candles": 6,
+      "candles": [
+        {
+          "timestamp": "2025-01-10T00:00:00",
+          "open": 1.02965,
+          "high": 1.03044,
+          "low": 1.0292,
+          "close": 1.02985,
+          "tick_count": 5411,
+          "complete": true
+        },
+        {
+          "timestamp": "2025-01-10T04:00:00",
+          "open": 1.02983,
+          "high": 1.02998,
+          "low": 1.02811,
+          "close": 1.0297,
+          "tick_count": 8042,
+          "complete": true
+        },
+        {
+          "timestamp": "2025-01-10T08:00:00",
+          "open": 1.02971,
+          "high": 1.03118,
+          "low": 1.02927,
+          "close": 1.03016,
+          "tick_count": 15498,
+          "complete": true
+        },
+        {
+          "timestamp": "2025-01-10T12:00:00",
+          "open": 1.03054,
+          "high": 1.03118,
+          "low": 1.02127,
+          "close": 1.02373,
+          "tick_count": 53513,
+          "complete": true
+        },
+        {
+          "timestamp": "2025-01-10T16:00:00",
+          "open": 1.02373,
+          "high": 1.02506,
+          "low": 1.02329,
+          "close": 1.02446,
+          "tick_count": 16278,
+          "complete": true
+        },
+        {
+          "timestamp": "2025-01-10T20:00:00",
+          "open": 1.02445,
+          "high": 1.02488,
+          "low": 1.024,
+          "close": 1.024,
+          "tick_count": 1908,
+          "complete": true
+        }
+      ]
+    },
+    "validation": {
+      "status": "success",
+      "valid_candles": 6,
+      "invalid_candles": 0,
+      "validation_rate": 1.0
+    }
+  }
+}

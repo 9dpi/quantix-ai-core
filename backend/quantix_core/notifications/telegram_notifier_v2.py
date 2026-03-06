@@ -238,7 +238,7 @@ class TelegramNotifierV2:
             f"TP: {signal.get('tp')}\n\n"
             f"Status: 🏁 CLOSED\_TP\n"
             f"Result: 🟢 PROFIT\n"
-            f"R:R: 1 : 1\n\n"
+            f"R:R: 1 : {signal.get('reward_risk_ratio', 1.0)}\n\n"
             f"Signal lifecycle completed."
         )
         
@@ -279,7 +279,8 @@ class TelegramNotifierV2:
             f"Entry: {entry}\n"
             f"SL: {signal.get('sl')}\n\n"
             f"Status: 🏁 CLOSED\_SL\n"
-            f"Result: 🔴 LOSS\n\n"
+            f"Result: 🔴 LOSS\n"
+            f"R:R: 1 : {signal.get('reward_risk_ratio', 1.0)}\n\n"
             f"Signal lifecycle completed."
         )
         

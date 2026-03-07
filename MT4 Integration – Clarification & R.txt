@@ -1,0 +1,168 @@
+MT4 Integration – Clarification & Requirements
+
+The overall direction looks good and the bridge between the Python Quantix engine and MT4 makes sense. However, before we proceed I want to standardise the architecture so it works both for my own trading and for potential client distribution later.
+
+1. Architecture Approach
+
+We should design one architecture that can scale, rather than separate versions.
+
+Preferred structure:
+
+Quantix AI Core (Python)
+↓
+API / Bridge Layer
+↓
+MT4 Expert Advisor (EA)
+↓
+Broker Execution
+
+The EA will connect to our API and receive signals from the Quantix engine.
+
+This allows:
+	•	My own accounts to run it
+	•	Clients to install the EA later
+	•	Centralised signal control
+
+⸻
+
+2. Signal De-Duplication (Very Important)
+
+Every signal must include a unique signal ID.
+
+The EA must store executed IDs so the same signal cannot be executed twice if:
+	•	API retries
+	•	polling repeats
+	•	connection resets
+
+This is critical to prevent duplicate trades.
+
+⸻
+
+3. Full Trade Lifecycle Support
+
+The system needs to support more than just opening trades.
+
+Required actions:
+	•	Open trade
+	•	Modify SL
+	•	Modify TP
+	•	Move SL to breakeven
+	•	Partial close
+	•	Close trade
+	•	Cancel pending orders
+
+⸻
+
+4. Broker Compatibility
+
+Different brokers use different:
+	•	symbol names (EURUSD vs EURUSD.pro etc)
+	•	lot size rules
+	•	stop distance rules
+
+The EA should include symbol mapping and broker validation before executing trades.
+
+⸻
+
+5. Risk & Lot Size Handling
+
+We need confirmation on where lot size is calculated.
+
+Preferred approach:
+
+Python sends the signal, but the EA verifies lot size using live account data such as:
+	•	balance
+	•	margin
+	•	leverage
+	•	broker lot step
+
+⸻
+
+6. Safety Protections
+
+Automation must include protections such as:
+	•	max spread filter
+	•	max slippage
+	•	max simultaneous trades
+	•	max daily trades
+	•	drawdown kill switch
+
+⸻
+
+7. Error Handling
+
+The EA must report back if an order fails due to:
+	•	requotes
+	•	slippage
+	•	invalid stops
+	•	insufficient margin
+	•	market closed
+
+The backend should log this.
+
+⸻
+
+8. Stability & Recovery
+
+The system must handle:
+	•	MT4 restarts
+	•	VPS restarts
+	•	internet interruptions
+
+Add heartbeat monitoring and automatic reconnection.
+
+⸻
+
+9. Security
+
+Magic numbers identify trades but are not security.
+
+We should also implement:
+	•	API authentication
+	•	secure token validation
+	•	payload verification
+
+⸻
+
+10. Logging
+
+We need full logs of:
+	•	signals generated
+	•	payload sent
+	•	order execution
+	•	modifications
+	•	trade close
+
+This will be essential for debugging and analysing performance.
+
+⸻
+
+11. Payload Format
+
+The current JSON structure is good but should include:
+	•	signal_id
+	•	strategy_id
+	•	timestamp
+	•	symbol
+	•	order_type
+	•	lot_size
+	•	sl_price
+	•	tp_price
+	•	max_slippage
+	•	max_spread
+
+⸻
+
+Next Step
+
+Please update the design to include:
+	1.	Final architecture for Python → API → MT4 EA
+	2.	Signal ID and duplicate prevention
+	3.	Full trade lifecycle commands
+	4.	Broker validation logic
+	5.	Safety protections
+	6.	Error reporting
+	7.	Recovery handling
+	8.	Logging structure
+
+Once this is defined we can begin testing on demo accounts before live trading.

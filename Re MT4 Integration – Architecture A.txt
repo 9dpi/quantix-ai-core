@@ -1,0 +1,33 @@
+Re: MT4 Integration – Architecture Alignment & Next Steps
+
+Hi Irfan,
+
+We have thoroughly reviewed your MT4 Integration – Clarification & Requirements document.
+
+The Antigravity Engineering team completely agrees with your Enterprise EA Bridge architecture. You have highlighted the exact edge cases (race conditions, broker symbol mapping, and latency recovery) that separate amateur signal bots from institutional-grade fund management systems.
+
+Here is our technical assessment and what we need from your side to begin the Phase 2 build.
+
+1. Architecture Alignment
+We are structurally aligned on all 11 of your points. Specifically:
+
+Point 2 (De-Duplication): We will implement a strict UUID signal_id for every payload. The EA will act as the gatekeeper, caching executed IDs to ensure idempotency.
+Point 5 (EA-Side Lot Sizing): This is the best approach. Our Python engine will calculate the Intent (e.g., Risk $100 or 1%), but the EA will execute MarketInfo() locally to dynamically calculate the exact Lot Size based on the client's live balance, leverage, and specific broker MODE_LOTSTEP.
+Point 3 & 11 (Full Lifecycle Payload): Our JSON payload will be expanded from a simple "Alert" to an actionable command stream (e.g., ACTION: MOVE_TO_ BREAKEVEN).
+
+2. Prerequisites for Development (Action Items Required)
+Before we start coding the API endpoints and the MT4 EA, we need to finalize the development environment. Please provide the following:
+
+1. A Sandbox Demo Account: We need an MT4 Demo Account (preferably on the broker you intend to use most, e.g., IC Markets or Pepperstone) loaded with realistic funds. We will use this account to live-test the execution latency, slippage boundaries, and error logging (e.g., simulated re-quotes).
+
+Please provide: Account Number, Master Password, and strict Server Name.
+2. The MQL4 Developer Resource: Your architecture requires a deeply integrated Expert Advisor (EA).
+
+Does your team have an in-house MQL4 developer to build the EA side while we build the Python API side?
+If not, would you like us to source an MQL4 specialist to write the .ex4 file based on our API payload specification?
+
+
+3. VPS & Network Authorization: During development, the EA will need to rapidly poll or receive webhooks from our Railway server. You will need a standard Windows VPS where the EA can run 24/7 to catch and execute our API logic.
+
+Once we have the Demo Account and clarity on the MQL4 EA development, we will build out the API endpoints (Payload Generator, UUID Tracker, and the Error Logging Database) immediately.
+

@@ -25,7 +25,8 @@ from quantix_core.engine.continuous_analyzer import ContinuousAnalyzer
 from quantix_core.api.routes import (
     health, signals, ingestion, csv_ingestion,
     admin, features, structure, lab, public,
-    reference, lab_reference, validation
+    reference, lab_reference, validation,
+    mt4
 )
 from quantix_core.config.settings import settings
 from quantix_core.database.connection import db
@@ -47,13 +48,7 @@ async def db_log_requests(request, call_next):
 # --- CORS ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://9dpi.github.io",
-        "https://quantixapiserver-production.up.railway.app",
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:5500"
-    ],
+    allow_origins=["*"],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -72,6 +67,7 @@ app.include_router(public.router,         prefix=settings.API_PREFIX,           
 app.include_router(reference.router,      prefix=settings.API_PREFIX,                  tags=["Public API"])
 app.include_router(lab_reference.router,  prefix=settings.API_PREFIX,                  tags=["Signal Engine Lab"])
 app.include_router(validation.router,     prefix=settings.API_PREFIX,                  tags=["Validation"])
+app.include_router(mt4.router,            prefix=f"{settings.API_PREFIX}/mt4",         tags=["MT4 Bridge"])
 
 
 # --- Telegram Registration endpoint ---

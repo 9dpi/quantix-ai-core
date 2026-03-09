@@ -4,6 +4,7 @@ from typing import Optional, List
 from loguru import logger
 from datetime import datetime, timezone
 import json
+import os
 
 from quantix_core.database.connection import db
 from quantix_core.config.settings import settings

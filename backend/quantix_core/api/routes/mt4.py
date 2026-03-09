@@ -51,7 +51,7 @@ async def get_pending_signals(authorized: bool = Depends(verify_token)):
         # We query for WAITING_FOR_ENTRY or ENTRY_HIT to ensure MT4 gets the latest actionable setups
         res = db.client.table("fx_signals")\
             .select("*")\
-            .in_("state", ["WAITING_FOR_ENTRY", "ENTRY_HIT"])\
+            .in_("status", ["WAITING_FOR_ENTRY", "ENTRY_HIT"])\
             .order("generated_at", desc=True)\
             .limit(5)\
             .execute()

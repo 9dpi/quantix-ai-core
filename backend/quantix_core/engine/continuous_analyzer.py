@@ -496,11 +496,11 @@ class ContinuousAnalyzer:
                     signal_base["status"] = "PUBLISHED"
                     
                     if signal_base.get("is_market_entry"):
-                        signal_base["state"] = "ENTRY_HIT"
+                        signal_base["status"] = "ENTRY_HIT"
                         signal_base["entry_hit_at"] = now.isoformat()
                         logger.success("🚀 MARKET EXECUTION: Signal born in ENTRY_HIT state")
                     else:
-                        signal_base["state"] = "WAITING_FOR_ENTRY"
+                        signal_base["status"] = "WAITING_FOR_ENTRY"
                     
                     # 3. DB COMMIT (Single Phase)
                     signal_id = self.lock_signal(signal_base)
@@ -687,7 +687,7 @@ class ContinuousAnalyzer:
             now = datetime.now(timezone.utc)
             # 1. Fetch active signals
             res = db.client.table(settings.TABLE_SIGNALS).select("*").in_(
-                "state", ["WAITING_FOR_ENTRY", "ENTRY_HIT"]
+                "status", ["WAITING_FOR_ENTRY", "ENTRY_HIT"]
             ).execute()
             signals = res.data or []
             

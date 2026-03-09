@@ -232,8 +232,8 @@ class SupabaseConnection:
                 
                 data = res.data
                 total = len(data)
-                wins = len([s for s in data if s.get("state") == "TP_HIT"])
-                losses = len([s for s in data if s.get("state") == "SL_HIT"])
+                wins = len([s for s in data if s.get("status") == "TP_HIT"])
+                losses = len([s for s in data if s.get("status") == "SL_HIT"])
                 confidences = [s.get("ai_confidence", 0) for s in data if s.get("ai_confidence") is not None]
                 avg_conf = sum(confidences) / len(confidences) if confidences else 0
                 peak_conf = max(confidences) if confidences else 0
@@ -243,8 +243,8 @@ class SupabaseConnection:
                 sell_sigs = [s for s in data if s.get("direction") == "SELL"]
                 
                 details = {
-                    "BUY": {"wins": len([s for s in buy_sigs if s.get("state") == "TP_HIT"]), "total": len(buy_sigs)},
-                    "SELL": {"wins": len([s for s in sell_sigs if s.get("state") == "TP_HIT"]), "total": len(sell_sigs)},
+                    "BUY": {"wins": len([s for s in buy_sigs if s.get("status") == "TP_HIT"]), "total": len(buy_sigs)},
+                    "SELL": {"wins": len([s for s in sell_sigs if s.get("status") == "TP_HIT"]), "total": len(sell_sigs)},
                     "HOLD": {"wins": 0, "total": 0} # Hold is not usually in fx_signals state
                 }
 

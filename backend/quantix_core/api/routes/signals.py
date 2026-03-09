@@ -102,8 +102,8 @@ async def list_signals(
             params["asset"] = asset
         
         if state:
-            conditions.append("state = :state")
-            params["state"] = state
+            conditions.append("status = :status")
+            params["status"] = state
 
         query += " WHERE " + " AND ".join(conditions)
 
@@ -125,11 +125,11 @@ async def get_latest_unified():
     """
     try:
         # 1. Fetch Active
-        active_query = "SELECT * FROM fx_signals WHERE state IN ('WAITING_FOR_ENTRY', 'ENTRY_HIT') AND telegram_message_id IS NOT NULL ORDER BY generated_at DESC LIMIT 1"
+        active_query = "SELECT * FROM fx_signals WHERE status IN ('WAITING_FOR_ENTRY', 'ENTRY_HIT') AND telegram_message_id IS NOT NULL ORDER BY generated_at DESC LIMIT 1"
         active_res = await db.fetch(active_query)
         
         # 2. Fetch History
-        hist_query = "SELECT * FROM fx_signals WHERE state NOT IN ('WAITING_FOR_ENTRY', 'ENTRY_HIT') AND telegram_message_id IS NOT NULL ORDER BY generated_at DESC LIMIT 50"
+        hist_query = "SELECT * FROM fx_signals WHERE status NOT IN ('WAITING_FOR_ENTRY', 'ENTRY_HIT') AND telegram_message_id IS NOT NULL ORDER BY generated_at DESC LIMIT 50"
         hist_res = await db.fetch(hist_query)
         
         return {
@@ -147,7 +147,7 @@ async def get_active_signals():
     Fetch all currently active internal signals from Supabase
     """
     try:
-        query = "SELECT * FROM fx_signals WHERE state IN ('WAITING_FOR_ENTRY', 'ENTRY_HIT') AND telegram_message_id IS NOT NULL ORDER BY generated_at DESC"
+        query = "SELECT * FROM fx_signals WHERE status IN ('WAITING_FOR_ENTRY', 'ENTRY_HIT') AND telegram_message_id IS NOT NULL ORDER BY generated_at DESC"
         results = await db.fetch(query)
         return results
     except Exception as e:

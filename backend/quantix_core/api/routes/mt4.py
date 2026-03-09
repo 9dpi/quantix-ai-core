@@ -25,8 +25,7 @@ async def get_pending_signals(authorized: bool = Depends(verify_token)):
     try:
         # --- PHASE 5 TEST MOCK ---
         # Temporarily return a mock signal to test PARTIAL_CLOSE
-        import os
-        if os.path.exists("d:/Automator_Prj/Quantix_AI_Core/backend/ENABLE_MOCK.txt"):
+        if os.path.exists("./ENABLE_MOCK.txt"):
             return {
                 "success": True,
                 "count": 1,

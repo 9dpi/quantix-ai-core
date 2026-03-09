@@ -129,28 +129,33 @@ async def process_mt4_callback(payload: MT4Callback, authorized: bool = Depends(
     try:
         logger.info(f"MT4 Callback Received: {payload.dict()}")
         
+        callback_data = payload.dict()
+        callback_data["created_at"] = datetime.now(timezone.utc).isoformat()
+        
+        # Unified Telemetry Entry
         log_entry = {
-            "signal_id": payload.signal_id,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "asset": "MT4_CALLBACK",
+            "price": payload.executed_price if payload.executed_price else 0.0,
+            "direction": json.dumps(callback_data),
+            "confidence": 1.0,
             "status": payload.status,
-            "ticket": payload.ticket,
-            "error_code": payload.error_code,
-            "error_message": payload.error_message,
-            "executed_price": payload.executed_price,
-            "executed_lots": payload.executed_lots,
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "strength": payload.executed_lots if payload.executed_lots else 0.0
         }
         
-        # Append to local file or DB table
+        # 1. Insert into Supabase (Primary)
         try:
-            db.client.table("fx_execution_errors").insert(log_entry).execute()
+            db.client.table("fx_analysis_log").insert(log_entry).execute()
         except Exception as e:
-            logger.warning(f"Could not insert into fx_execution_errors. Ensure table exists. Error: {e}")
+            logger.warning(f"Could not insert callback into fx_analysis_log: {e}")
             
-        import json
-        import os
-        log_file = "d:/Automator_Prj/Quantix_AI_Core/logs/fx_execution_errors.json"
+        # 2. Local Fallback (Relative path for Cloud compatibility)
+        log_dir = "./logs"
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir, exist_ok=True)
+            
+        log_file = os.path.join(log_dir, "mt4_executions.json")
         
-        # Temporary local file backend for dashboard Phase 4 tests
         logs = []
         if os.path.exists(log_file):
             try:
@@ -161,8 +166,7 @@ async def process_mt4_callback(payload: MT4Callback, authorized: bool = Depends(
             except:
                 pass
         
-        logs.insert(0, log_entry)
-        # Keep last 100
+        logs.insert(0, callback_data)
         logs = logs[:100]
         
         with open(log_file, "w") as f:
@@ -176,8 +180,29 @@ async def process_mt4_callback(payload: MT4Callback, authorized: bool = Depends(
 @router.get("/executions")
 async def get_mt4_executions():
     """Fetch recent MT4 execution raw logs for the dashboard"""
-    import os, json
-    log_file = "d:/Automator_Prj/Quantix_AI_Core/logs/fx_execution_errors.json"
+    # 1. Try Supabase first (Cloud Native)
+    try:
+        res = db.client.table("fx_analysis_log")\
+            .select("*")\
+            .eq("asset", "MT4_CALLBACK")\
+            .order("timestamp", desc=True)\
+            .limit(50)\
+            .execute()
+        
+        if res.data:
+            refined_logs = []
+            for entry in res.data:
+                try:
+                    raw_data = json.loads(entry["direction"])
+                    refined_logs.append(raw_data)
+                except:
+                    pass
+            return {"success": True, "executions": refined_logs}
+    except Exception as e:
+        logger.warning(f"Supabase execution fetch failed: {e}")
+
+    # 2. Fallback to Local Log
+    log_file = "./logs/mt4_executions.json"
     if os.path.exists(log_file):
         try:
             with open(log_file, "r") as f:

@@ -1,4 +1,4 @@
-# Quantix AI Master DNA (v4.1.4)
+# Quantix AI Master DNA (v4.1.7)
 
 ## 1. Overall Architecture
 - **Cloud Core (Railway)**: 
@@ -30,10 +30,11 @@
 - **`MT4 Bridge`**: `mt4.py` route handles polling (max_spread: 3.0, slippage: 5.0).
 - **`Janitor`**: Self-cleans pipeline every 150m (ACTIVE) or 35m (WAITING).
 
-## 5. Standard Operating Values
-- **TP/SL**: Fixed **7.0 pips (TP)** / **12.0 pips (SL)** for institutional consistency.
+## 5. Standard Operating Values (v4.1.7 Aggressive)
+- **TP/SL**: Fixed **7.0 pips (TP)** / **7.0 pips (SL)** for aggressive scalping.
+- **Risk**: **2.0% of Account Balance** (Dynamic scaling enabled).
 - **Confidence Threshold**: 75% (Min Release).
-- **Max Lots**: 0.20 (Safety Cap).
+- **Hard Max Lot Cap**: 5.0 (Global safety guard).
 
 ## 6. Next Steps
 1. **Execution Audit**: Monitor MT4 callbacks for the next high-momentum move.

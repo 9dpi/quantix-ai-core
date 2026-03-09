@@ -94,11 +94,11 @@ async def get_pending_signals(authorized: bool = Depends(verify_token)):
                     "close_lots": meta.get("close_lots", 0.0) if sig.get("asset") != "TEST_PARTIAL" else 0.05,
                     "symbol": sig.get("asset", "EURUSD"),
                     "order_type": sig.get("direction", "SELL"),
-                    "risk_usd": getattr(settings, "RISK_PER_TRADE_USD", 50.0),
+                    "risk_usd": getattr(settings, "RISK_USD_PER_TRADE", 50.0),
                     "sl_price": sig.get("sl"),
                     "tp_price": sig.get("tp"),
-                    "max_slippage_pips": 2.0,
-                    "max_spread_pips": 1.5,
+                    "max_slippage_pips": 5.0,
+                    "max_spread_pips": 3.0,
                     "magic_number": 900900
                 }
                 mt4_payloads.append(payload)

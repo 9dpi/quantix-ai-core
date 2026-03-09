@@ -1,9 +1,9 @@
-# Quantix AI Master DNA (v4.1.3)
+# Quantix AI Master DNA (v4.1.4)
 
 ## 1. Overall Architecture
 - **Cloud Core (Railway)**: 
     - `API`: FastAPI (Supabase backend) serving signals to local bridge.
-    - `Analyzer`: Continuous market scanning (TwelveData/Binance fallback).
+    - `Analyzer`: Continuous market scanning (Binance primary / TwelveData fallback).
     - `Validator`: Real-time setup verification (Pepperstone data).
 - **Local Bridge (Windows PC)**:
     - `auto_executor.py`: Polls Cloud API every 1s and triggers MT4.
@@ -11,32 +11,30 @@
     - `Signal_Genius.mq4`: Executes trades on MetaTrader 4.
 - **Safety Layer**:
     - `Watchdog`: Monitors heartbeats of all services.
-    - `Janitor`: Auto-cleans "stuck" signals if services stall.
+    - `Janitor`: Integrated into Analyzer loop for proactive signal cleanup.
 
 ## 2. Current Status
-- [x] **Consolidated Infrastructure**: All cloud services merged into `start_railway_consolidated.py` (saves ~60% cost).
-- [x] **Precision Logic**: Fixed 0-pip SL bug by implementing distance-locked rounding.
-- [x] **Watchdog Fix**: Corrected false "119-minute" alerts.
-- [x] **EA v1.1.1**: Added robust lot volume protection (Error 131 fix) and minified JSON parsing.
-- [ ] **Bugs/Issues**: None pending. 3 problematic SL signals hidden via `HIDDEN_DEBUG` status.
+- [x] **Infrastructure**: Consolidated `start_railway_consolidated.py` successfully (Source priority: Binance).
+- [x] **Signal Lifecycle**: Fixed DB constraint `chk_state_valid` by standardizing states (ENTRY_HIT for live signals).
+- [x] **MT4 Optimization**: Relaxed execution parameters (Spread: 3.0p, Slippage: 5.0p) and dynamic `strategy_id` matching.
+- [x] **Unlimited Flow**: Removed "1 signal per day" restriction (MAX_SIGNALS_PER_DAY: 9999).
+- [x] **Resource Cleanup**: Janitor integrated into cycle for automatic stall prevention.
 
 ## 3. Tech Stack & Conventions
-- **Languages**: Python 3.10+ (Backend), MQL4 (MT4 EA), HTML/CSS/JS (Vanilla, Premium dark-theme).
-- **DB**: Supabase (PostgreSQL). Critical column: `status` (standardized).
-- **Style**: Loguru for logging, Pydantic for settings, Functional/Procedural hybrids for engine logic.
-- **Folder Root**: `d:/Automator_Prj/Quantix_AI_Core/backend` (Main code).
+- **Languages**: Python 3.10+ (Backend), MQL4 (MT4 EA), Vanilla JS Dashboard.
+- **DB**: Supabase (PostgreSQL). States: `ENTRY_HIT`, `TP_HIT`, `SL_HIT`, `CANCELLED`.
+- **Style**: Loguru + Pydantic. Root: `d:/Automator_Prj/Quantix_AI_Core/backend`.
 
 ## 4. Core Logic / Classes
-- **`ContinuousAnalyzer`**: `run_cycle()` in `continuous_analyzer.py` - The brain that generates signals.
-- **`SignalEvaluator`**: Logic that checks confidence thresholds (>75%).
-- **`Janitor.run_sync()`**: Emergency cleanup of active DB signals.
-- **`db.client`**: Shared Supabase client in `database/connection.py`.
+- **`ContinuousAnalyzer`**: Market execution for all signals >75% confidence.
+- **`MT4 Bridge`**: `mt4.py` route handles polling (max_spread: 3.0, slippage: 5.0).
+- **`Janitor`**: Self-cleans pipeline every 150m (ACTIVE) or 35m (WAITING).
 
 ## 5. Standard Operating Values
-- **TP/SL**: Fixed at **7 pips (TP)** / **12 pips (SL)**.
-- **Heartbeat**: Every cycle (~5 mins) to `HEARTBEAT` asset.
-- **Confidence Threshold**: 77% (Global safety filter).
+- **TP/SL**: Fixed **7.0 pips (TP)** / **12.0 pips (SL)** for institutional consistency.
+- **Confidence Threshold**: 75% (Min Release).
+- **Max Lots**: 0.20 (Safety Cap).
 
 ## 6. Next Steps
-1. **Monitor Flow**: Watch the consolidated container logs on Railway for the next high-confidence signal.
-2. **Sync Verification**: Ensure the local bridge picks up the next `PUBLISHED` signal and MT4 executes it without Error 131.
+1. **Execution Audit**: Monitor MT4 callbacks for the next high-momentum move.
+2. **Volatility Guard**: Watch for "Volatility Spike" rejections (>2.5x ATR) during news events.

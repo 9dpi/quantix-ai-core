@@ -615,6 +615,16 @@ class ContinuousAnalyzer:
                 except: pass
             else:
                 logger.info(f"🏥 Watchdog: Watcher is HEALTHY ({stale_min:.0f}m)")
+                # 🛡️ Update WATCHDOG_ALERT to OK to clear any stale FAILs in dashboard
+                try:
+                    db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
+                        "timestamp": now.isoformat(),
+                        "asset": "WATCHDOG_ALERT",
+                        "direction": "SYSTEM",
+                        "status": "WATCHER_OK",
+                        "confidence": 1.0, "strength": 1.0, "price": 0.0
+                    }).execute()
+                except: pass
                 
         except Exception as e:
             logger.error(f"Watchdog health check failed: {e}")
@@ -674,6 +684,7 @@ class ContinuousAnalyzer:
         Uses multi-candle detection (5 candles) for better accuracy.
         """
         try:
+            now = datetime.now(timezone.utc)
             # 1. Fetch active signals
             res = db.client.table(settings.TABLE_SIGNALS).select("*").in_(
                 "state", ["WAITING_FOR_ENTRY", "ENTRY_HIT"]
@@ -877,7 +888,7 @@ class ContinuousAnalyzer:
             try:
                 db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
                     "timestamp": now.isoformat(),
-                    "asset": "HEARTBEAT",
+                    "asset": "HEARTBEAT_WATCHER",
                     "direction": "SYSTEM",
                     "status": f"EMBEDDED_WATCHER_OK (Watching: {len(signals)})",
                     "confidence": 1.0, "strength": 1.0, "price": 0.0
@@ -935,12 +946,36 @@ class ContinuousAnalyzer:
             except Exception as e:
                 logger.error(f"Embedded Watcher error: {e}")
 
-            # 🆕 ADMIN BOT: Process Telegram commands
-            if self.notifier:
-                try:
-                    self.notifier.handle_commands(self)
-                except Exception as e:
-                    logger.error(f"Telegram command handler error: {e}")
+        # 🆕 ADMIN BOT: Start Telegram Command Listener in background thread
+        if self.notifier:
+            import threading
+            def _listen_loop():
+                while True:
+                    try:
+                        self.notifier.handle_commands(self)
+                    except Exception as e:
+                        logger.error(f"Telegram command handler error: {e}")
+                    time.sleep(3)
+            
+            cmd_thread = threading.Thread(target=_listen_loop, daemon=True)
+            cmd_thread.start()
+            logger.info("🤖 Telegram command listener started in background")
+        
+        while True:
+            try:
+                logger.info("🎬 Starting new analysis cycle...")
+                self.run_cycle()
+            except Exception as e:
+                error_msg = str(e)
+                logger.error(f"Cycle error: {error_msg}")
+                if "API_BLOCKED" in error_msg and self.notifier:
+                    self.notifier.send_critical_alert(f"TwelveData API Blocked: {error_msg}")
+            
+            # 🆕 EMBEDDED WATCHER: Check active signals after every cycle
+            try:
+                self._embedded_watcher_check()
+            except Exception as e:
+                logger.error(f"Embedded Watcher error: {e}")
             
             time.sleep(interval)
 

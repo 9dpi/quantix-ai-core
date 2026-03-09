@@ -16,14 +16,10 @@ if exist .venv\Scripts\activate.bat (
     exit
 )
 
-echo   [2] Starting SIGNAL WATCHER (The Goalkeeper)...
-start "Quantix Watcher (Do Not Close)" cmd /k "color 0B && title Quantix Watcher && echo Starting Watcher... && python run_signal_watcher.py"
-
-echo   [3] Waiting 3 seconds...
-timeout /t 3 /nobreak >nul
-
-echo   [4] Starting CONTINUOUS ANALYZER (The Striker)...
-start "Quantix Analyzer (Do Not Close)" cmd /k "color 0E && title Quantix Analyzer && echo Starting Live Analyzer... && python -m quantix_core.engine.continuous_analyzer"
+echo   [2] Starting CONTINUOUS ANALYZER (The Master)...
+echo   (Auto-Restart Launcher + Embedded Watcher)
+set PYTHONPATH=backend
+start "Quantix Analyzer (Do Not Close)" cmd /k "color 0E && title Quantix Analyzer && echo Starting Live Analyzer Launcher... && python ..\start_railway_analyzer.py"
 
 echo.
 echo ===============================================================================

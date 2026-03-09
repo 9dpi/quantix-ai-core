@@ -19,14 +19,12 @@ class ContinuousAnalyzer:
     """
     Quantix AI Core Heartbeat [T0 + Δ]
     Runs every few seconds to detect the highest-confidence moment.
-    Implements Frequency Rule: Max 1 signal per day.
     """
     
     def __init__(self):
         self.td_client = TwelveDataClient(api_key=settings.TWELVE_DATA_API_KEY)
         self.binance = BinanceFeed()
         self.engine = StructureEngineV1(sensitivity=2)
-        self.last_execution_date = None
         self.cycle_count = 0
         self.last_pushed_at = None # For Telegram Cooldown
         self.refiner = ConfidenceRefiner()
@@ -83,19 +81,6 @@ class ContinuousAnalyzer:
         
         return df
 
-    def get_published_count_today(self) -> int:
-        """Get number of PUBLISHED signals today from DB"""
-        today = datetime.now(timezone.utc).date()
-        try:
-            res = db.client.table(settings.TABLE_SIGNALS)\
-                .select("id", count="exact")\
-                .eq("status", "PUBLISHED")\
-                .gte("generated_at", today.isoformat())\
-                .execute()
-            return res.count if res.count is not None else len(res.data)
-        except Exception as e:
-            logger.error(f"Failed to check daily count: {e}")
-            return settings.MAX_SIGNALS_PER_DAY # Safety, assume cap reached
             
     def check_release_gate(self, asset: str, timeframe: str) -> tuple[bool, str]:
         """
@@ -153,7 +138,6 @@ class ContinuousAnalyzer:
             res = db.client.table(settings.TABLE_SIGNALS).insert(db_payload).execute()
             if res.data:
                 logger.info(f"🔒 Signal LOCKED in [T1]: {res.data[0]['id']} | Telegram: {signal_data.get('telegram_message_id', 'None')}")
-                self.last_execution_date = datetime.now(timezone.utc).date()
                 return res.data[0]['id']
         except Exception as e:
             logger.error(f"❌ Failed to LOCK signal in [T1]: {e}")
@@ -198,24 +182,24 @@ class ContinuousAnalyzer:
             # 1. Continuous Feed [T0] - Multi-Source Fallover
             df = pd.DataFrame()
             
-            # --- Source A: TwelveData (Primary) ---
+            # --- Source A: Binance (Primary - Free/Unlimited) ---
             try:
-                raw_data = self.td_client.get_time_series(symbol="EUR/USD", interval="15min", outputsize=100)
-                if raw_data and "values" in raw_data:
+                raw_data = self.binance.get_history(symbol="EURUSD", interval="15m", limit=100)
+                if raw_data:
                     df = self.convert_to_df(raw_data)
-                    logger.info("📡 Data Source: TWELVEDATA")
+                    logger.info("📡 Data Source: BINANCE (Primary)")
             except Exception as e:
-                logger.warning(f"⚠️ TwelveData failed: {e}")
+                logger.warning(f"⚠️ Binance failed: {e}")
 
-            # --- Source B: Binance (Fallback) ---
+            # --- Source B: TwelveData (Fallback - Quota Limited) ---
             if df.empty:
                 try:
-                    raw_data = self.binance.get_history(symbol="EURUSD", interval="15m", limit=100)
-                    if raw_data:
+                    raw_data = self.td_client.get_time_series(symbol="EUR/USD", interval="15min", outputsize=100)
+                    if raw_data and "values" in raw_data:
                         df = self.convert_to_df(raw_data)
-                        logger.info("📡 Data Source: BINANCE (Quota Protected)")
+                        logger.info("📡 Data Source: TWELVEDATA (Fallback)")
                 except Exception as e:
-                    logger.error(f"⚠️ Binance fallback failed: {e}")
+                    logger.error(f"⚠️ TwelveData fallback failed: {e}")
 
             if df.empty:
                 logger.error("❌ CRITICAL: All data sources failed. Skipping cycle.")
@@ -494,12 +478,15 @@ class ContinuousAnalyzer:
                     
                     # Update to LIVE status immediately
                     signal_base["status"] = "PUBLISHED"
+                    signal_base["state"] = "PUBLISHED"
                     
                     if signal_base.get("is_market_entry"):
+                        signal_base["state"] = "ENTRY_HIT"
                         signal_base["status"] = "ENTRY_HIT"
                         signal_base["entry_hit_at"] = now.isoformat()
                         logger.success("🚀 MARKET EXECUTION: Signal born in ENTRY_HIT state")
                     else:
+                        signal_base["state"] = "WAITING_FOR_ENTRY"
                         signal_base["status"] = "WAITING_FOR_ENTRY"
                     
                     # 3. DB COMMIT (Single Phase)
@@ -942,8 +929,10 @@ class ContinuousAnalyzer:
             # 🆕 EMBEDDED WATCHER: Check active signals after every cycle
             try:
                 self._embedded_watcher_check()
+                # 🧹 REDUNDANT SAFETY: Run Janitor to clear stuck signals
+                Janitor.run_sync()
             except Exception as e:
-                logger.error(f"Embedded Watcher error: {e}")
+                logger.error(f"Embedded Watcher / Janitor error: {e}")
 
         # 🆕 ADMIN BOT: Start Telegram Command Listener in background thread
         if self.notifier:
@@ -973,8 +962,10 @@ class ContinuousAnalyzer:
             # 🆕 EMBEDDED WATCHER: Check active signals after every cycle
             try:
                 self._embedded_watcher_check()
+                # 🧹 REDUNDANT SAFETY: Run Janitor
+                Janitor.run_sync()
             except Exception as e:
-                logger.error(f"Embedded Watcher error: {e}")
+                logger.error(f"Embedded Watcher / Janitor error: {e}")
             
             time.sleep(interval)
 

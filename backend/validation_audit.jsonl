@@ -711,3 +711,6 @@
 2026-02-24 14:52:49 | INFO | Validating 1 active signal(s) via binance_proxy
 2026-02-24 14:53:50 | INFO | Validating 1 active signal(s) via binance_proxy
 2026-02-24 15:54:50 | INFO | Validating 1 active signal(s) via binance_proxy
+2026-03-09 20:13:00 | INFO | 🔍 PepperstoneValidator ready [feed=binance_proxy, spread_buffer=0.00003]
+2026-03-09 20:13:00 | SUCCESS | ✅ Feed 'binance_proxy' connected successfully.
+2026-03-09 20:13:00 | INFO | 🚀 Validation Layer started [Independent Observer Mode]

@@ -18,9 +18,10 @@ def analyze_heartbeat(push_to_git=False):
     # 1. Primary Source: Supabase [T1] (Persistent / Cloud)
     try:
         if db.client:
-            res = db.client.table(settings.TABLE_ANALYSIS_LOG).select("*").order("timestamp", desc=False).execute()
+            # Optimize: Only fetch last 200 records to calculate performance
+            res = db.client.table(settings.TABLE_ANALYSIS_LOG).select("*").order("timestamp", desc=True).limit(200).execute()
             if res.data:
-                history = res.data
+                history = sorted(res.data, key=lambda x: x["timestamp"]) # Sort back to ascending for rolling logic
                 print(f"📊 Using Cloud Intelligence ({len(history)} samples from Supabase)")
     except Exception as e:
         print(f"⚠️ Supabase fetch failed, falling back to local: {e}")

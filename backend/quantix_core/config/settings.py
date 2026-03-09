@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     # Trading Rules
     MIN_RR: float = 1.0  # Allow 1:1 RR
     MIN_CONFIDENCE: float = 0.75
-    MAX_SIGNALS_PER_ASSET: int = 3
+    MAX_SIGNALS_PER_ASSET: int = 9999
     MAX_PENDING_DURATION_MINUTES: int = 35  # Entry window before auto-cancel
     MAX_TRADE_DURATION_MINUTES: int = 150   # v3.8: Adjusted from 180m to 150m per institutional audit
     MAX_LOT_SIZE_CAP: float = 0.20          # 🛡️ Safety Cap for 1:30 leverage accounts (£1000 balance)

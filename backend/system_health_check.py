@@ -47,14 +47,33 @@ def check_analysis():
         print(f"❌ Analysis log check failed: {e}")
 
 def check_quota():
-    print("\n--- 📊 TwelveData Usage ---")
+    print("\n--- 📊 Data Source & Quota Usage ---")
     try:
         today = datetime.now(timezone.utc).date().isoformat()
-        res = db.client.table("fx_analysis_log").select("*", count="exact").eq("status", "ANALYZED").gte("timestamp", today).execute()
-        count = res.count or 0
-        print(f"Estimated Usage Today: {count} / 800 credits")
-        if count > 700:
-            print("⚠️ WARNING: Approaching daily credit limit!")
+        # Query logs for today
+        res = db.client.table("fx_analysis_log").select("status, status").eq("status", "ANALYZED").gte("timestamp", today).execute()
+        logs = res.data or []
+        count = len(logs)
+        
+        print(f"Total Analysis Cycles Today: {count}")
+        print(f"Primary Source: BINANCE (Free/Unlimited)")
+        print(f"Fallback Source: TWELVEDATA (Quota Protected)")
+        
+        # TwelveData credit tracking (only if fallback was hit)
+        # Note: In current implementation, if Binance is Primary, credits are only used if Binance fails.
+        print(f"Estimated TwelveData usage: {count} / 800 credits (Max possible if fallback hit)")
+        
+        if count > 750:
+             print("⚠️ NOTE: If TwelveData was used as fallback, it may be near limit.")
+        
+        print("\n[Current System Status]")
+        try:
+            res_latest = db.client.table("fx_analysis_log").select("*").eq("asset", "HEARTBEAT_ANALYZER").order("timestamp", desc=True).limit(1).execute()
+            if res_latest.data:
+                latest = res_latest.data[0]
+                print(f"Last Heartbeat: {latest['timestamp'][:19]} | {latest['status']}")
+        except: pass
+            
     except Exception as e:
         print(f"❌ Quota check failed: {e}")
 

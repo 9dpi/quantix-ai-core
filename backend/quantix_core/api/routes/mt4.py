@@ -105,6 +105,9 @@ async def get_pending_signals(authorized: bool = Depends(verify_token)):
             except Exception as e:
                 logger.error(f"Error parsing MT4 payload for {sig.get('id')}: {e}")
                 
+        if mt4_payloads:
+            logger.info(f"📤 Sending {len(mt4_payloads)} signals to MT4: {[p['signal_id'][:8] for p in mt4_payloads]}")
+        
         return {
             "success": True,
             "count": len(mt4_payloads),
@@ -117,9 +120,9 @@ async def get_pending_signals(authorized: bool = Depends(verify_token)):
 class MT4Callback(BaseModel):
     signal_id: str
     status: str
-    ticket: Optional[int] = None
+    ticket_id: Optional[str] = None
+    error_msg: Optional[str] = None
     error_code: Optional[int] = None
-    error_message: Optional[str] = None
     executed_price: Optional[float] = None
     executed_lots: Optional[float] = None
 

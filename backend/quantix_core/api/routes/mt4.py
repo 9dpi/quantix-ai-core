@@ -88,9 +88,9 @@ async def get_pending_signals(authorized: bool = Depends(verify_token)):
 
                 payload = {
                     "signal_id": str(signal_id),
-                    "strategy_id": sig.get("strategy", "Quantix_v4_SMC"),
+                    "strategy_id": "Quantix_v4_SMC",
                     "timestamp": sig.get("generated_at"),
-                    "action": meta.get("action", "EXECUTE_MARKET") if sig.get("asset") != "TEST_PARTIAL" else "PARTIAL_CLOSE",
+                    "action": "EXECUTE_MARKET" if sig.get("status") == "ENTRY_HIT" else meta.get("action", "EXECUTE_MARKET"),
                     "close_lots": meta.get("close_lots", 0.0) if sig.get("asset") != "TEST_PARTIAL" else 0.05,
                     "symbol": sig.get("asset", "EURUSD"),
                     "order_type": sig.get("direction", "SELL"),

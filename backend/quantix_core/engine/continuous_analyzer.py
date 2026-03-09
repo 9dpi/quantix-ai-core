@@ -181,19 +181,18 @@ class ContinuousAnalyzer:
             self.cycle_count += 1
             logger.info(f"🎬 [v3.5] Starting analysis cycle #{self.cycle_count}...")
             
-            # Log market status to DB every 5 cycles with performance metrics
-            if self.cycle_count % 5 == 0:
-                try:
-                    db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
-                        "asset": "HEARTBEAT",
-                        "direction": "SYSTEM",
-                        "status": f"ALIVE_V3.5_C{self.cycle_count}",
-                        "confidence": 0.0,
-                        "strength": 0.0,
-                        "price": 0.0
-                    }).execute()
-                except: pass
+            # Log market status to DB every cycle with performance metrics
+            try:
+                db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "asset": "HEARTBEAT",
+                    "direction": "SYSTEM",
+                    "status": f"ALIVE_V3.5_C{self.cycle_count}",
+                    "confidence": 0.0,
+                    "strength": 0.0,
+                    "price": 0.0
+                }).execute()
+            except: pass
             
             
             # 1. Continuous Feed [T0] - Multi-Source Fallover
@@ -226,10 +225,10 @@ class ContinuousAnalyzer:
             price = float(df.iloc[-1]["close"])
             latency_ms = int((time.perf_counter() - start_time) * 1000)
 
-            # --- HEARTBEAT LOG ---
+            # 2. Market Analysis (EURUSD Heartbeat)
             heartbeat_entry = {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-                "asset": "EURUSD",
+                "asset": "HEARTBEAT_ANALYZER",
                 "price": price,
                 "direction": "HEARTBEAT",
                 "status": f"V3.5_OK_{latency_ms}ms",
@@ -566,8 +565,7 @@ class ContinuousAnalyzer:
             # Query last Watcher heartbeat
             res = db.client.table(settings.TABLE_ANALYSIS_LOG)\
                 .select("timestamp, status")\
-                .eq("asset", "HEARTBEAT")\
-                .ilike("status", "%WATCHER_%")\
+                .eq("asset", "HEARTBEAT_WATCHER")\
                 .order("timestamp", desc=True)\
                 .limit(1)\
                 .execute()

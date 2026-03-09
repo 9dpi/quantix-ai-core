@@ -139,7 +139,7 @@
     <script>
         async function fetchExecutions() {
             try {
-                const res = await fetch('http://127.0.0.1:8080/api/v1/mt4/executions');
+                const res = await fetch('https://quantixapiserver-production.up.railway.app/api/v1/mt4/executions');
                 const data = await res.json();
 
                 const tableBody = document.getElementById('execution-logs');

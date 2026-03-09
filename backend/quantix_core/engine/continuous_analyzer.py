@@ -399,6 +399,8 @@ class ContinuousAnalyzer:
                     "sl_pips": round(sl_dist * 10000, 1),
                     "rr_ratio": rrr,
                     "strength_label": strength_label,
+                    "max_lot_cap": settings.MAX_LOT_SIZE_CAP, # 🛡️ Institutional Guard Rail
+                    "risk_usd": settings.RISK_USD_PER_TRADE,
                     
                     # WHERE - Market Context
                     "session": session_tag,
@@ -417,9 +419,9 @@ class ContinuousAnalyzer:
                     "why": (
                         f"SMC {state.state.upper()} structure detected on M15. "
                         f"AI confidence {state.confidence:.0%} exceeds {settings.MIN_CONFIDENCE:.0%} threshold. "
-                        f"Session: {session_tag} ({['Asia/Late NY','Asia/Late NY','Asia/Late NY','Asia/Late NY','Asia/Late NY','Asia/Late NY','London','London','London','London','London','London','London','London-NY Overlap','London-NY Overlap','London-NY Overlap','London-NY Overlap','New York','New York','New York','New York','New York','Asia/Late NY','Asia/Late NY'][now.hour]}). "
+                        f"Session: {session_tag}. "
                         f"ATR-based TP: {round(tp_dist*10000,1)} pips, SL: {round(sl_dist*10000,1)} pips. "
-                        f"R:R = 1:{rrr}."
+                        f"Hard Lot Cap applied: {settings.MAX_LOT_SIZE_CAP} for 1:30 leverage accounts."
                     ),
                     
                     # HOW - Market Regime

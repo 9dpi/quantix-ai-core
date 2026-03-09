@@ -47,9 +47,14 @@ async def get_pending_signals(authorized: bool = Depends(verify_token)):
             }
         # -------------------------
         
-        # Fetch signals that are 'ACTIVE' and have not been acknowledged by MT4 yet
-        # For Phase 1, we fetch the latest ACTIVE signals from fx_signals
-        res = db.client.table("fx_signals").select("*").eq("state", "CANCELLED").order("generated_at", desc=True).limit(2).execute()
+        # Fetch signals that are 'ACTIVE' (Waiting for entry or already hit)
+        # We query for WAITING_FOR_ENTRY or ENTRY_HIT to ensure MT4 gets the latest actionable setups
+        res = db.client.table("fx_signals")\
+            .select("*")\
+            .in_("state", ["WAITING_FOR_ENTRY", "ENTRY_HIT"])\
+            .order("generated_at", desc=True)\
+            .limit(5)\
+            .execute()
         
         signals = res.data
         if getattr(res, "data", None) is None and isinstance(res, list): # Fallback for some supabase-py versions

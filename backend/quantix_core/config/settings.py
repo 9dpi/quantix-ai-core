@@ -10,9 +10,9 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables"""
     
     # Application
-    APP_NAME: str = "Quantix AI Core - Forex Signal Intelligence Engine"
+    APP_NAME: str = "Signal Genius AI Core - Forex Signal Intelligence Engine"
     APP_VERSION: str = "1.0.0"
-    MODEL_VERSION: str = "quantix_fx_v1.0"
+    MODEL_VERSION: str = "signal_genius_fx_v1.0"
     DEBUG: bool = False
     INSTANCE_NAME: str = "LOCAL-MACHINE"  # Override via Railway env var INSTANCE_NAME
     
@@ -49,6 +49,8 @@ class Settings(BaseSettings):
     MAX_SIGNALS_PER_ASSET: int = 3
     MAX_PENDING_DURATION_MINUTES: int = 35  # Entry window before auto-cancel
     MAX_TRADE_DURATION_MINUTES: int = 150   # v3.8: Adjusted from 180m to 150m per institutional audit
+    MAX_LOT_SIZE_CAP: float = 0.20          # 🛡️ Safety Cap for 1:30 leverage accounts (£1000 balance)
+    RISK_USD_PER_TRADE: float = 50.0        # Institutional Risk Model base per signal
     
     # 🔒 ANTI-BURST RULES
     MIN_RELEASE_INTERVAL_MINUTES: int = 20  # v3.7: Reduced from 30m to 20m for better signal flow

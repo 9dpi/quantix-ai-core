@@ -317,17 +317,16 @@ class ContinuousAnalyzer:
                     sl_mult = 0.7   # SL = 0.7x ATR (~7-10 pips)
                     session_tag = "LOW"
                 
-                # 💡 SMC-Standard Mode (v4.1)
-                # Ensure SL is always at least 12 pips to avoid "0-pip" rounding issues
-                # and TP is clear 1.5x R:R or 10 pips min
-                sl_pips = max(12.0, (atr * sl_mult * 10000) if 'atr' in locals() else 15.0)
-                tp_pips = sl_pips * 1.5  # Fixed 1.5 R:R
+                # 💡 SMC-Standard Mode (v4.1.1)
+                # Adjusted to User Preference: TP=7p, SL=12p
+                sl_pips = 12.0
+                tp_pips = 7.0
                 
                 # Convert back to price points
                 tp_dist = round(tp_pips * 0.0001, 5)
                 sl_dist = round(sl_pips * 0.0001, 5)
                 
-                logger.info(f"v4.1 R:R: ATR={atr if 'atr' in locals() else 0:.5f} | TP={tp_dist:.5f} ({tp_pips:.1f}p) | SL={sl_dist:.5f} ({sl_pips:.1f}p)")
+                logger.info(f"v4.1.1 R:R (FIXED): ATR={atr if 'atr' in locals() else 0:.5f} | TP={tp_dist:.5f} (7.0p) | SL={sl_dist:.5f} (12.0p)")
             except Exception as e:
                 logger.error(f"ATR failed, using hard safety fallback: {e}")
                 tp_dist = 0.0005

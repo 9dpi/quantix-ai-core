@@ -301,9 +301,9 @@ class ContinuousAnalyzer:
                     session_tag = "LOW"
                 
                 # 💡 SMC-Standard Mode (v4.1.1)
-                # Adjusted to User Preference: TP=7p, SL=12p
-                sl_pips = 12.0
-                tp_pips = 7.0
+                # Adjusted to User Preference: Managed via settings.py (TP=7p, SL=12p)
+                sl_pips = settings.SL_PIPS
+                tp_pips = settings.TP_PIPS
                 
                 # Convert back to price points
                 tp_dist = round(tp_pips * 0.0001, 5)
@@ -311,9 +311,9 @@ class ContinuousAnalyzer:
                 
                 logger.info(f"v4.1.1 R:R (FIXED): ATR={atr if 'atr' in locals() else 0:.5f} | TP={tp_dist:.5f} (7.0p) | SL={sl_dist:.5f} (12.0p)")
             except Exception as e:
-                logger.error(f"ATR failed, using hard safety fallback: {e}")
-                tp_dist = 0.0005
-                sl_dist = 0.0012
+                logger.error(f"ATR failed, using hard safety fallback from settings: {e}")
+                tp_dist = round(settings.TP_PIPS * 0.0001, 5)
+                sl_dist = round(settings.SL_PIPS * 0.0001, 5)
 
             if direction == "BUY":
                 tp = round(entry_price + tp_dist, 5)
@@ -354,6 +354,8 @@ class ContinuousAnalyzer:
                 # TP/SL (calculated from entry, not market)
                 "tp": tp,
                 "sl": sl,
+                "tp_pips": tp_pips,
+                "sl_pips": sl_pips,
                 "reward_risk_ratio": rrr,
                 
                 # Metadata

@@ -56,12 +56,13 @@ async def get_pending_signals(authorized: bool = Depends(verify_token)):
             .limit(5)\
             .execute()
         
-        signals = res.data
-        if getattr(res, "data", None) is None and isinstance(res, list): # Fallback for some supabase-py versions
-             signals = res
-             
+        signals = res.data if hasattr(res, 'data') else res
+        
         if not signals:
+            logger.debug("MT4 Bridge: No pending signals found in DB.")
             return {"success": True, "count": 0, "signals": []}
+        
+        logger.info(f"MT4 Bridge: Found {len(signals)} raw candidate signals.")
             
         mt4_payloads = []
         for sig in signals:

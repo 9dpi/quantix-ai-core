@@ -44,6 +44,8 @@ class Settings(BaseSettings):
     TABLE_ANALYSIS_LOG: str = "fx_analysis_log"
     
     # Trading Rules
+    TP_PIPS: float = 7.0                    # Take Profit in Pips
+    SL_PIPS: float = 7.0                    # Stop Loss in Pips
     MIN_RR: float = 1.0  # Allow 1:1 RR
     MIN_CONFIDENCE: float = 0.75
     MAX_SIGNALS_PER_ASSET: int = 9999

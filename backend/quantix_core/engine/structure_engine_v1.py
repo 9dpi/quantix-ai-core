@@ -14,7 +14,7 @@ from quantix_core.engine.primitives.structure_events import StructureEventDetect
 from quantix_core.engine.primitives.fake_breakout_filter import FakeBreakoutFilter
 from quantix_core.engine.primitives.fvg_detector import FVGDetector
 from quantix_core.engine.primitives.liquidity_filter import LiquidityFilter
-from quantix_core.engine.primitives.evidence_scorer import EvidenceScorer, EvidenceAggregator
+from quantix_core.engine.primitives.evidence_scorer import EvidenceScorer, EvidenceAggregator, EvidenceType, StructureEvidence
 from quantix_core.engine.primitives.state_resolver import StateResolver, StructureState
 from loguru import logger
 
@@ -118,28 +118,33 @@ class StructureEngineV1:
                 evidence = self.scorer.score_event(event, is_fake=True)
                 evidence_list.append(evidence)
 
-            # Add FVG evidence
-            if unfilled_fvgs:
-                high_quality_fvg = any(f.quality > 0.7 for f in unfilled_fvgs)
-                if high_quality_fvg:
-                    # Provide a generic evidence item to boost confidence later
-                    evidence_list.append(self.scorer.score_event(valid_events[0], is_fake=False)) # Temporary hack to boost score
+            # Add FVG evidence (v4.4.1: Formal weighting)
+            if nearest_fvg:
+                fvg_dir = "bullish" if raw_dir == "BUY" else "bearish"
+                evidence_list.append(StructureEvidence(
+                    type=EvidenceType.FVG,
+                    direction=fvg_dir,
+                    strength=nearest_fvg.quality,
+                    quality=nearest_fvg.quality,
+                    description=f"FVG found at {nearest_fvg.midpoint:.5f} (q:{nearest_fvg.quality:.2f})",
+                    details={"midpoint": nearest_fvg.midpoint, "quality": nearest_fvg.quality}
+                ))
+
+            # Add Liquidity Sweep evidence (v4.4.1: Formal weighting)
+            if sweeps:
+                for s in sweeps:
+                    sweep_dir = "bullish" if s.type == "EXTERNAL_BOTTOM" else "bearish"
+                    evidence_list.append(StructureEvidence(
+                        type=EvidenceType.LIQUIDITY_SWEEP,
+                        direction=sweep_dir,
+                        strength=0.8,
+                        quality=0.9,
+                        description=f"LIQUIDITY SWEEP: {s.type} at {s.swept_level:.5f}",
+                        details={"level": s.swept_level, "type": s.type}
+                    ))
 
             # Step 7: Aggregate evidence
             aggregated = self.aggregator.aggregate(evidence_list)
-            
-            # Step 8: Resolve final state
-            # Determine direction to find nearest FVG
-            raw_dir = "BUY" if aggregated['bullish'] > aggregated['bearish'] else "SELL"
-            current_price = float(df['close'].iloc[-1])
-            nearest_fvg = self.fvg_detector.get_nearest_entry_fvg(fvgs, raw_dir, current_price)
-
-            # Add SMC-specific evidence strings
-            if nearest_fvg:
-                aggregated['evidence_items'].append(f"FVG found at {nearest_fvg.midpoint} (q:{nearest_fvg.quality})")
-            if sweeps:
-                for s in sweeps:
-                    aggregated['evidence_items'].append(f"LIQUIDITY SWEEP: {s.type} at {s.swept_level}")
 
             state = self.resolver.resolve_state(
                 bullish_score=aggregated['bullish'],

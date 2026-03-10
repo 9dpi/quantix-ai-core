@@ -20,6 +20,8 @@ class EvidenceType(str, Enum):
     SWING_BREAK = "SWING_BREAK"
     FAKEOUT_REJECTED = "FAKEOUT_REJECTED"
     SWING_CONTINUATION = "SWING_CONTINUATION"
+    FVG = "FVG"
+    LIQUIDITY_SWEEP = "LIQUIDITY_SWEEP"
 
 
 @dataclass
@@ -50,7 +52,9 @@ class EvidenceScorer:
         EvidenceType.CHOCH: 0.5,  # Reversal signal
         EvidenceType.SWING_BREAK: 0.4,  # Moderate signal
         EvidenceType.SWING_CONTINUATION: 0.3,  # Weak confirmation
-        EvidenceType.FAKEOUT_REJECTED: -0.4  # Negative evidence
+        EvidenceType.FAKEOUT_REJECTED: -0.4, # Negative evidence
+        EvidenceType.FVG: 0.35,              # v4.4.1: Structural gap presence
+        EvidenceType.LIQUIDITY_SWEEP: 0.45   # v4.4.1: Deep liquidity grab
     }
     
     def score_event(self, event: StructureEvent, is_fake: bool = False) -> StructureEvidence:

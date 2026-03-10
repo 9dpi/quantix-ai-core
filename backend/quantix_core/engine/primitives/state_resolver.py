@@ -44,11 +44,11 @@ class StateResolver:
     """
     
     def __init__(self):
-        # Minimum total score to have any opinion
-        self.min_total_score = 0.3
+        # Minimum total score to have any opinion (v4.4.1: Higher bar)
+        self.min_total_score = 0.45
         
-        # Dominance ratio for clear state (2:1 ratio)
-        self.clear_dominance_ratio = 2.0
+        # Dominance ratio for clear state (v4.4.1: Raised from 2.0 to 2.5)
+        self.clear_dominance_ratio = 2.5
     
     def resolve_state(
         self,

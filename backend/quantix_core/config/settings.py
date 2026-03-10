@@ -47,7 +47,7 @@ class Settings(BaseSettings):
     TP_PIPS: float = 7.0                    # Take Profit in Pips
     SL_PIPS: float = 12.0                   # v4.2.1: Changed from 7.0 to 12.0
     MIN_RR: float = 0.5  # v4.2.1: Adjusted from 1.0 to 0.5 to allow SL > TP
-    MIN_CONFIDENCE: float = 0.75
+    MIN_CONFIDENCE: float = 0.85            # v4.4.0: Raised from 0.75 for stricter filtering
     MAX_SIGNALS_PER_ASSET: int = 9999
     MAX_PENDING_DURATION_MINUTES: int = 35  # Entry window before auto-cancel
     MAX_TRADE_DURATION_MINUTES: int = 150   # v3.8: Adjusted from 180m to 150m per institutional audit
@@ -55,8 +55,8 @@ class Settings(BaseSettings):
     RISK_USD_PER_TRADE: float = 50.0        # Institutional Risk Model base per signal
     
     # 🔒 ANTI-BURST RULES
-    MIN_RELEASE_INTERVAL_MINUTES: int = 20  # v3.7: Reduced from 30m to 20m for better signal flow
-    MAX_SIGNALS_PER_DAY: int = 9999  # Effectively disabled to allow natural flow
+    MIN_RELEASE_INTERVAL_MINUTES: int = 45  # v4.4.0: Increased from 20m to prevent overtrading
+    MAX_SIGNALS_PER_DAY: int = 8            # v4.4.0: Safety cap to control exposure
     HEALTH_REPORT_INTERVAL_MINUTES: int = 120 # v4.2.0: Automated health checks
     
     # Session Times (UTC)

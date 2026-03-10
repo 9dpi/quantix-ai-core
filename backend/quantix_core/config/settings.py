@@ -44,10 +44,10 @@ class Settings(BaseSettings):
     TABLE_ANALYSIS_LOG: str = "fx_analysis_log"
     
     # Trading Rules
-    TP_PIPS: float = 7.0                    # Take Profit in Pips
-    SL_PIPS: float = 12.0                   # v4.2.1: Changed from 7.0 to 12.0
-    MIN_RR: float = 0.5  # v4.2.1: Adjusted from 1.0 to 0.5 to allow SL > TP
-    MIN_CONFIDENCE: float = 0.85            # v4.4.0: Raised from 0.75 for stricter filtering
+    TP_PIPS: float = 12.0                   # v4.5.0: Raised from 7.0 to achieve 1:1 R:R
+    SL_PIPS: float = 12.0                   # v4.2.1: 12.0
+    MIN_RR: float = 1.0  # v4.5.0: Balanced R:R required
+    MIN_CONFIDENCE: float = 0.85
     MAX_SIGNALS_PER_ASSET: int = 9999
     MAX_PENDING_DURATION_MINUTES: int = 35  # Entry window before auto-cancel
     MAX_TRADE_DURATION_MINUTES: int = 150   # v3.8: Adjusted from 180m to 150m per institutional audit
@@ -55,9 +55,10 @@ class Settings(BaseSettings):
     RISK_USD_PER_TRADE: float = 50.0        # Institutional Risk Model base per signal
     
     # 🔒 ANTI-BURST RULES
-    MIN_RELEASE_INTERVAL_MINUTES: int = 45  # v4.4.0: Increased from 20m to prevent overtrading
-    MAX_SIGNALS_PER_DAY: int = 8            # v4.4.0: Safety cap to control exposure
-    HEALTH_REPORT_INTERVAL_MINUTES: int = 120 # v4.2.0: Automated health checks
+    MIN_RELEASE_INTERVAL_MINUTES: int = 90  # v4.5.0: Increased from 45m for safe structure evolution
+    MAX_SIGNALS_PER_DAY: int = 8
+    MAX_CONSECUTIVE_LOSSES: int = 3         # v4.5.0: Circuit breaker threshold
+    HEALTH_REPORT_INTERVAL_MINUTES: int = 120
     
     # Session Times (UTC)
     TOKYO_OPEN: str = "00:00"

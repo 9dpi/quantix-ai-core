@@ -30,6 +30,10 @@ class ContinuousAnalyzer:
         self.last_health_report_at = None # v4.2.0: Automated health reports
         self.refiner = ConfidenceRefiner()
         
+        # v4.5.0: Safe-Guard Pivot (Circuit Breaker)
+        self.consecutive_losses = 0
+        self.cooldown_until: Optional[datetime] = None
+        
         # Absolute path to prevent "reset to 0" issues on machine restart
         import os
         # Robust path detection: try to find the project root (where .env or quantix_core is)
@@ -81,6 +85,64 @@ class ContinuousAnalyzer:
             df[col] = df[col].astype(float)
         
         return df
+        
+    def _check_circuit_breaker(self):
+        """v4.5.0: Loss-based circuit breaker logic"""
+        now = datetime.now(timezone.utc)
+        
+        # Reset cooldown if expired
+        if self.cooldown_until and now >= self.cooldown_until:
+            logger.info("🔓 Cooldown expired. Resuming normal operations.")
+            self.cooldown_until = None
+            self.consecutive_losses = 0
+
+        # Query last results to update consecutive loss count
+        try:
+            res = db.client.table(settings.TABLE_SIGNALS)\
+                .select("result")\
+                .order("generated_at", desc=True)\
+                .limit(settings.MAX_CONSECUTIVE_LOSSES + 1)\
+                .execute()
+            
+            if res.data:
+                losses = 0
+                for sig in res.data:
+                    if sig.get("result") == "LOSS":
+                        losses += 1
+                    elif sig.get("result") == "PROFIT":
+                        break # Chain broken
+                
+                self.consecutive_losses = losses
+                
+                if self.consecutive_losses >= settings.MAX_CONSECUTIVE_LOSSES and not self.cooldown_until:
+                    self.cooldown_until = now + timedelta(hours=4)
+                    logger.critical(f"🛑 CIRCUIT BREAKER TRIGGERED: {losses} consecutive losses. Cooldown until {self.cooldown_until.isoformat()}")
+                    
+                    if self.notifier:
+                        self.notifier.send_critical_alert(
+                            f"🛑 *CIRCUIT BREAKER TRIGGERED*\n"
+                            f"Detected {losses} consecutive losses.\n"
+                            f"System entering 4-hour cooldown."
+                        )
+        except Exception as e:
+            logger.error(f"Circuit breaker check failed: {e}")
+
+    def _get_h1_trend(self) -> Optional[str]:
+        """v4.5.0: Fetch H1 trend for multi-timeframe alignment"""
+        try:
+            # Prefer Binance for free H1 history
+            raw_h1 = self.binance.get_history(symbol="EURUSD", interval="1h", limit=50)
+            if not raw_h1:
+                # Fallback to TwelveData
+                raw_h1 = self.td_client.get_time_series(symbol="EUR/USD", interval="1h", outputsize=50).get("values")
+            
+            if raw_h1:
+                df_h1 = self.convert_to_df(raw_h1)
+                h1_state = self.engine.analyze(df_h1, symbol="EURUSD", timeframe="H1")
+                return h1_state.state # "bullish", "bearish", "range"
+        except Exception as e:
+            logger.error(f"H1 Trend fetch failed: {e}")
+        return None
 
             
     def check_release_gate(self, asset: str, timeframe: str) -> tuple[bool, str]:
@@ -159,6 +221,12 @@ class ContinuousAnalyzer:
 
         # 🛡️ Market Hours Safety Check
         if not MarketHours.should_generate_signals():
+            return
+
+        # 🛑 v4.5.0: Circuit Breaker / Cooldown Check
+        self._check_circuit_breaker()
+        if self.cooldown_until:
+            logger.warning(f"⏸️ System in Cooldown until {self.cooldown_until.isoformat()} due to losses.")
             return
 
         try:
@@ -243,6 +311,19 @@ class ContinuousAnalyzer:
                     f"Skipping signal — waiting for directional confirmation."
                 )
                 return
+
+            # 🧩 v4.5.0: Multi-Timeframe Alignment (H1 Filter)
+            h1_trend = self._get_h1_trend()
+            if h1_trend:
+                logger.info(f"🔎 MTF Check: M15={direction} | H1={h1_trend.upper()}")
+                if direction == "BUY" and h1_trend != "bullish":
+                    logger.warning(f"🚫 Trend Clash: BUY signal rejected because H1 is {h1_trend.upper()}")
+                    return
+                if direction == "SELL" and h1_trend != "bearish":
+                    logger.warning(f"🚫 Trend Clash: SELL signal rejected because H1 is {h1_trend.upper()}")
+                    return
+            else:
+                logger.warning("⚠️ H1 trend unavailable. Proceeding with caution (M15 only).")
             
             # ============================================
             # v3.5 SMC-LITE ENTRY LOGIC (FVG-Based)

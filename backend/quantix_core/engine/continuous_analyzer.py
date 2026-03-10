@@ -115,7 +115,7 @@ class ContinuousAnalyzer:
                 self.consecutive_losses = losses
                 
                 if self.consecutive_losses >= settings.MAX_CONSECUTIVE_LOSSES and not self.cooldown_until:
-                    self.cooldown_until = now + timedelta(hours=4)
+                    self.cooldown_until = now + timedelta(hours=settings.CIRCUIT_BREAKER_COOLDOWN_HOURS)
                     logger.critical(f"🛑 CIRCUIT BREAKER TRIGGERED: {losses} consecutive losses. Cooldown until {self.cooldown_until.isoformat()}")
                     
                     if self.notifier:

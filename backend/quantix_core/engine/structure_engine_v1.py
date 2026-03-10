@@ -118,16 +118,16 @@ class StructureEngineV1:
                 evidence = self.scorer.score_event(event, is_fake=True)
                 evidence_list.append(evidence)
 
-            # Add FVG evidence (v4.4.1: Formal weighting)
-            if nearest_fvg:
-                fvg_dir = "bullish" if raw_dir == "BUY" else "bearish"
+            # Add FVG evidence (v4.5.1: Formal weighting for all relevant gaps)
+            for f in unfilled_fvgs:
+                f_dir = "bullish" if f.type == "BULLISH" else "bearish"
                 evidence_list.append(StructureEvidence(
                     type=EvidenceType.FVG,
-                    direction=fvg_dir,
-                    strength=nearest_fvg.quality,
-                    quality=nearest_fvg.quality,
-                    description=f"FVG found at {nearest_fvg.midpoint:.5f} (q:{nearest_fvg.quality:.2f})",
-                    details={"midpoint": nearest_fvg.midpoint, "quality": nearest_fvg.quality}
+                    direction=f_dir,
+                    strength=f.quality,
+                    quality=f.quality,
+                    description=f"FVG {f.type} at {f.midpoint:.5f} (q:{f.quality:.2f})",
+                    details={"midpoint": f.midpoint, "quality": f.quality}
                 ))
 
             # Add Liquidity Sweep evidence (v4.4.1: Formal weighting)
@@ -145,6 +145,11 @@ class StructureEngineV1:
 
             # Step 7: Aggregate evidence
             aggregated = self.aggregator.aggregate(evidence_list)
+            
+            # Determine potential direction to find nearest entry FVG (v4.5.1)
+            temp_dir = "BUY" if aggregated['bullish'] > aggregated['bearish'] else "SELL"
+            current_price = float(df['close'].iloc[-1])
+            nearest_fvg = self.fvg_detector.get_nearest_entry_fvg(fvgs, temp_dir, current_price)
 
             state = self.resolver.resolve_state(
                 bullish_score=aggregated['bullish'],

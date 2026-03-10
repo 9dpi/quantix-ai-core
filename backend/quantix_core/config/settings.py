@@ -57,7 +57,8 @@ class Settings(BaseSettings):
     # 🔒 ANTI-BURST RULES
     MIN_RELEASE_INTERVAL_MINUTES: int = 90  # v4.5.0: Increased from 45m for safe structure evolution
     MAX_SIGNALS_PER_DAY: int = 8
-    MAX_CONSECUTIVE_LOSSES: int = 3         # v4.5.0: Circuit breaker threshold
+    MAX_CONSECUTIVE_LOSSES: int = 3
+    CIRCUIT_BREAKER_COOLDOWN_HOURS: float = 1.0 # v4.5.1: Reduced from 4h per Irfan feedback
     HEALTH_REPORT_INTERVAL_MINUTES: int = 120
     
     # Session Times (UTC)

@@ -44,9 +44,9 @@ class Settings(BaseSettings):
     TABLE_ANALYSIS_LOG: str = "fx_analysis_log"
     
     # Trading Rules
-    TP_PIPS: float = 12.0                   # v4.5.0: Raised from 7.0 to achieve 1:1 R:R
-    SL_PIPS: float = 12.0                   # v4.2.1: 12.0
-    MIN_RR: float = 1.0  # v4.5.0: Balanced R:R required
+    TP_PIPS: float = 10.0                   # v4.5.2: 10 pips
+    SL_PIPS: float = 5.0                    # v4.5.2: 5 pips (Aggressive 2:1 R:R)
+    MIN_RR: float = 2.0  # v4.5.2: Minimum 2.0 R:R
     MIN_CONFIDENCE: float = 0.85
     MAX_SIGNALS_PER_ASSET: int = 9999
     MAX_PENDING_DURATION_MINUTES: int = 35  # Entry window before auto-cancel

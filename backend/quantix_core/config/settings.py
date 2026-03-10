@@ -57,6 +57,7 @@ class Settings(BaseSettings):
     # 🔒 ANTI-BURST RULES
     MIN_RELEASE_INTERVAL_MINUTES: int = 20  # v3.7: Reduced from 30m to 20m for better signal flow
     MAX_SIGNALS_PER_DAY: int = 9999  # Effectively disabled to allow natural flow
+    HEALTH_REPORT_INTERVAL_MINUTES: int = 120 # v4.2.0: Automated health checks
     
     # Session Times (UTC)
     TOKYO_OPEN: str = "00:00"

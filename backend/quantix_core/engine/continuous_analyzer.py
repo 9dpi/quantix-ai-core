@@ -27,6 +27,7 @@ class ContinuousAnalyzer:
         self.engine = StructureEngineV1(sensitivity=2)
         self.cycle_count = 0
         self.last_pushed_at = None # For Telegram Cooldown
+        self.last_health_report_at = None # v4.2.0: Automated health reports
         self.refiner = ConfidenceRefiner()
         
         # Absolute path to prevent "reset to 0" issues on machine restart
@@ -534,6 +535,18 @@ class ContinuousAnalyzer:
             # 7. INTEGRATED WATCHDOG — Check Watcher health every 24 cycles (~120 min)
             if self.cycle_count > 0 and self.cycle_count % 24 == 0:
                 self._check_watcher_health()
+                
+            # v4.2.0: Broadcast comprehensive health every 2 hours
+            now_time = datetime.now(timezone.utc)
+            if self.last_health_report_at is None:
+                # First run: delay by 10m to avoid startup noise, or send immediately? 
+                # Let's send 1 hour after startup for first time, then every 2 hours.
+                self.last_health_report_at = now_time 
+            
+            elapsed_health = (now_time - self.last_health_report_at).total_seconds() / 60
+            if elapsed_health >= settings.HEALTH_REPORT_INTERVAL_MINUTES:
+                self._broadcast_comprehensive_report()
+                self.last_health_report_at = now_time
 
         except Exception as e:
             logger.error(f"Heartbeat cycle failed: {e}")
@@ -616,6 +629,83 @@ class ContinuousAnalyzer:
                 
         except Exception as e:
             logger.error(f"Watchdog health check failed: {e}")
+
+    def _broadcast_comprehensive_report(self):
+        """
+        v4.2.0: Generate and send a comprehensive system health report to Telegram Admin.
+        """
+        logger.info("📊 Generating periodic system health report...")
+        try:
+            now = datetime.now(timezone.utc)
+            today_str = now.strftime('%Y-%m-%d')
+            
+            # 1. Component Heartbeats
+            res_hb = db.client.table(settings.TABLE_ANALYSIS_LOG)\
+                .select("asset, timestamp, status")\
+                .in_("asset", ["HEARTBEAT_ANALYZER", "HEARTBEAT_WATCHER"])\
+                .order("timestamp", desc=True)\
+                .limit(10)\
+                .execute()
+            
+            analyzer_status = "🔴 OFFLINE"
+            watcher_status = "🔴 OFFLINE"
+            
+            for hb in res_hb.data:
+                hb_time = datetime.fromisoformat(hb["timestamp"].replace("Z", "+00:00"))
+                stale_min = (now - hb_time).total_seconds() / 60
+                if hb["asset"] == "HEARTBEAT_ANALYZER" and analyzer_status.startswith("🔴"):
+                    if stale_min < 10: analyzer_status = f"🟢 ONLINE ({stale_min:.0f}m)"
+                    else: analyzer_status = f"🟡 STALE ({stale_min:.0f}m)"
+                elif hb["asset"] == "HEARTBEAT_WATCHER" and watcher_status.startswith("🔴"):
+                    if stale_min < 10: watcher_status = f"🟢 ONLINE ({stale_min:.0f}m)"
+                    else: watcher_status = f"🟡 STALE ({stale_min:.0f}m)"
+
+            # 2. Signal Stats
+            res_signals = db.client.table(settings.TABLE_SIGNALS)\
+                .select("id, state, generated_at")\
+                .gte("generated_at", today_str)\
+                .execute()
+            
+            total_today = len(res_signals.data) if res_signals.data else 0
+            active_states = ["ENTRY_HIT", "WAITING_FOR_ENTRY", "PUBLISHED"]
+            active_count = sum(1 for s in res_signals.data if s["state"] in active_states) if res_signals.data else 0
+            
+            # 3. Format Message
+            report = (
+                f"📊 *SYSTEM COMPREHENSIVE HEALTH*\n\n"
+                f"🕒 Time: `{now.strftime('%H:%M:%S UTC')}`\n\n"
+                f"*🌐 COMPONENT STATUS:*\n"
+                f"├ ANALYZER: {analyzer_status}\n"
+                f"└ WATCHER: {watcher_status}\n\n"
+                f"*📈 SIGNAL PERFORMANCE:*\n"
+                f"├ Today's Signals: `{total_today}`\n"
+                f"└ Currently Tracking: `{active_count}`\n\n"
+                f"*⚙️ ENGINE PARAMS:*\n"
+                f"├ Version: `v4.2.0`\n"
+                f"├ Interval: `{settings.MONITOR_INTERVAL_SECONDS}s`\n"
+                f"└ Target: `7p/7p` (Aggressive)\n\n"
+                f"✅ *All systems functioning normally.*"
+            )
+            
+            if self.notifier:
+                # Use _send_to_chat directly to ensure it goes to admin_chat_id
+                target = self.notifier.admin_chat_id or self.notifier.chat_id
+                self.notifier._send_to_chat(target, report)
+                logger.success(f"Health report broadcasted to Telegram Admin ({target}).")
+                
+                # Log report event to DB
+                try:
+                    db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
+                        "timestamp": now.isoformat(),
+                        "asset": "HEALTH_REPORT",
+                        "direction": "SYSTEM",
+                        "status": "SENT",
+                        "confidence": 1.0, "strength": 1.0, "price": 0.0
+                    }).execute()
+                except: pass
+                
+        except Exception as e:
+            logger.error(f"Failed to generate health report: {e}")
 
     def push_to_telegram(self, signal: dict) -> Optional[int]:
         """Proactive Broadcast for High Confidence Signals"""

@@ -45,8 +45,8 @@ class Settings(BaseSettings):
     
     # Trading Rules
     TP_PIPS: float = 7.0                    # Take Profit in Pips
-    SL_PIPS: float = 7.0                    # Stop Loss in Pips
-    MIN_RR: float = 1.0  # Allow 1:1 RR
+    SL_PIPS: float = 12.0                   # v4.2.1: Changed from 7.0 to 12.0
+    MIN_RR: float = 0.5  # v4.2.1: Adjusted from 1.0 to 0.5 to allow SL > TP
     MIN_CONFIDENCE: float = 0.75
     MAX_SIGNALS_PER_ASSET: int = 9999
     MAX_PENDING_DURATION_MINUTES: int = 35  # Entry window before auto-cancel

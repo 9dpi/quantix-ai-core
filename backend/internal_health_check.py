@@ -14,12 +14,10 @@ def check_health():
     print(f"Current UTC: {now.isoformat()}\n")
     
     target_assets = [
-        "SYSTEM_ANALYZER", 
-        "HEARTBEAT", 
-        "HEARTBEAT_WATCHER", 
+        "HEARTBEAT_WATCHER", # Primary process-alive indicator (Embedded Watcher)
+        "HEARTBEAT",         # Analyzer heartbeat (Pauses during Rollover)
         "VALIDATOR", 
         "SYSTEM_WEB",
-        "SYSTEM_WATCHDOG",
         "WATCHDOG_ALERT"
     ]
     

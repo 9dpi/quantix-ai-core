@@ -309,7 +309,7 @@ class ContinuousAnalyzer:
                 tp_dist = round(tp_pips * 0.0001, 5)
                 sl_dist = round(sl_pips * 0.0001, 5)
                 
-                logger.info(f"v4.1.1 R:R (FIXED): ATR={atr if 'atr' in locals() else 0:.5f} | TP={tp_dist:.5f} ({tp_pips}p) | SL={sl_dist:.5f} ({sl_pips}p)")
+                logger.info(f"v4.1.1 R:R (FIXED): ATR={atr if 'atr' in locals() else 0:.5f} | TP={tp_dist:.5f} (7.0p) | SL={sl_dist:.5f} (12.0p)")
             except Exception as e:
                 logger.error(f"ATR failed, using hard safety fallback from settings: {e}")
                 tp_dist = round(settings.TP_PIPS * 0.0001, 5)
@@ -838,23 +838,23 @@ class ContinuousAnalyzer:
                                 except: pass
                             continue
                         
-                        # --- Breakeven Check (DISABLED v4.1.8 for Scalping) ---
-                        # tp_distance = abs(tp - entry)
-                        # if tp_distance > 0:
-                        #     if direction == "BUY":
-                        #         progress = h - entry
-                        #     else:
-                        #         progress = entry - l
-                        #     if progress / tp_distance >= 0.7 and (
-                        #         (direction == "BUY" and sl < entry) or
-                        #         (direction == "SELL" and sl > entry)
-                        #     ):
-                        #         try:
-                        #             db.client.table(settings.TABLE_SIGNALS).update({
-                        #                 "sl": entry
-                        #             }).eq("id", sig_id).eq("state", "ENTRY_HIT").execute()
-                        #             logger.success(f"🔒 [EmbeddedWatcher] BREAKEVEN: {sig_id} SL -> {entry}")
-                        #         except: pass
+                        # --- Breakeven Check ---
+                        tp_distance = abs(tp - entry)
+                        if tp_distance > 0:
+                            if direction == "BUY":
+                                progress = h - entry
+                            else:
+                                progress = entry - l
+                            if progress / tp_distance >= 0.7 and (
+                                (direction == "BUY" and sl < entry) or
+                                (direction == "SELL" and sl > entry)
+                            ):
+                                try:
+                                    db.client.table(settings.TABLE_SIGNALS).update({
+                                        "sl": entry
+                                    }).eq("id", sig_id).eq("state", "ENTRY_HIT").execute()
+                                    logger.success(f"🔒 [EmbeddedWatcher] BREAKEVEN: {sig_id} SL -> {entry}")
+                                except: pass
                         
                         # --- Timeout Check ---
                         start_str = sig.get("entry_hit_at") or sig.get("generated_at")

@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signal Genius AI - MT4 User Guide</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --accent: #10b981;
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-page);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            padding: 60px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .logo-box {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .logo-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text-main);
+        }
+
+        .logo-text span {
+            color: var(--primary);
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.85rem;
+        }
+
+        h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            margin: 40px 0 20px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        h2 i {
+            color: var(--primary);
+        }
+
+        .section-content {
+            margin-bottom: 30px;
+        }
+
+        .step-card {
+            background: #f1f5f9;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .step-num {
+            font-weight: 800;
+            color: var(--primary);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .step-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        li {
+            margin-bottom: 12px;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 1.2rem;
+            line-height: 1.2;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+
+        .alert {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px 0;
+            display: flex;
+            gap: 15px;
+        }
+
+        .alert-icon {
+            color: #b45309;
+        }
+
+        .alert-text {
+            color: #92400e;
+            font-size: 0.9rem;
+        }
+
+        footer {
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .badge-success {
+            background: #ecfdf5;
+            color: #065f46;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.7rem;
+            display: inline-block;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+                border: none;
+                width: 100%;
+                max-width: 100%;
+                margin: 0;
+                padding: 40px;
+            }
+
+            .step-card {
+                break-inside: avoid;
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-box">
+                <i data-lucide="cpu" color="#6366f1" size="32"></i>
+                <div class="logo-text">SIGNAL <span>GENIUS AI</span></div>
+            </div>
+            <div class="subtitle">MT4 Bridge Installation Guide (V1.0)</div>
+        </header>
+
+        <section>
+            <p style="color: var(--text-muted); text-align: center; font-size: 0.95rem; margin-bottom: 40px;">
+                This guide provides step-by-step instructions to connect your MetaTrader 4 terminal
+                to our institutional AI signals network.
+            </p>
+
+            <div class="alert" style="background: #eff6ff; border-color: #bfdbfe; margin-top: 0;">
+                <div class="alert-icon" style="color: #1e40af;"><i data-lucide="info"></i></div>
+                <div class="alert-text" style="color: #1e3a8a;">
+                    <strong>Broker Verification:</strong> This system is <strong>Broker-Agnostic</strong>. It works with
+                    any MT4 broker (IC Markets, Pepperstone, XM, etc.). Ensure you are logged into your specific
+                    broker's server (e.g., <em>PepperstoneUK-Demo03</em>) before activating the EA.
+                </div>
+            </div>
+
+            <h2><i data-lucide="login"></i> 0. Critical: Broker Server Login</h2>
+            <div class="section-content">
+                <div class="step-card" style="border-left-color: #6366f1;">
+                    <span class="step-num">Requirement</span>
+                    <span class="step-title">Select Your Specific Broker Server</span>
+                    <p style="font-size: 0.9rem; margin-bottom: 12px;">Mobile/Desktop MT4 must be connected to your
+                        actual broker account, not the default "MetaQuotes" demo:</p>
+                    <ul>
+                        <li>Go to <strong>File</strong> -> <strong>Login to Trade Account</strong></li>
+                        <li>In the <strong>Server</strong> field, do not use the default. Search for your specific
+                            broker name.</li>
+                        <li>Example: Search for <code>Pepperstone</code> and select <code>PepperstoneUK-Demo03</code>.
+                        </li>
+                        <li>Ensure the connection bars in the bottom right turn green/blue.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h2><i data-lucide="box"></i> 1. File Placement</h2>
+            <div class="section-content">
+                <div class="step-card">
+                    <span class="step-num">Step One</span>
+                    <span class="step-title">Deploy Expert Advisor</span>
+                    <ul>
+                        <li>Open MT4 Terminal -> <strong>File</strong> -> <strong>Open Data Folder</strong></li>
+                        <li>Navigate to: <strong>MQL4</strong> > <strong>Experts</strong></li>
+                        <li>Copy the <code>Signal_Genius.mq4</code> file into this folder</li>
+                        <li>In MT4, right-click <strong>Expert Advisors</strong> and select <strong>Refresh</strong>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <h2><i data-lucide="shield-check"></i> 2. Terminal Configuration</h2>
+            <div class="section-content">
+                <div class="step-card">
+                    <span class="step-num">Step Two</span>
+                    <span class="step-title">Whitelist Production URL</span>
+                    <p style="margin-bottom: 12px; font-size: 0.9rem;">To communicate with our AI servers, yours needs
+                        permission:</p>
+                    <ul>
+                        <li>Go to <strong>Tools</strong> -> <strong>Options</strong> (or <code>Ctrl+O</code>)</li>
+                        <li>Select the <strong>Expert Advisors</strong> tab</li>
+                        <li>Check: <strong>[X] Allow automated trading</strong></li>
+                        <li>Check: <strong>[X] Allow WebRequest for listed URL:</strong></li>
+                    </ul>
+                    <div style="margin-top: 15px;">Add exactly this address:</div>
+                    <div class="code-block">https://quantixapiserver-production.up.railway.app/</div>
+                </div>
+            </div>
+
+            <h2><i data-lucide="zap"></i> 3. Activation</h2>
+            <div class="section-content">
+                <div class="step-card">
+                    <span class="step-num">Step Three</span>
+                    <span class="step-title">Attach to Chart</span>
+                    <ul>
+                        <li>Open any chart (e.g., EURUSD, M15)</li>
+                        <li>Drag <strong>Signal_Genius</strong> from Navigator onto the chart</li>
+                        <li>In <strong>Inputs</strong> tab, verify:
+                            <div style="margin-top: 8px; padding-left: 15px;">
+                                <div style="margin-bottom: 5px;">- <strong>ApiUrl</strong>: <code
+                                        style="word-break: break-all; background: #e2e8f0; padding: 2px 5px; border-radius: 4px; font-family: monospace;">https://quantixapiserver-production.up.railway.app/api/v1/mt4/signals/pending</code>
+                                </div>
+                                <div>- <strong>ApiToken / License Key</strong>: <code
+                                        style="background: #e2e8f0; padding: 2px 5px; border-radius: 4px; font-family: monospace; font-weight: bold; color: #1e1b4b;">DEMO_MT4_TOKEN_2026</code>
+                                </div>
+                            </div>
+                        </li>
+                        <li>In <strong>Common</strong> tab, check <strong>[X] Allow live trading</strong></li>
+                    </ul>
+                    <div
+                        style="margin-top: 15px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden;">
+                        <img src="Login_Successfully.png" alt="Successfully Activated"
+                            style="width: 100%; display: block;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert">
+                <div class="alert-icon"><i data-lucide="info"></i></div>
+                <div class="alert-text">
+                    <strong>Verification:</strong> Check the "Experts" tab at the bottom. You should see
+                    <span style="color: #065f46; font-weight: bold;">"EA Polling API: https://..."</span>
+                    and no Error 5200 messages. This confirms a live bridge.
+                </div>
+            </div>
+
+            <h2><i data-lucide="shield"></i> 4. Dynamic Lot Scaling</h2>
+            <div class="section-content">
+                <div class="step-card" style="border-left-color: var(--accent);">
+                    <span class="step-num">Adaptive Risk Management</span>
+                    <span class="step-title">Account Growth Scaling</span>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">
+                        The system uses an institutional grade <strong>Risk % Model</strong>. Lot sizes are calculated
+                        to ensure you only risk a specific percentage of your balance per trade.
+                    </p>
+                    <ul>
+                        <li><strong>UsePercentageRisk</strong>: Set to <code>true</code> to enable balance-based
+                            scaling.</li>
+                        <li><strong>RiskPercent</strong>: Default <code>1.0</code> (1% risk per trade). This is the
+                            "Irfan Standard".</li>
+                        <li><strong>SymbolSuffix</strong>: Always ensure this is set to <code>.r</code> (for
+                            Pepperstone) or your broker's specific suffix.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h2><i data-lucide="settings-2"></i> 5. Advanced Configuration</h2>
+            <div class="section-content">
+                <div class="step-card" style="border-left-color: #f59e0b;">
+                    <span class="step-num">Customization</span>
+                    <span class="step-title">How to Change Risk & Targets</span>
+
+                    <div style="margin-top: 15px;">
+                        <strong>A. Change Risk % (e.g., 2% like Irfan)</strong>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 5px 0 10px;">Managed directly in
+                            MT4:</p>
+                        <ul style="font-size: 0.85rem;">
+                            <li>Press <strong>F7</strong> on the chart.</li>
+                            <li>Change <code>Risk % per trade</code> from 1.0 to 2.0.</li>
+                            <li>Click OK. Applies immediately to next trade.</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <strong>B. Change TP/SL (e.g., 7p/12p)</strong>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 5px 0 10px;">Managed in the
+                            Cloud Backend:</p>
+                        <ul style="font-size: 0.85rem;">
+                            <li>Open <code>backend/quantix_core/config/settings.py</code></li>
+                            <li>Find <code>TP_PIPS</code> and <code>SL_PIPS</code>.</li>
+                            <li>Update values (e.g., <code>7.0</code> and <code>12.0</code>).</li>
+                            <li>Save. The AI brain updates instantly.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <div style="margin-bottom: 10px; font-weight: bold; color: var(--text-main);">SIGNAL GENIUS AI RESEARCH
+            </div>
+            <div>Automated Intelligence for High-Performance Trading • March 2026</div>
+        </footer>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

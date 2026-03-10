@@ -527,13 +527,13 @@ class ContinuousAnalyzer:
             try:
                 from analyze_heartbeat import analyze_heartbeat
                 # Auto-sync with GitHub every 15 cycles (30 mins)
-                should_push = (self.cycle_count % 15 == 0)
+                should_push = (self.cycle_count % 60 == 0) # v4.3.0: Once per hour (60s * 60)
                 analyze_heartbeat(push_to_git=should_push)
             except Exception as e:
                 logger.error(f"Failed to update dashboard learning data: {e}")
 
-            # 7. INTEGRATED WATCHDOG — Check Watcher health every 24 cycles (~120 min)
-            if self.cycle_count > 0 and self.cycle_count % 24 == 0:
+            # 7. INTEGRATED WATCHDOG — Check Watcher health every 120 cycles (~120 min @ 60s/cycle)
+            if self.cycle_count > 0 and self.cycle_count % 120 == 0:
                 self._check_watcher_health()
                 
             # v4.2.0: Broadcast comprehensive health every 2 hours

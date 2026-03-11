@@ -312,16 +312,16 @@ class ContinuousAnalyzer:
                 )
                 return
 
-            # 🧩 v4.5.0: Multi-Timeframe Alignment (H1 Filter)
+            # 🧩 v4.5.3: Multi-Timeframe Alignment (Soft Penalty)
             h1_trend = self._get_h1_trend()
+            mtf_penalty = 1.0  # Default: no penalty
             if h1_trend:
                 logger.info(f"🔎 MTF Check: M15={direction} | H1={h1_trend.upper()}")
-                if direction == "BUY" and h1_trend != "bullish":
-                    logger.warning(f"🚫 Trend Clash: BUY signal rejected because H1 is {h1_trend.upper()}")
-                    return
-                if direction == "SELL" and h1_trend != "bearish":
-                    logger.warning(f"🚫 Trend Clash: SELL signal rejected because H1 is {h1_trend.upper()}")
-                    return
+                mtf_aligned = (direction == "BUY" and h1_trend == "bullish") or \
+                              (direction == "SELL" and h1_trend == "bearish")
+                if not mtf_aligned:
+                    mtf_penalty = 0.85  # 15% confidence penalty for misalignment
+                    logger.warning(f"⚠️ MTF Misalignment: {direction} vs H1={h1_trend.upper()} → confidence penalty 0.85x")
             else:
                 logger.warning("⚠️ H1 trend unavailable. Proceeding with caution (M15 only).")
             
@@ -504,6 +504,10 @@ class ContinuousAnalyzer:
                 raw_confidence=state.confidence,
                 df=df
             )
+            # v4.5.3: Apply MTF penalty (soft filter)
+            release_score = round(release_score * mtf_penalty, 4)
+            if mtf_penalty < 1.0:
+                refinement_reason += f" | MTF: {mtf_penalty}"
             signal_base["release_confidence"] = release_score
             signal_base["refinement_reason"] = refinement_reason
             

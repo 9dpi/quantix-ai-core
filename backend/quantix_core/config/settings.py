@@ -47,7 +47,7 @@ class Settings(BaseSettings):
     TP_PIPS: float = 10.0                   # v4.5.2: 10 pips
     SL_PIPS: float = 5.0                    # v4.5.2: 5 pips (Aggressive 2:1 R:R)
     MIN_RR: float = 2.0  # v4.5.2: Minimum 2.0 R:R
-    MIN_CONFIDENCE: float = 0.85
+    MIN_CONFIDENCE: float = 0.72  # v4.5.3: Lowered for aggressive 2:1 R:R strategy
     MAX_SIGNALS_PER_ASSET: int = 9999
     MAX_PENDING_DURATION_MINUTES: int = 35  # Entry window before auto-cancel
     MAX_TRADE_DURATION_MINUTES: int = 150   # v3.8: Adjusted from 180m to 150m per institutional audit

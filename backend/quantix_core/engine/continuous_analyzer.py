@@ -147,43 +147,16 @@ class ContinuousAnalyzer:
             
     def check_release_gate(self, asset: str, timeframe: str) -> tuple[bool, str]:
         """
-        🔒 ANTI-BURST RULE (HARD LOCK)
+        🔓 OPEN FLOW MODE (v4.5.5) — All rate limiters removed per user request
         Returns (is_allowed, reason)
-        """
-        now = datetime.now(timezone.utc)
         
-        # 1. Daily Cap Check (RESTORED v4.5.4 — was disabled, caused 19 signals on Mar 10)
-        try:
-            today_start = now.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
-            res = db.client.table(settings.TABLE_SIGNALS)\
-                .select("id")\
-                .gte("generated_at", today_start)\
-                .execute()
-            daily_count = len(res.data) if res.data else 0
-            if daily_count >= settings.MAX_SIGNALS_PER_DAY:
-                return False, f"DAILY_CAP_REACHED ({daily_count}/{settings.MAX_SIGNALS_PER_DAY})"
-        except Exception as e:
-            logger.error(f"Daily cap check failed: {e}")
-
-        # 2. GLOBAL HARD LOCK (One Signal at a Time)
-        # Only count 'real' signals that are visible to users. 'PREPARED' signals are ignored.
-        try:
-            res = db.client.table(settings.TABLE_SIGNALS)\
-                .select("id")\
-                .in_("state", ["WAITING_FOR_ENTRY", "ENTRY_HIT"])\
-                .execute()
-            
-            if res.data:
-                return False, "GLOBAL_ACTIVE_SIGNAL_EXISTS"
-        except Exception as e:
-            logger.error(f"Gate check error: {e}")
-
-        # 3. Cooldown Check (30 mins)
-        if self.last_pushed_at:
-            elapsed = (now - self.last_pushed_at).total_seconds() / 60
-            if elapsed < settings.MIN_RELEASE_INTERVAL_MINUTES:
-                return False, f"COOLDOWN_ACTIVE ({settings.MIN_RELEASE_INTERVAL_MINUTES - elapsed:.1f}m left)"
-            
+        NOTE: Circuit Breaker (consecutive loss protection) is still active
+              in _check_circuit_breaker() — that is NOT removed.
+        """
+        # v4.5.5: Daily Cap — REMOVED
+        # v4.5.5: Global Lock — REMOVED  
+        # v4.5.5: Cooldown — REMOVED
+        
         return True, "ALLOWED"
 
     def lock_signal(self, signal_data: dict) -> Optional[str]:

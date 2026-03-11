@@ -152,8 +152,18 @@ class ContinuousAnalyzer:
         """
         now = datetime.now(timezone.utc)
         
-        # 1. Daily Cap Check (REMOVED - Unlimited flow)
-        pass
+        # 1. Daily Cap Check (RESTORED v4.5.4 — was disabled, caused 19 signals on Mar 10)
+        try:
+            today_start = now.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+            res = db.client.table(settings.TABLE_SIGNALS)\
+                .select("id")\
+                .gte("generated_at", today_start)\
+                .execute()
+            daily_count = len(res.data) if res.data else 0
+            if daily_count >= settings.MAX_SIGNALS_PER_DAY:
+                return False, f"DAILY_CAP_REACHED ({daily_count}/{settings.MAX_SIGNALS_PER_DAY})"
+        except Exception as e:
+            logger.error(f"Daily cap check failed: {e}")
 
         # 2. GLOBAL HARD LOCK (One Signal at a Time)
         # Only count 'real' signals that are visible to users. 'PREPARED' signals are ignored.

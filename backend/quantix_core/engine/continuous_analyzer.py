@@ -87,45 +87,8 @@ class ContinuousAnalyzer:
         return df
         
     def _check_circuit_breaker(self):
-        """v4.5.0: Loss-based circuit breaker logic"""
-        now = datetime.now(timezone.utc)
-        
-        # Reset cooldown if expired
-        if self.cooldown_until and now >= self.cooldown_until:
-            logger.info("🔓 Cooldown expired. Resuming normal operations.")
-            self.cooldown_until = None
-            self.consecutive_losses = 0
-
-        # Query last results to update consecutive loss count
-        try:
-            res = db.client.table(settings.TABLE_SIGNALS)\
-                .select("result")\
-                .order("generated_at", desc=True)\
-                .limit(settings.MAX_CONSECUTIVE_LOSSES + 1)\
-                .execute()
-            
-            if res.data:
-                losses = 0
-                for sig in res.data:
-                    if sig.get("result") == "LOSS":
-                        losses += 1
-                    elif sig.get("result") == "PROFIT":
-                        break # Chain broken
-                
-                self.consecutive_losses = losses
-                
-                if self.consecutive_losses >= settings.MAX_CONSECUTIVE_LOSSES and not self.cooldown_until:
-                    self.cooldown_until = now + timedelta(hours=settings.CIRCUIT_BREAKER_COOLDOWN_HOURS)
-                    logger.critical(f"🛑 CIRCUIT BREAKER TRIGGERED: {losses} consecutive losses. Cooldown until {self.cooldown_until.isoformat()}")
-                    
-                    if self.notifier:
-                        self.notifier.send_critical_alert(
-                            f"🛑 *CIRCUIT BREAKER TRIGGERED*\n"
-                            f"Detected {losses} consecutive losses.\n"
-                            f"System entering 4-hour cooldown."
-                        )
-        except Exception as e:
-            logger.error(f"Circuit breaker check failed: {e}")
+        """v4.5.5: Circuit Breaker DISABLED per user request (Open Flow Mode)"""
+        pass
 
     def _get_h1_trend(self) -> Optional[str]:
         """v4.5.0: Fetch H1 trend for multi-timeframe alignment"""

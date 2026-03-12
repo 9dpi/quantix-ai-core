@@ -736,12 +736,8 @@ class ContinuousAnalyzer:
 
     def push_to_telegram(self, signal: dict) -> Optional[int]:
         """Proactive Broadcast for High Confidence Signals"""
-        # 🛡️ Cooldown Check (Using dynamic setting)
+        # v4.5.9: 🔓 Cooldown completely removed for Open Flow Mode
         now = datetime.now(timezone.utc)
-        cooldown_min = getattr(settings, 'MIN_RELEASE_INTERVAL_MINUTES', 30)
-        if self.last_pushed_at and (now - self.last_pushed_at) < pd.Timedelta(minutes=cooldown_min):
-            logger.debug(f"Telegram push on cooldown ({cooldown_min}m)")
-            return None
 
         # 🛡️ Signal Deduplication (Same asset/direction/tf/entry)
         if not hasattr(self, '_pushed_signals'):

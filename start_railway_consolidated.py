@@ -75,7 +75,7 @@ def run_service(name, cmd, asset_name, log_asset, direction="STDOUT", cwd=None):
 
 # 1. WEB API (Must run on the specific $PORT)
 web_cmd = [
-    sys.executable, "-m", "uvicorn", "quantix_core.api.main:app",
+    sys.executable, "-u", "-m", "uvicorn", "quantix_core.api.main:app",
     "--host", "0.0.0.0",
     "--port", port,
     "--proxy-headers",
@@ -83,11 +83,11 @@ web_cmd = [
 ]
 
 # 2. ANALYZER
-analyzer_cmd = [sys.executable, "-m", "quantix_core.engine.continuous_analyzer"]
+analyzer_cmd = [sys.executable, "-u", "-m", "quantix_core.engine.continuous_analyzer"]
 
 # 3. VALIDATOR
 validator_script = os.path.join(backend_path, "run_pepperstone_validator.py")
-validator_cmd = [sys.executable, validator_script]
+validator_cmd = [sys.executable, "-u", validator_script]
 
 if __name__ == "__main__":
     # Create threads for each service with appropriate Audit Asset names

@@ -1039,24 +1039,6 @@ class ContinuousAnalyzer:
         except Exception as e:
             logger.error(f"Startup log failed: {e}")
 
-        while True:
-            try:
-                logger.info("🎬 Starting new analysis cycle...")
-                self.run_cycle()
-            except Exception as e:
-                error_msg = str(e)
-                logger.error(f"Cycle error: {error_msg}")
-                if "API_BLOCKED" in error_msg and self.notifier:
-                    self.notifier.send_critical_alert(f"TwelveData API Blocked: {error_msg}")
-            
-            # 🆕 EMBEDDED WATCHER: Check active signals after every cycle
-            try:
-                self._embedded_watcher_check()
-                # 🧹 REDUNDANT SAFETY: Run Janitor to clear stuck signals
-                Janitor.run_sync()
-            except Exception as e:
-                logger.error(f"Embedded Watcher / Janitor error: {e}")
-
         # 🆕 ADMIN BOT: Start Telegram Command Listener in background thread
         if self.notifier:
             import threading
@@ -1071,25 +1053,26 @@ class ContinuousAnalyzer:
             cmd_thread = threading.Thread(target=_listen_loop, daemon=True)
             cmd_thread.start()
             logger.info("🤖 Telegram command listener started in background")
-        
+
         while True:
             try:
+                # 🎬 [v4.5.6] Healthy heartbeat interval (60s)
                 logger.info("🎬 Starting new analysis cycle...")
                 self.run_cycle()
+                
+                # 🆕 EMBEDDED WATCHER: Check active signals after every cycle
+                self._embedded_watcher_check()
+                
+                # 🧹 REDUNDANT SAFETY: Run Janitor
+                Janitor.run_sync()
+                
             except Exception as e:
                 error_msg = str(e)
                 logger.error(f"Cycle error: {error_msg}")
                 if "API_BLOCKED" in error_msg and self.notifier:
                     self.notifier.send_critical_alert(f"TwelveData API Blocked: {error_msg}")
             
-            # 🆕 EMBEDDED WATCHER: Check active signals after every cycle
-            try:
-                self._embedded_watcher_check()
-                # 🧹 REDUNDANT SAFETY: Run Janitor
-                Janitor.run_sync()
-            except Exception as e:
-                logger.error(f"Embedded Watcher / Janitor error: {e}")
-            
+            # 💤 [v4.5.6] PAUSE to avoid CPU exhaustion (Crucial for Cloud stability)
             time.sleep(interval)
 
 if __name__ == "__main__":

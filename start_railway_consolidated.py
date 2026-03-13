@@ -89,8 +89,8 @@ def run_service(name, cmd, asset_name, log_asset, direction="STDOUT", cwd=None):
             while process.poll() is None:
                 if time.time() - last_output_at > SILENCE_TIMEOUT:
                     print(f"🚨 [Launcher] {name} HUNG (silent for {SILENCE_TIMEOUT}s). Killing...")
-                    log_to_db(asset_name, f"KILLED_BY_WATCHDOG_SILENCE", "LAUNCHER")
-                    process.kill()
+                    process.kill() # Trigger kill BEFORE doing risky network operations
+                    threading.Thread(target=lambda: log_to_db(asset_name, f"KILLED_BY_WATCHDOG_SILENCE", "LAUNCHER"), daemon=True).start()
                     break
                 time.sleep(10)
             

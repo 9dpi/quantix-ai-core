@@ -145,10 +145,12 @@ class SupabaseConnection:
             logger.info(f"Using {key_source} Supabase Key (Length: {len(key)})")
             
             try:
-                from supabase import create_client
+                from supabase import create_client, ClientOptions
+                options = ClientOptions(postgrest_client_timeout=15, storage_client_timeout=15)
                 self._client = create_client(
                     supabase_url=url,
-                    supabase_key=key
+                    supabase_key=key,
+                    options=options
                 )
                 logger.info("[OK] Supabase client initialized (Official SDK)")
             except ImportError:

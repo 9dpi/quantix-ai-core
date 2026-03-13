@@ -67,7 +67,10 @@ def run_service(name, cmd, asset_name, log_asset, direction="STDOUT", cwd=None):
                 for line in iter(process.stdout.readline, ''):
                     clean_line = line.strip()
                     if clean_line:
-                        last_output_at = time.time()
+                        # v4.6.9: Don't let background Telegram poll failures trick the Watchdog into thinking the main thread is alive
+                        if "Error fetching Telegram updates" not in clean_line:
+                            last_output_at = time.time()
+                            
                         print(f"[{name}] {clean_line}")
                         
                         # v4.6.6: STOP SPAMMING DB WITH STDOUT.

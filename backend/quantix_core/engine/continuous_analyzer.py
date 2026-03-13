@@ -911,14 +911,14 @@ class ContinuousAnalyzer:
                             entry_hit = True
                         
                         if entry_hit:
-                            self._ew_transition(sig_id, "WAITING_FOR_ENTRY", {
+                            if self._ew_transition(sig_id, "WAITING_FOR_ENTRY", {
                                 "state": "ENTRY_HIT", "status": "ENTRY_HIT",
                                 "entry_hit_at": ts if isinstance(ts, str) else now.isoformat()
-                            }, "ENTRY_HIT")
-                            # Send entry hit notification
-                            if self.notifier and sig.get("telegram_message_id"):
-                                try: self.notifier.send_entry_hit(sig)
-                                except: pass
+                            }, "ENTRY_HIT"):
+                                # Send entry hit notification
+                                if self.notifier and sig.get("telegram_message_id"):
+                                    try: self.notifier.send_entry_hit(sig)
+                                    except: pass
                     
                     elif state == "ENTRY_HIT":
                         # --- TP Hit Check ---
@@ -929,13 +929,13 @@ class ContinuousAnalyzer:
                             tp_hit = True
                         
                         if tp_hit:
-                            self._ew_transition(sig_id, "ENTRY_HIT", {
+                            if self._ew_transition(sig_id, "ENTRY_HIT", {
                                 "state": "TP_HIT", "status": "CLOSED_TP",
                                 "result": "PROFIT", "closed_at": now.isoformat()
-                            }, "TP_HIT")
-                            if self.notifier and sig.get("telegram_message_id"):
-                                try: self.notifier.send_tp_hit(sig)
-                                except: pass
+                            }, "TP_HIT"):
+                                if self.notifier and sig.get("telegram_message_id"):
+                                    try: self.notifier.send_tp_hit(sig)
+                                    except: pass
                             continue
                         
                         # --- v4.7.0 Trailing TP (Stepped Milestones) ---
@@ -972,22 +972,25 @@ class ContinuousAnalyzer:
                                     # Update peak if it increased
                                     if updated_peak > peak_milestone:
                                         meta["trailing_peak"] = updated_peak
-                                        db.client.table(settings.TABLE_SIGNALS).update({
+                                        # Use a state-guarded update for metadata too to be extra safe
+                                        res_meta = db.client.table(settings.TABLE_SIGNALS).update({
                                             "metadata": meta
-                                        }).eq("id", sig_id).execute()
-                                        logger.info(f"📈 [TrailingTP] {asset} hit milestone: {updated_peak} pips")
+                                        }).eq("id", sig_id).eq("state", "ENTRY_HIT").execute()
+                                        
+                                        if res_meta.data:
+                                            logger.info(f"📈 [TrailingTP] {asset} hit milestone: {updated_peak} pips")
                                     
                                     # Check reversal (e.g. hits 7.0, drops to 6.4 -> CLOSE)
                                     if current_pips < (updated_peak - settings.TRAILING_TP_REVERSAL):
                                         logger.warning(f"🎯 [TrailingTP] {asset} reversing ({current_pips:.1f} < {updated_peak} - {settings.TRAILING_TP_REVERSAL}). CLOSING.")
-                                        self._ew_transition(sig_id, "ENTRY_HIT", {
+                                        if self._ew_transition(sig_id, "ENTRY_HIT", {
                                             "state": "TP_HIT", "status": "CLOSED_TRAILING_TP",
                                             "result": "PROFIT", "closed_at": now.isoformat(),
                                             "metadata": meta
-                                        }, "TRAILING_TP")
-                                        if self.notifier and sig.get("telegram_message_id"):
-                                            try: self.notifier.send_tp_hit(sig, label="TRAILING TP")
-                                            except: pass
+                                        }, "TRAILING_TP"):
+                                            if self.notifier and sig.get("telegram_message_id"):
+                                                try: self.notifier.send_tp_hit(sig, label="TRAILING TP")
+                                                except: pass
                                         continue
                             except Exception as e:
                                 logger.error(f"Trailing TP check failed: {e}")
@@ -1000,13 +1003,13 @@ class ContinuousAnalyzer:
                             sl_hit = True
                         
                         if sl_hit:
-                            self._ew_transition(sig_id, "ENTRY_HIT", {
+                            if self._ew_transition(sig_id, "ENTRY_HIT", {
                                 "state": "SL_HIT", "status": "CLOSED_SL",
                                 "result": "LOSS", "closed_at": now.isoformat()
-                            }, "SL_HIT")
-                            if self.notifier and sig.get("telegram_message_id"):
-                                try: self.notifier.send_sl_hit(sig)
-                                except: pass
+                            }, "SL_HIT"):
+                                if self.notifier and sig.get("telegram_message_id"):
+                                    try: self.notifier.send_sl_hit(sig)
+                                    except: pass
                             continue
                         
                         # --- Breakeven Check (DISABLED v4.1.8 for Scalping) ---
@@ -1057,8 +1060,8 @@ class ContinuousAnalyzer:
         except Exception as e:
             logger.error(f"[EmbeddedWatcher] Cycle failed: {e}")
 
-    def _ew_transition(self, sig_id: str, from_state: str, update_data: dict, label: str):
-        """Atomic state transition for embedded watcher."""
+    def _ew_transition(self, sig_id: str, from_state: str, update_data: dict, label: str) -> bool:
+        """Atomic state transition for embedded watcher. Returns True if updated."""
         try:
             res = db.client.table(settings.TABLE_SIGNALS).update(
                 update_data
@@ -1066,10 +1069,13 @@ class ContinuousAnalyzer:
             
             if res.data:
                 logger.success(f"👁️ [EmbeddedWatcher] {sig_id[:8]} -> {label}")
+                return True
             else:
                 logger.debug(f"[EmbeddedWatcher] Transition skipped for {sig_id[:8]} (already processed)")
+                return False
         except Exception as e:
             logger.error(f"[EmbeddedWatcher] Transition failed for {sig_id[:8]}: {e}")
+            return False
 
     def start(self):
         """Start the continuous evaluation loop with EMBEDDED WATCHER"""

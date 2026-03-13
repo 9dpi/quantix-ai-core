@@ -783,3 +783,35 @@
 2026-03-13 17:37:51 | INFO | 🔍 PepperstoneValidator ready [feed=binance_proxy, spread_buffer=0.00003]
 2026-03-13 17:37:52 | SUCCESS | ✅ Feed 'binance_proxy' connected successfully.
 2026-03-13 17:37:52 | INFO | 🚀 Validation Layer started [Independent Observer Mode]
+2026-03-13 17:39:40 | INFO | 🔍 PepperstoneValidator ready [feed=binance_proxy, spread_buffer=0.00003]
+2026-03-13 17:39:40 | SUCCESS | ✅ Feed 'binance_proxy' connected successfully.
+2026-03-13 17:39:40 | INFO | 🚀 Validation Layer started [Independent Observer Mode]
+2026-03-13 18:18:21 | INFO | Validating 1 active signal(s) via binance_proxy
+2026-03-13 18:18:22 | WARNING | ⚠️  DISCREPANCY [ENTRY_MISMATCH] signal=65906459-7f6e-4b33-a8c0-21e5c5a62aa4 feed=TRIGGERED main=NOT_TRIGGERED
+2026-03-13 18:18:22 | SUCCESS | 💾 Discrepancy saved to DB [signal=65906459-7f6e-4b33-a8c0-21e5c5a62aa4]
+2026-03-13 18:19:56 | INFO | Validating 1 active signal(s) via binance_proxy
+2026-03-13 18:19:56 | WARNING | ⚠️  DISCREPANCY [ENTRY_MISMATCH] signal=56b1d531-b274-4e41-9519-37a7e1ae6b72 feed=TRIGGERED main=NOT_TRIGGERED
+2026-03-13 18:19:57 | SUCCESS | 💾 Discrepancy saved to DB [signal=56b1d531-b274-4e41-9519-37a7e1ae6b72]
+2026-03-13 18:28:00 | INFO | Validating 2 active signal(s) via binance_proxy
+2026-03-13 18:28:02 | INFO | Validating 2 active signal(s) via binance_proxy
+2026-03-13 18:28:15 | INFO | Validating 2 active signal(s) via binance_proxy
+2026-03-13 18:28:27 | INFO | Validating 2 active signal(s) via binance_proxy
+2026-03-13 18:28:38 | INFO | Validating 3 active signal(s) via binance_proxy
+2026-03-13 18:28:39 | WARNING | ⚠️  DISCREPANCY [ENTRY_MISMATCH] signal=3564b2c1-c593-40ae-ba2f-f3256baa9c45 feed=TRIGGERED main=NOT_TRIGGERED
+2026-03-13 18:28:39 | SUCCESS | 💾 Discrepancy saved to DB [signal=3564b2c1-c593-40ae-ba2f-f3256baa9c45]
+2026-03-13 18:29:01 | INFO | Validating 3 active signal(s) via binance_proxy
+2026-03-13 18:29:03 | INFO | Validating 3 active signal(s) via binance_proxy
+2026-03-13 18:29:17 | INFO | Validating 4 active signal(s) via binance_proxy
+2026-03-13 18:29:28 | INFO | Validating 4 active signal(s) via binance_proxy
+2026-03-13 18:29:40 | INFO | Validating 4 active signal(s) via binance_proxy
+2026-03-13 18:30:02 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 18:30:04 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 18:30:17 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 18:30:29 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 18:30:41 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 18:31:03 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 18:31:05 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 18:31:32 | INFO | 🔍 PepperstoneValidator ready [feed=binance_proxy, spread_buffer=0.00003]
+2026-03-13 18:31:32 | SUCCESS | ✅ Feed 'binance_proxy' connected successfully.
+2026-03-13 18:31:32 | INFO | 🚀 Validation Layer started [Independent Observer Mode]
+2026-03-13 18:31:33 | INFO | Validating 5 active signal(s) via binance_proxy

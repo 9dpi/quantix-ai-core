@@ -261,8 +261,8 @@ class ContinuousAnalyzer:
                 mtf_aligned = (direction == "BUY" and m15_trend == "bullish") or \
                               (direction == "SELL" and m15_trend == "bearish")
                 if not mtf_aligned:
-                    mtf_penalty = 0.85  # 15% confidence penalty for misalignment
-                    logger.warning(f"⚠️ Trend Misalignment: M5 {direction} vs M15_TREND={m15_trend.upper()} → 0.85x penalty")
+                    mtf_penalty = 0.95  # 5% confidence penalty for misalignment in Scalper Mode
+                    logger.warning(f"⚠️ Trend Misalignment: M5 {direction} vs M15_TREND={m15_trend.upper()} → 0.95x penalty")
             else:
                 logger.warning("⚠️ M15 trend unavailable. Proceeding with caution (M5 only).")
             

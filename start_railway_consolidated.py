@@ -69,24 +69,25 @@ def run_service(name, cmd, asset_name, log_asset, direction="STDOUT", cwd=None):
                 for line in iter(process.stdout.readline, ''):
                     clean_line = line.strip()
                     if clean_line:
-                        # v4.6.9: Don't let background Telegram poll failures trick the Watchdog into thinking the main thread is alive
-                        if "Error fetching Telegram updates" not in clean_line:
-                            last_output_at = time.time()
-                            
+                        last_output_at = time.time()
                         print(f"[{name}] {clean_line}")
                         
-                        # v4.6.6: STOP SPAMMING DB WITH STDOUT.
-                        # Railway already captures all stdout. We only mirror severe errors to DB.
+                        # v4.7.2: Log ALL lines to DB during the first 1 minute of a process for visibility
+                        # This avoids silent failures. After that, we filter again.
+                        is_startup = (time.time() - proc_start_at < 60)
+                        
                         upper_line = clean_line.upper()
-                        if "ERROR" in upper_line or "CRITICAL" in upper_line or "EXCEPTION" in upper_line:
-                            # Fire and forget in a non-blocking thread to prevent DB timeouts from freezing the launcher
-                            def _safe_log():
+                        is_error = "ERROR" in upper_line or "CRITICAL" in upper_line or "EXCEPTION" in upper_line or "[BOOT]" in upper_line or "FOUND" in upper_line
+                        
+                        if is_startup or is_error:
+                            def _safe_log(_line):
                                 try:
                                     log_direction = "UVICORN_LOG" if name == "WEB" else "STDOUT"
-                                    log_to_db(log_asset, clean_line[:200], log_direction)
+                                    log_to_db(log_asset, _line[:200], log_direction)
                                 except: pass
-                            threading.Thread(target=_safe_log, daemon=True).start()
+                            threading.Thread(target=_safe_log, args=(clean_line,), daemon=True).start()
             
+            proc_start_at = time.time()
             monitor_thread = threading.Thread(target=monitor_output, daemon=True)
             monitor_thread.start()
             

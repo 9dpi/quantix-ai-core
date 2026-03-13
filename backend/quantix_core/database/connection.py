@@ -141,6 +141,9 @@ class SupabaseConnection:
                 logger.warning("[WARN] SUPABASE_URL or Key is missing!")
                 return
             
+            key_source = "SERVICE_ROLE" if settings.SUPABASE_SERVICE_ROLE_KEY else "STANDARD"
+            logger.info(f"Using {key_source} Supabase Key (Length: {len(key)})")
+            
             try:
                 from supabase import create_client
                 self._client = create_client(

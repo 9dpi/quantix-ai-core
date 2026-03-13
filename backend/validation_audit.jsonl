@@ -780,3 +780,6 @@
 2026-03-13 17:32:33 | INFO | 🔍 PepperstoneValidator ready [feed=binance_proxy, spread_buffer=0.00003]
 2026-03-13 17:32:34 | SUCCESS | ✅ Feed 'binance_proxy' connected successfully.
 2026-03-13 17:32:34 | INFO | 🚀 Validation Layer started [Independent Observer Mode]
+2026-03-13 17:37:51 | INFO | 🔍 PepperstoneValidator ready [feed=binance_proxy, spread_buffer=0.00003]
+2026-03-13 17:37:52 | SUCCESS | ✅ Feed 'binance_proxy' connected successfully.
+2026-03-13 17:37:52 | INFO | 🚀 Validation Layer started [Independent Observer Mode]

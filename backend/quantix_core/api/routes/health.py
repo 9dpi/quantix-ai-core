@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from datetime import datetime
 import time
+from quantix_core.config.settings import settings
 
 router = APIRouter()
 
@@ -18,7 +19,7 @@ async def health():
     return {
         "status": "ok",
         "engine": "quantix_ai_core",
-        "version": "0.1.0",
+        "version": settings.APP_VERSION,
         "uptime_sec": uptime_seconds,
         "time": datetime.utcnow().isoformat() + "Z"
     }

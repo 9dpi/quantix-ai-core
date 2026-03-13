@@ -90,21 +90,20 @@ class ContinuousAnalyzer:
         """v4.5.5: Circuit Breaker DISABLED per user request (Open Flow Mode)"""
         pass
 
-    def _get_h1_trend(self) -> Optional[str]:
-        """v4.5.0: Fetch H1 trend for multi-timeframe alignment"""
+    def _get_m15_trend(self) -> Optional[str]:
+        """v4.6.1: Fetch M15 trend for faster adaptation (Replaced H1)"""
         try:
-            # Prefer Binance for free H1 history
-            raw_h1 = self.binance.get_history(symbol="EURUSD", interval="1h", limit=50)
-            if not raw_h1:
-                # Fallback to TwelveData
-                raw_h1 = self.td_client.get_time_series(symbol="EUR/USD", interval="1h", outputsize=50).get("values")
+            # v4.6.1: Use 200 bars of M15 for a solid trend anchor (~2 days)
+            raw_m15 = self.binance.get_history(symbol="EURUSD", interval="15m", limit=200)
+            if not raw_m15:
+                raw_m15 = self.td_client.get_time_series(symbol="EUR/USD", interval="15min", outputsize=200).get("values")
             
-            if raw_h1:
-                df_h1 = self.convert_to_df(raw_h1)
-                h1_state = self.engine.analyze(df_h1, symbol="EURUSD", timeframe="H1")
-                return h1_state.state # "bullish", "bearish", "range"
+            if raw_m15:
+                df_m15 = self.convert_to_df(raw_m15)
+                m15_state = self.engine.analyze(df_m15, symbol="EURUSD", timeframe="M15_TREND")
+                return m15_state.state # "bullish", "bearish", "range"
         except Exception as e:
-            logger.error(f"H1 Trend fetch failed: {e}")
+            logger.error(f"M15 Trend fetch failed: {e}")
         return None
 
             
@@ -157,37 +156,36 @@ class ContinuousAnalyzer:
 
     def run_cycle(self):
         """One analysis cycle [T0 + Δ]"""
-        # 🔥 EMERGENCY JANITOR: Self-unblock before market check
-        # Ensures stuck signals are cleared even if market is closed
-        self.janitor_cleanup()
-
-        # 🛡️ Market Hours Safety Check
-        if not MarketHours.should_generate_signals():
-            return
-
-        # 🛑 v4.5.0: Circuit Breaker / Cooldown Check
-        self._check_circuit_breaker()
-        if self.cooldown_until:
-            logger.warning(f"⏸️ System in Cooldown until {self.cooldown_until.isoformat()} due to losses.")
-            return
+        start_time = time.perf_counter()
+        
+        # 💓 [v4.5.6] PRIMARY HEARTBEAT - Log immediately
+        try:
+            db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "asset": "HEARTBEAT",
+                "direction": "SYSTEM",
+                "status": f"ALIVE_V3.5_C{self.cycle_count+1}_START",
+                "confidence": 0.0, "strength": 0.0, "price": 0.0
+            }).execute()
+        except: pass
 
         try:
-            start_time = time.perf_counter()
+            # 🔥 EMERGENCY JANITOR
+            self.janitor_cleanup()
+
+            # 🛡️ Market Hours Safety Check
+            if not MarketHours.should_generate_signals():
+                logger.debug("🕒 Market outside signal hours. Skipping full analysis.")
+                return
+
+            # 🛑 Circuit Breaker / Cooldown Check
+            self._check_circuit_breaker()
+            if self.cooldown_until:
+                logger.warning(f"⏸️ System in Cooldown until {self.cooldown_until.isoformat()} due to losses.")
+                return
+
             self.cycle_count += 1
             logger.info(f"🎬 [v3.5] Starting analysis cycle #{self.cycle_count}...")
-            
-            # Log market status to DB every cycle with performance metrics
-            try:
-                db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                    "asset": "HEARTBEAT",
-                    "direction": "SYSTEM",
-                    "status": f"ALIVE_V3.5_C{self.cycle_count}",
-                    "confidence": 0.0,
-                    "strength": 0.0,
-                    "price": 0.0
-                }).execute()
-            except: pass
             
             
             # 1. Continuous Feed [T0] - Multi-Source Fallover
@@ -195,20 +193,21 @@ class ContinuousAnalyzer:
             
             # --- Source A: Binance (Primary - Free/Unlimited) ---
             try:
-                raw_data = self.binance.get_history(symbol="EURUSD", interval="15m", limit=100)
+                # v4.6.1: Shift signal generation to M5 for FAST ADAPTATION
+                raw_data = self.binance.get_history(symbol="EURUSD", interval="5m", limit=100)
                 if raw_data:
                     df = self.convert_to_df(raw_data)
-                    logger.info("📡 Data Source: BINANCE (Primary)")
+                    logger.info("📡 Data Source: BINANCE (Primary - M5)")
             except Exception as e:
                 logger.warning(f"⚠️ Binance failed: {e}")
 
             # --- Source B: TwelveData (Fallback - Quota Limited) ---
             if df.empty:
                 try:
-                    raw_data = self.td_client.get_time_series(symbol="EUR/USD", interval="15min", outputsize=100)
+                    raw_data = self.td_client.get_time_series(symbol="EUR/USD", interval="5min", outputsize=100)
                     if raw_data and "values" in raw_data:
                         df = self.convert_to_df(raw_data)
-                        logger.info("📡 Data Source: TWELVEDATA (Fallback)")
+                        logger.info("📡 Data Source: TWELVEDATA (Fallback - M5)")
                 except Exception as e:
                     logger.error(f"⚠️ TwelveData fallback failed: {e}")
 
@@ -226,17 +225,17 @@ class ContinuousAnalyzer:
                 "asset": "HEARTBEAT_ANALYZER",
                 "price": price,
                 "direction": "HEARTBEAT",
-                "status": f"V3.5_OK_{latency_ms}ms",
+                "status": f"V4.6_M5_OK_{latency_ms}ms",
                 "strength": 0.0,
                 "confidence": 0.0
             }
             try:
                 db.client.table(settings.TABLE_ANALYSIS_LOG).insert(heartbeat_entry).execute()
-                logger.success(f"✅ Cycle #{self.cycle_count} complete in {latency_ms}ms")
+                logger.success(f"✅ Cycle #{self.cycle_count} complete (M5 Mode) in {latency_ms}ms")
             except: pass
 
-            # 2. Market Analysis
-            state = self.engine.analyze(df, symbol="EURUSD", timeframe="M15", source="twelve_data")
+            # 2. Market Analysis (M5)
+            state = self.engine.analyze(df, symbol="EURUSD", timeframe="M5", source="binance")
             
             # Map market state to trading direction
             # STRICT RULE: Only trade clear structure — skip neutral/sideways
@@ -254,18 +253,18 @@ class ContinuousAnalyzer:
                 )
                 return
 
-            # 🧩 v4.5.3: Multi-Timeframe Alignment (Soft Penalty)
-            h1_trend = self._get_h1_trend()
+            # 🧩 v4.6.1: M15 Trend Alignment (Replaced H1 for faster adaptation)
+            m15_trend = self._get_m15_trend()
             mtf_penalty = 1.0  # Default: no penalty
-            if h1_trend:
-                logger.info(f"🔎 MTF Check: M15={direction} | H1={h1_trend.upper()}")
-                mtf_aligned = (direction == "BUY" and h1_trend == "bullish") or \
-                              (direction == "SELL" and h1_trend == "bearish")
+            if m15_trend:
+                logger.info(f"🔎 Trend Check: M5_SIGNAL={direction} | M15_TREND={m15_trend.upper()}")
+                mtf_aligned = (direction == "BUY" and m15_trend == "bullish") or \
+                              (direction == "SELL" and m15_trend == "bearish")
                 if not mtf_aligned:
                     mtf_penalty = 0.85  # 15% confidence penalty for misalignment
-                    logger.warning(f"⚠️ MTF Misalignment: {direction} vs H1={h1_trend.upper()} → confidence penalty 0.85x")
+                    logger.warning(f"⚠️ Trend Misalignment: M5 {direction} vs M15_TREND={m15_trend.upper()} → 0.85x penalty")
             else:
-                logger.warning("⚠️ H1 trend unavailable. Proceeding with caution (M15 only).")
+                logger.warning("⚠️ M15 trend unavailable. Proceeding with caution (M5 only).")
             
             # ============================================
             # v3.5 SMC-LITE ENTRY LOGIC (FVG-Based)
@@ -362,7 +361,7 @@ class ContinuousAnalyzer:
                 "asset": "EURUSD",
                 "direction": direction,
                 "strength": state.strength,
-                "timeframe": "M15",
+                "timeframe": "M5",
                 "status": "PREPARED",
                 "state": "PREPARED",  # Phase 1: Invisible to Watcher/UI
                 "entry_price": entry_price,     # Future entry (NOT market)
@@ -385,12 +384,12 @@ class ContinuousAnalyzer:
                 # Metadata
                 "ai_confidence": state.confidence,
                 "generated_at": now.isoformat(),
-                "explainability": f"Structure {state.state.upper()} | Strength {int(state.strength*100)}% | Type: {msg_type}",
+                "explainability": f"M5 Structure {state.state.upper()} | M15 Trend Filter | Type: {msg_type}",
                 "is_test": False,
                 "is_market_entry": is_market_entry,
                 
-                # --- 5W1H TRANSPARENCY (v3.8) ---
-                "strategy": f"Quantix_v3.8_SMC",
+                # --- 5W1H TRANSPARENCY (v4.6.1) ---
+                "strategy": f"Quantix_v4.6.1_M5_SCALPER",
                 "refinement": (
                     f"Structure: {state.state.upper()} | "
                     f"Conf: {state.confidence:.0%} | "
@@ -504,7 +503,7 @@ class ContinuousAnalyzer:
                 is_allowed, gate_reason = self.check_release_gate(signal_base["asset"], signal_base["timeframe"])
                 
                 if is_allowed:
-                    logger.success(f"🎯 Threshold Passive ({release_score*100:.1f}%) -> BIRTH SIGNAL")
+                    logger.success(f"🎯 M5 Scalp Release ({release_score*100:.1f}%) -> BIRTH SIGNAL")
                     
                     # Update to LIVE status immediately
                     signal_base["status"] = "PUBLISHED"

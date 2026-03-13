@@ -1,41 +1,48 @@
-# Quantix AI Master DNA (v4.1.7)
+# MASTER_CONTEXT: Quantix AI Core DNA (v4.6.1)
+> **Session State**: 2026-03-13 12:20 VN
+> **Status**: 🟢 PRODUCTION STABLE - M5 SCALPING MODE (v4.6.1+)
 
-## 1. Overall Architecture
-- **Cloud Core (Railway)**: 
-    - `API`: FastAPI (Supabase backend) serving signals to local bridge.
-    - `Analyzer`: Continuous market scanning (Binance primary / TwelveData fallback).
-    - `Validator`: Real-time setup verification (Pepperstone data).
-- **Local Bridge (Windows PC)**:
-    - `auto_executor.py`: Polls Cloud API every 1s and triggers MT4.
-- **Expert Advisor (EA)**:
-    - `Signal_Genius.mq4`: Executes trades on MetaTrader 4.
-- **Safety Layer**:
-    - `Watchdog`: Monitors heartbeats of all services.
-    - `Janitor`: Integrated into Analyzer loop for proactive signal cleanup.
 
-## 2. Current Status
-- [x] **Infrastructure**: Consolidated `start_railway_consolidated.py` successfully (Source priority: Binance).
-- [x] **Signal Lifecycle**: Fixed DB constraint `chk_state_valid` by standardizing states (ENTRY_HIT for live signals).
-- [x] **MT4 Optimization**: Relaxed execution parameters (Spread: 3.0p, Slippage: 5.0p) and dynamic `strategy_id` matching.
-- [x] **Unlimited Flow**: Removed "1 signal per day" restriction (MAX_SIGNALS_PER_DAY: 9999).
-- [x] **Resource Cleanup**: Janitor integrated into cycle for automatic stall prevention.
+## 1. Kiến trúc Tổng thể (Architecture)
+Multi-Agent Cloud-Native Trading System:
+- **Launcher (`start_railway_consolidated.py`)**: Gộp Web API, Analyzer, và Validator vào một tiến trình duy nhất. 
+    - *Đặc điểm*: Thêm **Silence Watchdog** (Tự giết & restart nếu service im lặng > 15p).
+- **Core Engine (`continuous_analyzer.py`)**: Chạy vòng lặp vô tận (Infinity Loop).
+    - *Embedded Watcher*: Logic giám sát lệnh tích hợp trực tiếp, không chạy process rời.
+    - *Janitor Sync*: Tự động dọn dẹp lệnh cũ ngay đầu mỗi chu kỳ.
+- **MT4 Bridge**: `Signal_Genius.mq4` (v1.2.0) tương tác qua API `/mt4/signals/`.
+    - *Optimization*: Tối ưu cho Mac Mini/macOS (WebRequest handling & Wine stability).
 
-## 3. Tech Stack & Conventions
-- **Languages**: Python 3.10+ (Backend), MQL4 (MT4 EA), Vanilla JS Dashboard.
-- **DB**: Supabase (PostgreSQL). States: `ENTRY_HIT`, `TP_HIT`, `SL_HIT`, `CANCELLED`.
-- **Style**: Loguru + Pydantic. Root: `d:/Automator_Prj/Quantix_AI_Core/backend`.
+## 2. Trạng thái Hiện tại (Current State)
+- **Done**:
+    - **Open Flow Mode**: Gỡ bỏ hoàn toàn Daily Cap & Global Lock. Khớp lệnh ngay khi `Confidence >= 0.75`.
+    - **Stability Fix**: Thêm `timeout` (30-60s) cho tất cả lệnh Subprocess (Git/API) để chống treo hệ thống.
+    - **Mac Support**: Hoàn thiện tài liệu và EA v1.2.0 cho nhóm khách hàng dùng Mac Mini.
+    - **Heartbeat Upgrade**: Log nhịp tim ngay đầu `run_cycle` để đảm bảo báo cáo liveness chính xác.
+- **Bugs/Issues**:
+    - *System Heartbeat Failures*: Đã fix tình trạng treo Analyzer dẫn đến [FAIL] status.
+    - *Slow Git Push*: Đã fix bằng timeout trong `analyze_heartbeat.py`.
 
-## 4. Core Logic / Classes
-- **`ContinuousAnalyzer`**: Market execution for all signals >75% confidence.
-- **`MT4 Bridge`**: `mt4.py` route handles polling (max_spread: 3.0, slippage: 5.0).
-- **`Janitor`**: Self-cleans pipeline every 150m (ACTIVE) or 35m (WAITING).
+## 3. Stack Kỹ thuật & Quy ước
+- **Backend**: Python 3.11, FastAPI, Loguru.
+- **Data**: Supabase (PostgreSQL) + Local Audit (`.jsonl`).
+- **Convention**:
+    - *Status Mapping*: `PUBLISHED` -> `ENTRY_HIT` -> `TP_HIT` / `SL_HIT`.
+    - *Folder Structure*: `backend/quantix_core/` (Lõi), `mt4_expert_advisor/` (EA), `docs/` (Tài liệu).
 
-## 5. Standard Operating Values (v4.1.7 Aggressive)
-- **TP/SL**: Fixed **7.0 pips (TP)** / **7.0 pips (SL)** for aggressive scalping.
-- **Risk**: **2.0% of Account Balance** (Dynamic scaling enabled).
-- **Confidence Threshold**: 75% (Min Release).
-- **Hard Max Lot Cap**: 5.0 (Global safety guard).
+## 4. Logic Cốt lõi (Core Logic)
+- **`run_cycle()`**: Nhịp tim hệ thống. Thực thi: Heartbeat -> Janitor -> MarketHours -> Analyze -> Learning Sync.
+- **M5 Scalping Logic (v4.6.1)**: 
+    - **Signal**: Khung M5 (100 nến) - Thích nghi cực nhanh với biến động ngắn hạn.
+    - **Trend Filter**: Khung M15 (200 nến) - Đảm bảo trade thuận xu hướng trung hạn.
+    - **H1 Trend**: Đã loại bỏ hoàn toàn để tránh hiện tượng "kẹt trend" lâu ngày.
+- **Confidence Logic**: 2:1 R:R (10p TP / 5p SL). Điều kiện kích hoạt: `Confidence >= 0.75`.
+- **`CalculateLotSize()`**: Trong EA, tính Lot theo % Equity (Mặc định 2.0% risk - Irfan Standard).
 
-## 6. Next Steps
-1. **Execution Audit**: Monitor MT4 callbacks for the next high-momentum move.
-2. **Volatility Guard**: Watch for "Volatility Spike" rejections (>2.5x ATR) during news events.
+## 5. Mục tiêu Tiếp theo (Next Steps)
+1. **Giao tệp khách hàng**: Gửi `Signal_Genius_AI_MT4_Package_v1.2.zip` cho khách hàng dùng Mac Mini.
+2. **Monitor Open Flow**: Theo dõi hiện tượng "Signal Cluster" (nhiều lệnh cùng lúc) khi thị trường biến động mạnh.
+3. **Audit Learning Data**: Kiểm tra hiệu quả của `analyze_heartbeat.py` sau khi thêm timeout.
+
+---
+**Hệ thống v4.6.0 hiện đã đạt trạng thái tự phục hồi (Self-Healing) nhờ Watchdog mới.** 🛡️

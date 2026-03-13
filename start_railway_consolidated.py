@@ -40,6 +40,9 @@ def run_service(name, cmd, asset_name, log_asset, direction="STDOUT", cwd=None):
     print(f"🚀 [Launcher] Starting {name}...")
     attempt = 0
     
+    # Silence Watchdog: Kill process if no output for 15 minutes
+    SILENCE_TIMEOUT = 900 # 15 minutes
+    
     while True:
         attempt += 1
         log_to_db(asset_name, f"STARTING_ATTEMPT_{attempt}", "LAUNCHER")
@@ -55,14 +58,31 @@ def run_service(name, cmd, asset_name, log_asset, direction="STDOUT", cwd=None):
                 bufsize=1
             )
             
-            # Stream output with prefix and DB logging
-            for line in iter(process.stdout.readline, ''):
-                clean_line = line.strip()
-                if clean_line:
-                    print(f"[{name}] {clean_line}")
-                    # Map direction for Web specifically per internal_health_check.py
-                    log_direction = "UVICORN_LOG" if name == "WEB" else "STDOUT"
-                    log_to_db(log_asset, clean_line[:200], log_direction)
+            # Use a non-blocking approach to monitor output and detect hangs
+            last_output_at = time.time()
+            
+            # We use a separate thread or a polling loop to read lines
+            def monitor_output():
+                nonlocal last_output_at
+                for line in iter(process.stdout.readline, ''):
+                    clean_line = line.strip()
+                    if clean_line:
+                        last_output_at = time.time()
+                        print(f"[{name}] {clean_line}")
+                        log_direction = "UVICORN_LOG" if name == "WEB" else "STDOUT"
+                        log_to_db(log_asset, clean_line[:200], log_direction)
+            
+            monitor_thread = threading.Thread(target=monitor_output, daemon=True)
+            monitor_thread.start()
+            
+            # Main monitoring loop: Wait for process or timeout
+            while process.poll() is None:
+                if time.time() - last_output_at > SILENCE_TIMEOUT:
+                    print(f"🚨 [Launcher] {name} HUNG (silent for {SILENCE_TIMEOUT}s). Killing...")
+                    log_to_db(asset_name, f"KILLED_BY_WATCHDOG_SILENCE", "LAUNCHER")
+                    process.kill()
+                    break
+                time.sleep(10)
             
             process.wait()
             log_to_db(asset_name, f"EXITED_CODE_{process.returncode}", "LAUNCHER")

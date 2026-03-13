@@ -126,10 +126,12 @@ def analyze_heartbeat(push_to_git=False):
         if push_to_git:
             try:
                 # Add learning data and the log itself for decentralization
-                subprocess.run(["git", "add", "dashboard/learning_data.json", "backend/heartbeat_audit.jsonl"], cwd=base_dir, capture_output=True)
-                subprocess.run(["git", "commit", "-m", "chore: auto-update learning telemetry"], cwd=base_dir, capture_output=True)
-                subprocess.run(["git", "push"], cwd=base_dir, capture_output=True)
+                subprocess.run(["git", "add", "dashboard/learning_data.json", "backend/heartbeat_audit.jsonl"], cwd=base_dir, capture_output=True, timeout=30)
+                subprocess.run(["git", "commit", "-m", "chore: auto-update learning telemetry"], cwd=base_dir, capture_output=True, timeout=30)
+                subprocess.run(["git", "push"], cwd=base_dir, capture_output=True, timeout=60)
                 print("🚀 Public Dashboard Sync Successful")
+            except subprocess.TimeoutExpired:
+                print("⚠️ Git push timed out. Skipping sync.")
             except Exception as ge:
                 print(f"⚠️ Git push failed: {ge}")
                 

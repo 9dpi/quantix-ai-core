@@ -520,29 +520,34 @@ class ContinuousAnalyzer:
                     # 3. DB COMMIT (Single Phase)
                     signal_id = self.lock_signal(signal_base)
                     
-                    if signal_id:
-                        # 4. BROADCAST (Telegram)
-                        if self.notifier:
-                            signal_for_tg = signal_base.copy()
-                            signal_for_tg["id"] = signal_id
-                            
-                            msg_id = self.push_to_telegram(signal_for_tg)
-                            if msg_id:
-                                # Update signal with Telegram ID
+                    # 4. BROADCAST (Telegram) - v4.6.3: Decoupled from DB success
+                    if self.notifier:
+                        import uuid
+                        signal_for_tg = signal_base.copy()
+                        # Use DB ID if available, otherwise fallback to local temporary ID
+                        effective_id = signal_id or f"temp_{uuid.uuid4().hex[:8]}"
+                        signal_for_tg["id"] = effective_id
+                        
+                        msg_id = self.push_to_telegram(signal_for_tg)
+                        
+                        if msg_id:
+                            if signal_id:
+                                # Update signal with Telegram ID in DB
                                 try:
                                     db.client.table(settings.TABLE_SIGNALS).update({
                                         "telegram_message_id": msg_id
                                     }).eq("id", signal_id).execute()
-                                    self.last_pushed_at = datetime.now(timezone.utc)
                                     logger.success(f"🚀 [LIVE] Signal {signal_id} is active (TG: {msg_id})")
                                 except Exception as e:
                                     logger.error(f"Failed to link TG ID to signal {signal_id}: {e}")
                             else:
-                                logger.warning(f"⚠️ Telegram broadcast failed for {signal_id}")
+                                logger.warning(f"⚠️ Signal sent to Telegram (ID: {msg_id}) but NOT locked in DB (temp_id: {effective_id})")
+                            
+                            self.last_pushed_at = datetime.now(timezone.utc)
                         else:
-                            logger.warning(f"⚠️ Notifier not initialized. Signal {signal_id} is LIVE in DB only.")
+                            logger.error("Telegram broadcast failed.")
                     else:
-                        logger.error("❌ Failed to create LIVE signal in DB.")
+                        logger.warning("Telegram notifier missing. Signal was processed but not sent.")
                 else:
                     logger.warning(f"🛡️ [ANTI-BURST] Signal rejected by Gate: {gate_reason}")
             else:

@@ -47,7 +47,7 @@ class Settings(BaseSettings):
     TP_PIPS: float = 10.0                   # v4.5.2: 10 pips
     SL_PIPS: float = 5.0                    # v4.5.2: 5 pips (Aggressive 2:1 R:R)
     MIN_RR: float = 2.0  # v4.5.2: Minimum 2.0 R:R
-    MIN_CONFIDENCE: float = 0.75  # v4.5.3: 75% threshold for aggressive 2:1 R:R strategy
+    MIN_CONFIDENCE: float = 0.70  # v4.6.3: Lowered to 70% for aggressive M5 scalping
     MAX_SIGNALS_PER_ASSET: int = 9999
     MAX_PENDING_DURATION_MINUTES: int = 35  # Entry window before auto-cancel
     MAX_TRADE_DURATION_MINUTES: int = 150   # v3.8: Adjusted from 180m to 150m per institutional audit
@@ -56,8 +56,8 @@ class Settings(BaseSettings):
     RISK_USD_PER_TRADE: float = 50.0        # Institutional Risk Model base per signal
     
     # 🔒 ANTI-BURST RULES
-    MIN_RELEASE_INTERVAL_MINUTES: int = 90  # v4.5.0: Increased from 45m for safe structure evolution
-    MAX_SIGNALS_PER_DAY: int = 8
+    MIN_RELEASE_INTERVAL_MINUTES: int = 15  # v4.6.3: Reduced to 15m for M5 Scalper responsiveness
+    MAX_SIGNALS_PER_DAY: int = 20           # v4.6.3: Increased cap for scalper mode
     MAX_CONSECUTIVE_LOSSES: int = 3
     CIRCUIT_BREAKER_COOLDOWN_HOURS: float = 1.0 # v4.5.1: Reduced from 4h per Irfan feedback
     HEALTH_REPORT_INTERVAL_MINUTES: int = 120

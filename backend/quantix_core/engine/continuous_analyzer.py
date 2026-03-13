@@ -1,20 +1,16 @@
 import time
 import json
 import requests
-import pandas as pd
 from datetime import datetime, timezone, timedelta
 from loguru import logger
 from typing import Optional
 
 from quantix_core.config.settings import settings
-from quantix_core.ingestion.twelve_data_client import TwelveDataClient
-from quantix_core.engine.structure_engine_v1 import StructureEngineV1
-from quantix_core.database.connection import db
-from quantix_core.utils.entry_calculator import EntryCalculator
-from quantix_core.utils.market_hours import MarketHours
-from quantix_core.engine.confidence_refiner import ConfidenceRefiner
-from quantix_core.feeds.binance_feed import BinanceFeed
-from quantix_core.engine.janitor import Janitor
+
+# 🚨 LOW-MEMORY / HIGH-STABILITY BOOT (v4.7.2)
+# We move heavy AI/ML/Data science imports inside classes to prevent
+# startup hangs on resource-constrained environments like Railway.
+# Critical Path: Embedded Watcher (TP/SL) is prioritized.
 
 class ContinuousAnalyzer:
     """
@@ -23,34 +19,35 @@ class ContinuousAnalyzer:
     """
     
     def __init__(self):
-        self.td_client = TwelveDataClient(api_key=settings.TWELVE_DATA_API_KEY)
-        self.binance = BinanceFeed()
-        self.engine = StructureEngineV1(sensitivity=2)
-        self.cycle_count = 0
-        self.last_pushed_at = None # For Telegram Cooldown
-        self.last_health_report_at = None # v4.2.0: Automated health reports
-        self.refiner = ConfidenceRefiner()
+        # 🟢 Light Startup Phase (Priority: Trade Protection)
+        from quantix_core.feeds.binance_feed import BinanceFeed
+        from quantix_core.database.connection import db
+        from quantix_core.utils.market_hours import MarketHours
         
-        # v4.5.0: Safe-Guard Pivot (Circuit Breaker)
+        self.db = db
+        self.binance = BinanceFeed()
+        self.hours = MarketHours()
+        
+        # 🟡 Lazy-Loaded Heavy Phase (AI/ML)
+        self.td_client = None
+        self.engine = None
+        self.refiner = None
+        self.checker = None
+        self.janitor = None
+        
+        self.cycle_count = 0
+        self.last_pushed_at = None
+        self.last_health_report_at = None
         self.consecutive_losses = 0
         self.cooldown_until: Optional[datetime] = None
         
-        # Absolute path to prevent "reset to 0" issues on machine restart
+        # Local Paths
         import os
-        # Robust path detection: try to find the project root (where .env or quantix_core is)
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        # Target: the folder containing 'quantix_core'
         self.project_root = os.path.dirname(os.path.dirname(current_dir))
+        self.audit_log_path = os.path.join(self.project_root, "heartbeat_audit.jsonl")
         
-        # In Docker/Railway, heartbeat_audit.jsonl is usually in the root
-        # In local dev, it might be in backend/heartbeat_audit.jsonl
-        potential_path = os.path.join(self.project_root, "heartbeat_audit.jsonl")
-        if not os.path.exists(potential_path) and os.path.exists(os.path.join(self.project_root, "backend")):
-             self.audit_log_path = os.path.join(self.project_root, "backend", "heartbeat_audit.jsonl")
-        else:
-             self.audit_log_path = potential_path
-        
-        # 🛡️ Telegram Config Injection (Single Source of Truth)
+        # Telegram Setup
         token = settings.TELEGRAM_BOT_TOKEN
         chat_id = settings.TELEGRAM_CHAT_ID
         admin_chat_id = settings.TELEGRAM_ADMIN_CHAT_ID
@@ -59,32 +56,42 @@ class ContinuousAnalyzer:
         if token and chat_id:
             from quantix_core.notifications.telegram_notifier_v2 import create_notifier
             self.notifier = create_notifier(token, chat_id, admin_chat_id)
-            logger.success(f"✅ [INIT_OK] Telegram notifier initialized (Chat: {chat_id})")
-        else:
-            logger.critical("❌ [INIT_FAIL] Telegram configuration missing! Pipeline will proceed as INTERNAL ONLY.")
-            # Fail-fast logic: If we have an admin channel, we'd alert here, but since config is missing...
+            logger.success("✅ [STABLE_BOOT] Notifier Ready")
         
-        logger.info(f"💓 Quantix AI Core v3.5 Institutional Initialized (Log: {self.audit_log_path})")
+        logger.info(f"🚀 [v4.7.2] Low-Memory Stable Boot (Log: {self.audit_log_path})")
 
-    def convert_to_df(self, data) -> pd.DataFrame:
-        """Convert feed data to StructureEngine compatible DataFrame"""
+    def _ensure_engines(self):
+        """Lazy-load heavy AI structures only when needed."""
+        if self.engine is None:
+            logger.info("📦 [LazyLoad] Importing AI Engines (Pandas/StructureEngine)...")
+            from quantix_core.ingestion.twelve_data_client import TwelveDataClient
+            from quantix_core.engine.structure_engine_v1 import StructureEngineV1
+            from quantix_core.engine.confidence_refiner import ConfidenceRefiner
+            from quantix_core.utils.entry_calculator import EntryCalculator
+            from quantix_core.engine.janitor import Janitor
+            
+            self.td_client = TwelveDataClient(api_key=settings.TWELVE_DATA_API_KEY)
+            self.engine = StructureEngineV1(sensitivity=2)
+            self.refiner = ConfidenceRefiner()
+            self.checker = EntryCalculator()
+            self.janitor = Janitor()
+            logger.success("✅ [LazyLoad] Ready.")
+
+    def convert_to_df(self, data):
+        """Standard pandas converter with local import to prevent startup hang."""
+        
         if isinstance(data, dict) and "values" in data:
-            # TwelveData format
             df = pd.DataFrame(data["values"])
             df["datetime"] = pd.to_datetime(df["datetime"])
         elif isinstance(data, list):
-            # Binance/Internal list format
             df = pd.DataFrame(data)
             df["datetime"] = pd.to_datetime(df["datetime"])
         else:
             return pd.DataFrame()
         
         df = df.sort_values("datetime")
-        
-        # Structure Engine expects float columns
         for col in ["open", "high", "low", "close"]:
             df[col] = df[col].astype(float)
-        
         return df
         
     def _check_circuit_breaker(self):
@@ -140,7 +147,7 @@ class ContinuousAnalyzer:
                 if key in db_payload:
                     del db_payload[key]
 
-            res = db.client.table(settings.TABLE_SIGNALS).insert(db_payload).execute()
+            res = self.db.client.table(settings.TABLE_SIGNALS).insert(db_payload).execute()
             if res.data:
                 logger.info(f"🔒 Signal LOCKED in [T1]: {res.data[0]['id']} | Telegram: {signal_data.get('telegram_message_id', 'None')}")
                 return res.data[0]['id']
@@ -153,7 +160,7 @@ class ContinuousAnalyzer:
         🧹 AUTO-JANITOR (Fail-Safe)
         Self-cleans the pipeline using robust logic from Janitor module.
         """
-        Janitor.run_sync()
+        self.janitor.run_sync()
 
     def run_cycle(self):
         """One analysis cycle [T0 + Δ]"""
@@ -161,7 +168,7 @@ class ContinuousAnalyzer:
         
         # 💓 [v4.5.6] PRIMARY HEARTBEAT - Log immediately
         try:
-            db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
+            self.self.db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "asset": "HEARTBEAT",
                 "direction": "SYSTEM",
@@ -172,12 +179,16 @@ class ContinuousAnalyzer:
 
         try:
             # 🔥 EMERGENCY JANITOR
-            self.janitor_cleanup()
+            if self.janitor:
+                self.janitor.run_sync()
 
             # 🛡️ Market Hours Safety Check
-            if not MarketHours.should_generate_signals():
+            if not self.hours.should_generate_signals():
                 logger.debug("🕒 Market outside signal hours. Skipping full analysis.")
                 return
+
+            # Ensure heavy engines are ready for signal generation
+            self._ensure_engines()
 
             # 🛑 Circuit Breaker / Cooldown Check
             self._check_circuit_breaker()
@@ -226,12 +237,12 @@ class ContinuousAnalyzer:
                 "asset": "HEARTBEAT_ANALYZER",
                 "price": price,
                 "direction": "HEARTBEAT",
-                "status": f"V4.7.1_OK_{latency_ms}ms",
+                "status": f"V4.7.2_STABLE_{latency_ms}ms",
                 "strength": 0.0,
                 "confidence": 0.0
             }
             try:
-                db.client.table(settings.TABLE_ANALYSIS_LOG).insert(heartbeat_entry).execute()
+                self.db.client.table(settings.TABLE_ANALYSIS_LOG).insert(heartbeat_entry).execute()
                 logger.success(f"✅ Cycle #{self.cycle_count} complete (M5 Mode) in {latency_ms}ms")
             except: pass
 
@@ -480,7 +491,7 @@ class ContinuousAnalyzer:
 
             # 4b. Push Analysis to Supabase [T1] for persistent telemetry
             try:
-                db.client.table(settings.TABLE_ANALYSIS_LOG).insert(analysis_entry).execute()
+                self.db.client.table(settings.TABLE_ANALYSIS_LOG).insert(analysis_entry).execute()
             except Exception as e:
                 error_msg = str(e)
                 if "PGRST204" in error_msg and ("refinement" in error_msg or "release_confidence" in error_msg):
@@ -488,7 +499,7 @@ class ContinuousAnalyzer:
                     fallback_entry = {k: v for k, v in analysis_entry.items() 
                                       if k not in ["refinement", "release_confidence"]}
                     try:
-                        db.client.table(settings.TABLE_ANALYSIS_LOG).insert(fallback_entry).execute()
+                        self.db.client.table(settings.TABLE_ANALYSIS_LOG).insert(fallback_entry).execute()
                     except: pass
                 else:
                     logger.debug(f"DB telemetry write failed: {e}")
@@ -535,7 +546,7 @@ class ContinuousAnalyzer:
                             if signal_id:
                                 # Update signal with Telegram ID in DB
                                 try:
-                                    db.client.table(settings.TABLE_SIGNALS).update({
+                                    self.db.client.table(settings.TABLE_SIGNALS).update({
                                         "telegram_message_id": msg_id
                                     }).eq("id", signal_id).execute()
                                     logger.success(f"🚀 [LIVE] Signal {signal_id} is active (TG: {msg_id})")
@@ -596,7 +607,7 @@ class ContinuousAnalyzer:
             now = datetime.now(timezone.utc)
             
             # Query last Watcher heartbeat
-            res = db.client.table(settings.TABLE_ANALYSIS_LOG)\
+            res = self.db.client.table(settings.TABLE_ANALYSIS_LOG)\
                 .select("timestamp, status")\
                 .eq("asset", "HEARTBEAT_WATCHER")\
                 .order("timestamp", desc=True)\
@@ -617,7 +628,7 @@ class ContinuousAnalyzer:
                 # 1. Run Janitor to clean stuck signals 
                 from quantix_core.engine.janitor import Janitor
                 logger.info("🧹 Running Janitor auto-cleanup for stuck signals...")
-                Janitor.run_sync()
+                self.janitor.run_sync()
                 
                 # 2. Send Alert to Admin via Telegram
                 if self.notifier:
@@ -635,7 +646,7 @@ class ContinuousAnalyzer:
                 
                 # 3. Log to DB for tracking
                 try:
-                    db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
+                    self.db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
                         "timestamp": now.isoformat(),
                         "asset": "WATCHDOG_ALERT",
                         "direction": "SYSTEM",
@@ -649,7 +660,7 @@ class ContinuousAnalyzer:
                 logger.info(f"🏥 Watchdog: Watcher is HEALTHY ({stale_min:.0f}m)")
                 # 🛡️ Update WATCHDOG_ALERT to OK to clear any stale FAILs in dashboard
                 try:
-                    db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
+                    self.db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
                         "timestamp": now.isoformat(),
                         "asset": "WATCHDOG_ALERT",
                         "direction": "SYSTEM",
@@ -671,7 +682,7 @@ class ContinuousAnalyzer:
             today_str = now.strftime('%Y-%m-%d')
             
             # 1. Component Heartbeats
-            res_hb = db.client.table(settings.TABLE_ANALYSIS_LOG)\
+            res_hb = self.db.client.table(settings.TABLE_ANALYSIS_LOG)\
                 .select("asset, timestamp, status")\
                 .in_("asset", ["HEARTBEAT_ANALYZER", "HEARTBEAT_WATCHER"])\
                 .order("timestamp", desc=True)\
@@ -692,7 +703,7 @@ class ContinuousAnalyzer:
                     else: watcher_status = f"🟡 STALE ({stale_min:.0f}m)"
 
             # 2. Signal Stats
-            res_signals = db.client.table(settings.TABLE_SIGNALS)\
+            res_signals = self.db.client.table(settings.TABLE_SIGNALS)\
                 .select("id, state, generated_at")\
                 .gte("generated_at", today_str)\
                 .execute()
@@ -726,7 +737,7 @@ class ContinuousAnalyzer:
                 
                 # Log report event to DB
                 try:
-                    db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
+                    self.db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
                         "timestamp": now.isoformat(),
                         "asset": "HEALTH_REPORT",
                         "direction": "SYSTEM",
@@ -791,14 +802,14 @@ class ContinuousAnalyzer:
         try:
             now = datetime.now(timezone.utc)
             # 1. Fetch active signals
-            res = db.client.table(settings.TABLE_SIGNALS).select("*").in_(
+            res = self.db.client.table(settings.TABLE_SIGNALS).select("*").in_(
                 "status", ["WAITING_FOR_ENTRY", "ENTRY_HIT"]
             ).execute()
             signals = res.data or []
             
             # 1. Log heartbeat immediately to show watcher is alive
             try:
-                db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
+                self.db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
                     "timestamp": now.isoformat(),
                     "asset": "HEARTBEAT_WATCHER",
                     "direction": "SYSTEM",
@@ -812,7 +823,7 @@ class ContinuousAnalyzer:
                 return
             
             # Skip if market closed
-            if not MarketHours.is_market_open():
+            if not self.hours.is_market_open():
                 logger.debug("[EmbeddedWatcher] Market closed, skipping.")
                 return
             
@@ -973,7 +984,7 @@ class ContinuousAnalyzer:
                                     if updated_peak > peak_milestone:
                                         meta["trailing_peak"] = updated_peak
                                         # Use a state-guarded update for metadata too to be extra safe
-                                        res_meta = db.client.table(settings.TABLE_SIGNALS).update({
+                                        res_meta = self.db.client.table(settings.TABLE_SIGNALS).update({
                                             "metadata": meta
                                         }).eq("id", sig_id).eq("state", "ENTRY_HIT").execute()
                                         
@@ -1024,7 +1035,7 @@ class ContinuousAnalyzer:
                         #         (direction == "SELL" and sl > entry)
                         #     ):
                         #         try:
-                        #             db.client.table(settings.TABLE_SIGNALS).update({
+                        #             self.db.client.table(settings.TABLE_SIGNALS).update({
                         #                 "sl": entry
                         #             }).eq("id", sig_id).eq("state", "ENTRY_HIT").execute()
                         #             logger.success(f"🔒 [EmbeddedWatcher] BREAKEVEN: {sig_id} SL -> {entry}")
@@ -1048,7 +1059,7 @@ class ContinuousAnalyzer:
             
             # 4. Update heartbeat with stats if we processed signals
             try:
-                db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
+                self.db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
                     "timestamp": now.isoformat(),
                     "asset": "HEARTBEAT_WATCHER",
                     "direction": "SYSTEM",
@@ -1063,7 +1074,7 @@ class ContinuousAnalyzer:
     def _ew_transition(self, sig_id: str, from_state: str, update_data: dict, label: str) -> bool:
         """Atomic state transition for embedded watcher. Returns True if updated."""
         try:
-            res = db.client.table(settings.TABLE_SIGNALS).update(
+            res = self.db.client.table(settings.TABLE_SIGNALS).update(
                 update_data
             ).eq("id", sig_id).eq("state", from_state).execute()
             
@@ -1120,7 +1131,7 @@ class ContinuousAnalyzer:
                 self._embedded_watcher_check()
                 
                 # 🧹 REDUNDANT SAFETY: Run Janitor
-                Janitor.run_sync()
+                self.janitor.run_sync()
                 
             except Exception as e:
                 error_msg = str(e)
@@ -1132,6 +1143,6 @@ class ContinuousAnalyzer:
             time.sleep(interval)
 
 if __name__ == "__main__":
-    logger.critical("🚀 [Analyzer] Boot starting v4.7.1...")
+    logger.critical("🚀 [Analyzer] Boot starting v4.7.2...")
     analyzer = ContinuousAnalyzer()
     analyzer.start()

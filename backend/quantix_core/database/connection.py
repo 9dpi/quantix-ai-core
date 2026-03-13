@@ -74,6 +74,10 @@ class SupabaseQueryBuilder:
         self.filters.append(f"{column}=gte.{value}")
         return self
 
+    def in_(self, column: str, values: list):
+        self.filters.append(f"{column}=in.({','.join(map(str, values))})")
+        return self
+
     def limit(self, count):
         self.params["limit"] = count
         return self

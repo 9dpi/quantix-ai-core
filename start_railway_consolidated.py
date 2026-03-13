@@ -19,18 +19,20 @@ print(f"CWD: {project_root}")
 port = os.environ.get("PORT", "8080")
 
 def log_to_db(asset, status, direction="SYSTEM"):
-    """Log launcher events to Supabase for audit compatibility"""
-    try:
-        from quantix_core.database.connection import db
-        db.client.table("fx_analysis_log").insert({
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "asset": asset,
-            "direction": direction,
-            "status": str(status)[:200],
-            "price": 0, "confidence": 0, "strength": 0
-        }).execute()
-    except:
-        pass
+    """Log launcher events to Supabase for audit compatibility (Non-blocking)"""
+    def _task():
+        try:
+            from quantix_core.database.connection import db
+            db.client.table("fx_analysis_log").insert({
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "asset": asset,
+                "direction": direction,
+                "status": str(status)[:200],
+                "price": 0, "confidence": 0, "strength": 0
+            }).execute()
+        except:
+            pass
+    threading.Thread(target=_task, daemon=True).start()
 
 def run_service(name, cmd, asset_name, log_asset, direction="STDOUT", cwd=None):
     """Run a service with an auto-restart loop and DB logging"""

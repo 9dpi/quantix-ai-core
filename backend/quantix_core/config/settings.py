@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     
     # Application
     APP_NAME: str = "Signal Genius AI Core - Forex Signal Intelligence Engine"
-    APP_VERSION: str = "4.7.1"
+    APP_VERSION = "4.7.2"
     MODEL_VERSION: str = "signal_genius_fx_v1.0"
     DEBUG: bool = False
     INSTANCE_NAME: str = "LOCAL-MACHINE"  # Override via Railway env var INSTANCE_NAME

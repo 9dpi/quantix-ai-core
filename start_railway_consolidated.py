@@ -111,8 +111,7 @@ web_cmd = [
     sys.executable, "-u", "-m", "uvicorn", "quantix_core.api.main:app",
     "--host", "0.0.0.0",
     "--port", port,
-    "--proxy-headers",
-    "--forwarded-allow-ips", "*"
+    "--proxy-headers"
 ]
 
 # 2. ANALYZER

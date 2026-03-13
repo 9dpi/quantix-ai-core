@@ -226,7 +226,7 @@ class ContinuousAnalyzer:
                 "asset": "HEARTBEAT_ANALYZER",
                 "price": price,
                 "direction": "HEARTBEAT",
-                "status": f"V4.6_M5_OK_{latency_ms}ms",
+                "status": f"V4.7_OK_{latency_ms}ms",
                 "strength": 0.0,
                 "confidence": 0.0
             }
@@ -390,7 +390,7 @@ class ContinuousAnalyzer:
                 "is_market_entry": is_market_entry,
                 
                 # --- 5W1H TRANSPARENCY (v4.6.1) ---
-                "strategy": f"Quantix_v4.6.1_M5_SCALPER",
+                "strategy": f"Quantix_v4.7.0_TRAILING_TP",
                 "refinement": (
                     f"Structure: {state.state.upper()} | "
                     f"Conf: {state.confidence:.0%} | "

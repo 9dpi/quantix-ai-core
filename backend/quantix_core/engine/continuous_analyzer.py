@@ -409,7 +409,7 @@ class ContinuousAnalyzer:
                     "rr_ratio": rrr,
                     "strength_label": strength_label,
                     "max_lot_cap": settings.MAX_LOT_SIZE_CAP, # 🛡️ Institutional Guard Rail
-                    "risk_usd": settings.RISK_USD_PER_TRADE,
+                    "risk_percent": settings.RISK_PERCENT,
                     
                     # WHERE - Market Context
                     "session": session_tag,
@@ -426,11 +426,10 @@ class ContinuousAnalyzer:
                     
                     # WHY - Technical Reasoning
                     "why": (
-                        f"SMC {state.state.upper()} structure detected on M15. "
+                        f"M5 Scalper {state.state.upper()} structure. "
                         f"AI confidence {state.confidence:.0%} exceeds {settings.MIN_CONFIDENCE:.0%} threshold. "
-                        f"Session: {session_tag}. "
-                        f"ATR-based TP: {round(tp_dist*10000,1)} pips, SL: {round(sl_dist*10000,1)} pips. "
-                        f"Hard Lot Cap applied: {settings.MAX_LOT_SIZE_CAP} for 1:30 leverage accounts."
+                        f"Fixed Parameters: TP=10p, SL=5p, Risk=2% per trade. "
+                        f"Institutional Guard Rail: {settings.MAX_LOT_SIZE_CAP} cap."
                     ),
                     
                     # HOW - Market Regime

@@ -1,3 +1,8 @@
+import sys
+import os
+print("[BOOT] ANALYZER STARTING CORE IMPORTS...")
+sys.stdout.flush()
+
 import time
 import json
 import requests

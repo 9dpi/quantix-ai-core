@@ -22,8 +22,8 @@ class SignalOutput(BaseModel):
     timeframe: str
     
     # Entry Zone
-    entry_low: float
-    entry_high: float
+    entry_low: Optional[float] = None
+    entry_high: Optional[float] = None
     tp: float
     sl: float
     reward_risk_ratio: Optional[float] = 2.0

@@ -225,3 +225,7 @@
 {"timestamp": "2026-03-13T05:21:00.288212+00:00", "status": "SYSTEM_STARTUP", "message": "Quantix AI Core v3.8 with Embedded Watcher"}
 {"timestamp": "2026-03-13T07:26:59.182245+00:00", "status": "SYSTEM_STARTUP", "message": "Quantix AI Core v3.8 with Embedded Watcher"}
 {"timestamp": "2026-03-13T07:27:00.609381+00:00", "asset": "EURUSD", "price": 1.147, "direction": "SELL", "strength": 0.68, "confidence": 1.0, "release_confidence": 0.7, "refinement": "Raw: 1.00 | Session: 1.0 | Vol: 0.7 | Spread: 1.0", "status": "ANALYZED"}
+{"timestamp": "2026-03-13T08:00:28.298421+00:00", "status": "SYSTEM_STARTUP", "message": "Quantix AI Core v3.8 with Embedded Watcher"}
+{"timestamp": "2026-03-13T08:00:30.785818+00:00", "asset": "EURUSD", "price": 1.1458, "direction": "SELL", "strength": 0.67, "confidence": 1.0, "release_confidence": 0.7, "refinement": "Raw: 1.00 | Session: 1.0 | Vol: 0.7 | Spread: 1.0", "status": "ANALYZED"}
+{"timestamp": "2026-03-13T08:03:33.306721+00:00", "asset": "EURUSD", "price": 1.1453, "direction": "SELL", "strength": 0.68, "confidence": 1.0, "release_confidence": 1.0, "refinement": "Raw: 1.00 | Session: 1.0 | Vol: 1.0 | Spread: 1.0", "status": "ANALYZED"}
+{"timestamp": "2026-03-13T08:06:39.515288+00:00", "asset": "EURUSD", "price": 1.1451, "direction": "SELL", "strength": 0.68, "confidence": 1.0, "release_confidence": 0.7, "refinement": "Raw: 1.00 | Session: 1.0 | Vol: 0.7 | Spread: 1.0", "status": "ANALYZED"}

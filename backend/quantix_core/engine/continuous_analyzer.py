@@ -1132,5 +1132,6 @@ class ContinuousAnalyzer:
             time.sleep(interval)
 
 if __name__ == "__main__":
+    logger.critical("🚀 [Analyzer] Boot starting v4.7.1...")
     analyzer = ContinuousAnalyzer()
     analyzer.start()

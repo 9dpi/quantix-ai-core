@@ -226,7 +226,7 @@ class ContinuousAnalyzer:
                 "asset": "HEARTBEAT_ANALYZER",
                 "price": price,
                 "direction": "HEARTBEAT",
-                "status": f"V4.7_OK_{latency_ms}ms",
+                "status": f"V4.7.1_OK_{latency_ms}ms",
                 "strength": 0.0,
                 "confidence": 0.0
             }

@@ -1,4 +1,5 @@
 import time
+import json
 import requests
 import pandas as pd
 from datetime import datetime, timezone, timedelta
@@ -936,6 +937,60 @@ class ContinuousAnalyzer:
                                 try: self.notifier.send_tp_hit(sig)
                                 except: pass
                             continue
+                        
+                        # --- v4.7.0 Trailing TP (Stepped Milestones) ---
+                        if getattr(settings, "ENABLE_TRAILING_TP", True):
+                            try:
+                                asset = sig.get("asset", "EURUSD")
+                                # Pip detection (Support for JPY and other 2-decimal pairs)
+                                is_jpy = "JPY" in asset
+                                multiplier = 100 if is_jpy else 10000
+                                
+                                # Calculate current profit in pips
+                                if direction == "BUY":
+                                    current_pips = (c - entry) * multiplier
+                                else:
+                                    current_pips = (entry - c) * multiplier
+                                
+                                # Load metadata for persistence
+                                meta_raw = sig.get("metadata", {})
+                                if isinstance(meta_raw, str):
+                                    try: meta = json.loads(meta_raw)
+                                    except: meta = {}
+                                else:
+                                    meta = meta_raw or {}
+                                
+                                peak_milestone = meta.get("trailing_peak", 0.0)
+                                milestones = settings.TRAILING_TP_STEPS
+                                
+                                updated_peak = peak_milestone
+                                for ms in milestones:
+                                    if current_pips >= ms and ms > updated_peak:
+                                        updated_peak = ms
+                                
+                                if updated_peak > 0:
+                                    # Update peak if it increased
+                                    if updated_peak > peak_milestone:
+                                        meta["trailing_peak"] = updated_peak
+                                        db.client.table(settings.TABLE_SIGNALS).update({
+                                            "metadata": meta
+                                        }).eq("id", sig_id).execute()
+                                        logger.info(f"📈 [TrailingTP] {asset} hit milestone: {updated_peak} pips")
+                                    
+                                    # Check reversal (e.g. hits 7.0, drops to 6.4 -> CLOSE)
+                                    if current_pips < (updated_peak - settings.TRAILING_TP_REVERSAL):
+                                        logger.warning(f"🎯 [TrailingTP] {asset} reversing ({current_pips:.1f} < {updated_peak} - {settings.TRAILING_TP_REVERSAL}). CLOSING.")
+                                        self._ew_transition(sig_id, "ENTRY_HIT", {
+                                            "state": "TP_HIT", "status": "CLOSED_TRAILING_TP",
+                                            "result": "PROFIT", "closed_at": now.isoformat(),
+                                            "metadata": meta
+                                        }, "TRAILING_TP")
+                                        if self.notifier and sig.get("telegram_message_id"):
+                                            try: self.notifier.send_tp_hit(sig, label="TRAILING TP")
+                                            except: pass
+                                        continue
+                            except Exception as e:
+                                logger.error(f"Trailing TP check failed: {e}")
                         
                         # --- SL Hit Check ---
                         sl_hit = False

@@ -720,3 +720,57 @@
 2026-03-13 15:00:29 | INFO | 🔍 PepperstoneValidator ready [feed=binance_proxy, spread_buffer=0.00003]
 2026-03-13 15:00:30 | SUCCESS | ✅ Feed 'binance_proxy' connected successfully.
 2026-03-13 15:00:30 | INFO | 🚀 Validation Layer started [Independent Observer Mode]
+2026-03-13 16:12:12 | INFO | 🔍 PepperstoneValidator ready [feed=binance_proxy, spread_buffer=0.00003]
+2026-03-13 16:12:12 | SUCCESS | ✅ Feed 'binance_proxy' connected successfully.
+2026-03-13 16:12:12 | INFO | 🚀 Validation Layer started [Independent Observer Mode]
+2026-03-13 16:16:14 | INFO | Validating 1 active signal(s) via binance_proxy
+2026-03-13 16:17:15 | INFO | Validating 1 active signal(s) via binance_proxy
+2026-03-13 16:18:16 | INFO | Validating 1 active signal(s) via binance_proxy
+2026-03-13 16:19:17 | INFO | Validating 1 active signal(s) via binance_proxy
+2026-03-13 16:20:18 | INFO | Validating 1 active signal(s) via binance_proxy
+2026-03-13 16:21:19 | INFO | Validating 1 active signal(s) via binance_proxy
+2026-03-13 16:22:19 | INFO | Validating 2 active signal(s) via binance_proxy
+2026-03-13 16:23:21 | INFO | Validating 2 active signal(s) via binance_proxy
+2026-03-13 16:24:21 | INFO | Validating 2 active signal(s) via binance_proxy
+2026-03-13 16:25:22 | INFO | Validating 3 active signal(s) via binance_proxy
+2026-03-13 16:26:23 | INFO | Validating 3 active signal(s) via binance_proxy
+2026-03-13 16:27:24 | INFO | Validating 3 active signal(s) via binance_proxy
+2026-03-13 16:28:25 | INFO | Validating 4 active signal(s) via binance_proxy
+2026-03-13 16:29:26 | INFO | Validating 4 active signal(s) via binance_proxy
+2026-03-13 16:30:27 | INFO | Validating 4 active signal(s) via binance_proxy
+2026-03-13 16:31:28 | INFO | Validating 4 active signal(s) via binance_proxy
+2026-03-13 16:32:29 | INFO | Validating 4 active signal(s) via binance_proxy
+2026-03-13 16:33:30 | INFO | Validating 4 active signal(s) via binance_proxy
+2026-03-13 16:34:31 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 16:35:32 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 16:36:33 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 16:37:34 | INFO | Validating 4 active signal(s) via binance_proxy
+2026-03-13 16:38:35 | INFO | Validating 4 active signal(s) via binance_proxy
+2026-03-13 16:39:36 | INFO | Validating 4 active signal(s) via binance_proxy
+2026-03-13 16:40:37 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 16:41:38 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 16:42:39 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 16:43:40 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 16:44:41 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 16:45:42 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 16:46:42 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 16:47:43 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 16:48:44 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 16:49:45 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 16:50:46 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 16:51:47 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 16:52:48 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 16:53:49 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 16:54:50 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 16:55:51 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 16:56:52 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 16:57:53 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 16:58:54 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 16:59:55 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 17:00:56 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 17:01:57 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 17:02:57 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 17:03:58 | INFO | Validating 5 active signal(s) via binance_proxy
+2026-03-13 17:04:59 | INFO | Validating 2 active signal(s) via binance_proxy
+2026-03-13 17:06:00 | INFO | Validating 2 active signal(s) via binance_proxy
+2026-03-13 17:07:01 | INFO | Validating 2 active signal(s) via binance_proxy

@@ -211,7 +211,7 @@ class TelegramNotifierV2:
             
         return self.send_message(message)
     
-    def send_tp_hit(self, signal: dict) -> Optional[int]:
+    def send_tp_hit(self, signal: dict, label: str = "TAKE PROFIT") -> Optional[int]:
         """
         Send TP_HIT message (State 3a).
         
@@ -219,6 +219,7 @@ class TelegramNotifierV2:
         
         Args:
             signal: Signal dict with asset, timeframe, direction, entry_price
+            label: Custom label for the header (e.g. "TRAILING TP")
         """
         asset = signal.get("asset", "EURUSD").replace("/", "")
         timeframe = signal.get("timeframe", "M15")
@@ -233,7 +234,7 @@ class TelegramNotifierV2:
         # The DB state (TP_HIT / SL_HIT) is the source of truth.
         
         message = (
-            f"{test_tag}✅ *TAKE PROFIT HIT*\n\n"
+            f"{test_tag}✅ *{label} HIT*\n\n"
             f"{asset} | {timeframe}\n"
             f"{dir_emoji} {direction}\n\n"
             f"Entry: {entry}\n"

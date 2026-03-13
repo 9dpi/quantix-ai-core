@@ -60,6 +60,12 @@ class Settings(BaseSettings):
     MAX_SIGNALS_PER_DAY: int = 20           # v4.6.3: Increased cap for scalper mode
     MAX_CONSECUTIVE_LOSSES: int = 3
     CIRCUIT_BREAKER_COOLDOWN_HOURS: float = 1.0 # v4.5.1: Reduced from 4h per Irfan feedback
+    
+    # 📈 v4.7.0: Stepped Trailing TP (Irfan Request)
+    ENABLE_TRAILING_TP: bool = True
+    TRAILING_TP_STEPS: list[float] = [5.0, 6.0, 7.0, 8.0, 9.0] # Pips
+    TRAILING_TP_REVERSAL: float = 0.5                            # Pips reversal to close trade
+    
     HEALTH_REPORT_INTERVAL_MINUTES: int = 120
     
     # Session Times (UTC)

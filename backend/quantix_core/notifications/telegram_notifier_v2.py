@@ -635,9 +635,9 @@ class TelegramNotifierV2:
         except requests.exceptions.Timeout:
             logger.debug("Telegram getUpdates timed out (normal).")
         except requests.exceptions.RequestException as e:
-            logger.error(f"Error fetching Telegram updates: {e}")
+            logger.warning(f"Error fetching Telegram updates: {e}")
         except Exception as e:
-            logger.error(f"Unexpected error in _get_updates: {e}")
+            logger.warning(f"Unexpected error in _get_updates: {e}")
 
     def reply_to_message(self, message_id: int, text: str) -> Optional[int]:
         """

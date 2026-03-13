@@ -69,8 +69,18 @@ def run_service(name, cmd, asset_name, log_asset, direction="STDOUT", cwd=None):
                     if clean_line:
                         last_output_at = time.time()
                         print(f"[{name}] {clean_line}")
-                        log_direction = "UVICORN_LOG" if name == "WEB" else "STDOUT"
-                        log_to_db(log_asset, clean_line[:200], log_direction)
+                        
+                        # v4.6.6: STOP SPAMMING DB WITH STDOUT.
+                        # Railway already captures all stdout. We only mirror severe errors to DB.
+                        upper_line = clean_line.upper()
+                        if "ERROR" in upper_line or "CRITICAL" in upper_line or "EXCEPTION" in upper_line:
+                            # Fire and forget in a non-blocking thread to prevent DB timeouts from freezing the launcher
+                            def _safe_log():
+                                try:
+                                    log_direction = "UVICORN_LOG" if name == "WEB" else "STDOUT"
+                                    log_to_db(log_asset, clean_line[:200], log_direction)
+                                except: pass
+                            threading.Thread(target=_safe_log, daemon=True).start()
             
             monitor_thread = threading.Thread(target=monitor_output, daemon=True)
             monitor_thread.start()

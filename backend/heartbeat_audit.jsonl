@@ -321,3 +321,4 @@
 {"timestamp": "2026-03-13T11:30:53.707110+00:00", "asset": "EURUSD", "price": 1.1463, "direction": "BUY", "strength": 0.6, "confidence": 1.0, "release_confidence": 0.665, "refinement": "Raw: 1.00 | Session: 1.0 | Vol: 0.7 | Spread: 1.0 | MTF: 0.95", "status": "ANALYZED"}
 {"timestamp": "2026-03-13T11:31:30.572993+00:00", "status": "SYSTEM_STARTUP", "message": "Quantix AI Core v3.8 with Embedded Watcher"}
 {"timestamp": "2026-03-13T11:31:32.499233+00:00", "asset": "EURUSD", "price": 1.1462, "direction": "BUY", "strength": 0.57, "confidence": 1.0, "release_confidence": 0.665, "refinement": "Raw: 1.00 | Session: 1.0 | Vol: 0.7 | Spread: 1.0 | MTF: 0.95", "status": "ANALYZED"}
+{"timestamp": "2026-03-13T12:13:38.615469+00:00", "status": "SYSTEM_STARTUP", "message": "Quantix AI Core v3.8 with Embedded Watcher"}

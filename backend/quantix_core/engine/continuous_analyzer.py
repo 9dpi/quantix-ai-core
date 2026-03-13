@@ -173,11 +173,11 @@ class ContinuousAnalyzer:
         
         # 💓 [v4.5.6] PRIMARY HEARTBEAT - Log immediately
         try:
-            self.self.db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
+            self.db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "asset": "HEARTBEAT",
                 "direction": "SYSTEM",
-                "status": f"ALIVE_V3.5_C{self.cycle_count+1}_START",
+                "status": f"ALIVE_V4.7.2_C{self.cycle_count+1}_START",
                 "confidence": 0.0, "strength": 0.0, "price": 0.0
             }).execute()
         except: pass

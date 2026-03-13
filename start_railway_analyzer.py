@@ -12,39 +12,29 @@ print(f"--- Quantix Analyzer Launcher (Auto-Restart) ---")
 print(f"CWD: {os.getcwd()}")
 print(f"PYTHONPATH: {os.environ['PYTHONPATH']}")
 
-# --- STARTUP PROOF ---
-try:
-    from quantix_core.database.connection import db
-    from datetime import datetime, timezone
-    db.client.table("fx_analysis_log").insert({
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "asset": "SYSTEM_ANALYZER",
-        "direction": "STARTUP",
-        "status": "LAUNCHING",
-        "price": 0,
-        "confidence": 1.0,
-        "strength": 1.0
-    }).execute()
-    print("✅ Startup proof logged to DB")
-except Exception as e:
-    print(f"❌ Failed to log startup proof: {e}")
+import threading
 
 # --- HELPER: DB LOGGING ---
 def log_to_db(asset, status, direction="SYSTEM"):
-    try:
-        from quantix_core.database.connection import db
-        from datetime import datetime, timezone
-        db.client.table("fx_analysis_log").insert({
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "asset": asset,
-            "direction": direction,
-            "status": str(status)[:200],
-            "price": 0,
-            "confidence": 0,
-            "strength": 0
-        }).execute()
-    except:
-        pass
+    """Log launcher events to Supabase for audit compatibility (Non-blocking)"""
+    def _task():
+        try:
+            from quantix_core.database.connection import db
+            from datetime import datetime, timezone
+            db.client.table("fx_analysis_log").insert({
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "asset": asset,
+                "direction": direction,
+                "status": str(status)[:200],
+                "price": 0, "confidence": 0, "strength": 0
+            }).execute()
+        except:
+            pass
+    threading.Thread(target=_task, daemon=True).start()
+
+# --- STARTUP PROOF ---
+log_to_db("SYSTEM_ANALYZER", "LAUNCHING", "STARTUP")
+print("✅ Startup proof triggered in background")
 
 # --- AUTO-RESTART LOOP ---
 MAX_RESTARTS = 100

@@ -1,7 +1,9 @@
 import os
 import sys
 import subprocess
+import threading
 import time
+from datetime import datetime, timezone
 
 # Add backend to path
 backend_path = os.path.join(os.getcwd(), "backend")
@@ -11,39 +13,25 @@ os.environ["PYTHONPATH"] = backend_path
 print(f"--- Quantix Watcher Launcher (Auto-Restart) ---")
 print(f"CWD: {os.getcwd()}")
 
-# --- STARTUP PROOF ---
-try:
-    from quantix_core.database.connection import db
-    from datetime import datetime, timezone
-    db.client.table("fx_analysis_log").insert({
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "asset": "SYSTEM_WATCHER",
-        "direction": "STARTUP",
-        "status": "LAUNCHING",
-        "price": 0,
-        "confidence": 1.0,
-        "strength": 1.0
-    }).execute()
-    print("✅ Startup proof logged to DB")
-except Exception as e:
-    print(f"❌ Failed to log startup proof: {e}")
-
 # --- HELPER: DB LOGGING ---
 def log_to_db(asset, status, direction="SYSTEM"):
-    try:
-        from quantix_core.database.connection import db
-        from datetime import datetime, timezone
-        db.client.table("fx_analysis_log").insert({
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "asset": asset,
-            "direction": direction,
-            "status": str(status)[:200],
-            "price": 0,
-            "confidence": 0,
-            "strength": 0
-        }).execute()
-    except:
-        pass
+    """Log launcher events to Supabase for audit compatibility (Non-blocking)"""
+    def _task():
+        try:
+            from quantix_core.database.connection import db
+            db.client.table("fx_analysis_log").insert({
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "asset": asset,
+                "direction": direction,
+                "status": str(status)[:200],
+                "price": 0, "confidence": 0, "strength": 0
+            }).execute()
+        except:
+            pass
+    threading.Thread(target=_task, daemon=True).start()
+
+# --- STARTUP PROOF ---
+log_to_db("SYSTEM_WATCHER", "LAUNCHING", "STARTUP")
 
 # --- AUTO-RESTART LOOP ---
 MAX_RESTARTS = 100
@@ -65,7 +53,6 @@ for attempt in range(1, MAX_RESTARTS + 1):
             bufsize=1
         )
         
-        import threading
         def log_stream(stream):
             for line in iter(stream.readline, ''):
                 clean_line = line.strip()
@@ -90,5 +77,3 @@ for attempt in range(1, MAX_RESTARTS + 1):
     if attempt < MAX_RESTARTS:
         print(f"⏳ Restarting in {COOLDOWN_SEC}s...")
         time.sleep(COOLDOWN_SEC)
-
-print("🛑 Watcher max restarts reached. Exiting launcher.")

@@ -84,6 +84,7 @@ class ContinuousAnalyzer:
 
     def convert_to_df(self, data):
         """Standard pandas converter with local import to prevent startup hang."""
+        import pandas as pd
         
         if isinstance(data, dict) and "values" in data:
             df = pd.DataFrame(data["values"])
@@ -206,6 +207,7 @@ class ContinuousAnalyzer:
             
             
             # 1. Continuous Feed [T0] - Multi-Source Fallover
+            import pandas as pd
             df = pd.DataFrame()
             
             # --- Source A: Binance (Primary - Free/Unlimited) ---

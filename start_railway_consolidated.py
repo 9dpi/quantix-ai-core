@@ -34,16 +34,13 @@ def log_to_db(asset, status, direction="SYSTEM"):
             pass
     threading.Thread(target=_task, daemon=True).start()
 
-def run_service(name, cmd, asset_name, log_asset, direction="STDOUT", cwd=None):
+def run_service(name, cmd, asset_name, log_asset, direction="STDOUT", cwd=None, silence_timeout=900):
     """Run a service with an auto-restart loop and DB logging"""
     if cwd is None:
         cwd = project_root
         
-    print(f"🚀 [Launcher] Starting {name}...")
+    print(f"🚀 [Launcher] Starting {name} (Watchdog: {silence_timeout}s)...")
     attempt = 0
-    
-    # Silence Watchdog: Kill process if no output for 15 minutes
-    SILENCE_TIMEOUT = 900 # 15 minutes
     
     while True:
         attempt += 1
@@ -93,8 +90,8 @@ def run_service(name, cmd, asset_name, log_asset, direction="STDOUT", cwd=None):
             
             # Main monitoring loop: Wait for process or timeout
             while process.poll() is None:
-                if time.time() - last_output_at > SILENCE_TIMEOUT:
-                    print(f"🚨 [Launcher] {name} HUNG (silent for {SILENCE_TIMEOUT}s). Killing...")
+                if time.time() - last_output_at > silence_timeout:
+                    print(f"🚨 [Launcher] {name} HUNG (silent for {silence_timeout}s). Killing...")
                     process.kill() # Trigger kill BEFORE doing risky network operations
                     threading.Thread(target=lambda: log_to_db(asset_name, f"KILLED_BY_WATCHDOG_SILENCE", "LAUNCHER"), daemon=True).start()
                     break
@@ -126,10 +123,11 @@ validator_cmd = [sys.executable, "-u", validator_script]
 
 if __name__ == "__main__":
     # Create threads for each service with appropriate Audit Asset names
+    # WEB: 1 hour silence timeout (3600s) because uvicorn is silent when no requests
     threads = [
-        threading.Thread(target=run_service, args=("WEB", web_cmd, "SYSTEM_WEB", "UVICORN_LOG"), daemon=True),
-        threading.Thread(target=run_service, args=("ANALYZER", analyzer_cmd, "SYSTEM_ANALYZER", "ANALYZER_LOG"), daemon=True),
-        threading.Thread(target=run_service, args=("VALIDATOR", validator_cmd, "VALIDATOR", "VALIDATOR_LOG"), daemon=True)
+        threading.Thread(target=run_service, args=("WEB", web_cmd, "SYSTEM_WEB", "UVICORN_LOG"), kwargs={"silence_timeout": 3600}, daemon=True),
+        threading.Thread(target=run_service, args=("ANALYZER", analyzer_cmd, "SYSTEM_ANALYZER", "ANALYZER_LOG"), kwargs={"silence_timeout": 900}, daemon=True),
+        threading.Thread(target=run_service, args=("VALIDATOR", validator_cmd, "VALIDATOR", "VALIDATOR_LOG"), kwargs={"silence_timeout": 600}, daemon=True)
     ]
     
     for t in threads:

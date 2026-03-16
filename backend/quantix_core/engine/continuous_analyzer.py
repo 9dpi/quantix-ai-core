@@ -136,21 +136,37 @@ class ContinuousAnalyzer:
         except Exception as e:
             logger.error(f"M15 Trend fetch failed: {e}")
         return None
-
-            
     def check_release_gate(self, asset: str, timeframe: str) -> tuple[bool, str]:
         """
-        🔓 OPEN FLOW MODE (v4.5.5) — All rate limiters removed per user request
+        🛡️ ANTI-BURST PROTECTION (v4.7.2.4)
         Returns (is_allowed, reason)
-        
-        NOTE: Circuit Breaker (consecutive loss protection) is still active
-              in _check_circuit_breaker() — that is NOT removed.
         """
-        # v4.5.5: Daily Cap — REMOVED
-        # v4.5.5: Global Lock — REMOVED  
-        # v4.5.5: Cooldown — REMOVED
-        
-        return True, "ALLOWED"
+        try:
+            # 1. Check for recent signals for this asset to prevent spamming
+            # We query for any signal created within the last MIN_RELEASE_INTERVAL_MINUTES
+            cooldown_mins = settings.MIN_RELEASE_INTERVAL_MINUTES
+            
+            # Query Supabase for most recent signal of this asset
+            res = self.db.client.table(settings.TABLE_SIGNALS).select("generated_at")\
+                .eq("asset", asset)\
+                .order("generated_at", desc=True)\
+                .limit(1).execute()
+            
+            if res.data:
+                last_gen_str = res.data[0]["generated_at"]
+                last_gen = datetime.fromisoformat(last_gen_str.replace('Z', '+00:00'))
+                now = datetime.now(timezone.utc)
+                diff_mins = (now - last_gen).total_seconds() / 60
+                
+                if diff_mins < cooldown_mins:
+                    return False, f"COOLDOWN: Signal released {diff_mins:.1f}m ago (Min: {cooldown_mins}m)"
+            
+            # 2. Check Daily Cap
+            # (Optional: can be added if needed, but per-asset cooldown is most critical)
+            
+            return True, "ALLOWED"
+        except Exception as e:
+            return True, f"ERROR_ALLOW_BY_DEFAULT" # Safety: don't block on DB error
 
     def lock_signal(self, signal_data: dict) -> Optional[str]:
         """LOCK signal with timestamp in Immutable Record [T1]"""

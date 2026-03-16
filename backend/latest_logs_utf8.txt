@@ -1,0 +1,252 @@
+[
+  {
+    "t": "2026-03-13T08:57:43.87062+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:43.6805+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:43.680 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  },
+  {
+    "t": "2026-03-13T08:57:42.868768+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:42.680675+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:42.680 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  },
+  {
+    "t": "2026-03-13T08:57:41.872117+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:41.688444+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:41.688 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  },
+  {
+    "t": "2026-03-13T08:57:40.878425+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:40.692358+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:40.692 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  },
+  {
+    "t": "2026-03-13T08:57:39.873937+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:39.682334+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:39.682 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  },
+  {
+    "t": "2026-03-13T08:57:38.905013+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:38.717145+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:38.716 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  },
+  {
+    "t": "2026-03-13T08:57:37.915136+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:37.718584+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:37.718 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  },
+  {
+    "t": "2026-03-13T08:57:36.850928+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:36.664524+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:36.663 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  },
+  {
+    "t": "2026-03-13T08:57:35.863715+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:35.67192+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:35.671 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  },
+  {
+    "t": "2026-03-13T08:57:34.860721+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:34.669327+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:34.668 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  },
+  {
+    "t": "2026-03-13T08:57:33.864223+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:33.66824+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:33.668 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  },
+  {
+    "t": "2026-03-13T08:57:32.856151+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:32.651571+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:32.651 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  },
+  {
+    "t": "2026-03-13T08:57:31.837684+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:31.652803+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:31.652 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  },
+  {
+    "t": "2026-03-13T08:57:30.841822+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:30.651457+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:30.651 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  },
+  {
+    "t": "2026-03-13T08:57:29.822722+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:29.635598+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:29.635 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  },
+  {
+    "t": "2026-03-13T08:57:28.833595+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:28.642013+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:28.641 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  },
+  {
+    "t": "2026-03-13T08:57:27.82564+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:27.635618+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:27.634 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  },
+  {
+    "t": "2026-03-13T08:57:26.820243+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:26.635131+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:26.634 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  },
+  {
+    "t": "2026-03-13T08:57:25.8227+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:25.631511+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:25.630 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  },
+  {
+    "t": "2026-03-13T08:57:24.827012+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:24.64119+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:24.640 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  },
+  {
+    "t": "2026-03-13T08:57:23.833885+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:23.640524+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:23.640 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  },
+  {
+    "t": "2026-03-13T08:57:22.828882+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:22.640737+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:22.640 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  },
+  {
+    "t": "2026-03-13T08:57:21.827214+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:21.63918+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:21.638 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  },
+  {
+    "t": "2026-03-13T08:57:20.828094+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:20.639277+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:20.638 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  },
+  {
+    "t": "2026-03-13T08:57:19.844069+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "INFO:     171.224.28.194:0 - \"GET /api/v1/mt4/signals/pending HTTP/1.1\" 200 OK"
+  },
+  {
+    "t": "2026-03-13T08:57:19.652945+00:00",
+    "a": "SYSTEM_WEB",
+    "s": "2026-03-13 08:57:19.652 | DEBUG    | quantix_core.api.routes.mt4:get_pending_signals:62 - MT4 Bridge: No pending signals found in DB."
+  }
+]

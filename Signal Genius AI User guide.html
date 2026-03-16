@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signal Genius AI - MT4 User Guide (v1.2)</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --accent: #10b981;
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-page);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            padding: 60px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .logo-box {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .logo-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text-main);
+        }
+
+        .logo-text span {
+            color: var(--primary);
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.85rem;
+        }
+
+        h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            margin: 40px 0 20px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        h2 i {
+            color: var(--primary);
+        }
+
+        .section-content {
+            margin-bottom: 30px;
+        }
+
+        .step-card {
+            background: #f1f5f9;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .step-num {
+            font-weight: 800;
+            color: var(--primary);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .step-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        li {
+            margin-bottom: 12px;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 1.2rem;
+            line-height: 1.2;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+
+        .alert {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px 0;
+            display: flex;
+            gap: 15px;
+        }
+
+        .alert-icon {
+            color: #b45309;
+        }
+
+        .alert-text {
+            color: #92400e;
+            font-size: 0.9rem;
+        }
+
+        footer {
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .badge-mac {
+            background: #000000;
+            color: #ffffff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.7rem;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-box">
+                <i data-lucide="cpu" color="#6366f1" size="32"></i>
+                <div class="logo-text">SIGNAL <span>GENIUS AI</span></div>
+            </div>
+            <div class="subtitle">MT4 Bridge Installation Guide (V1.2 - 2026 Edition)</div>
+        </header>
+
+        <section>
+            <p style="color: var(--text-muted); text-align: center; font-size: 0.95rem; margin-bottom: 40px;">
+                This guide provides step-by-step instructions to connect your MetaTrader 4 terminal
+                to our institutional AI signals network.
+            </p>
+
+            <!-- BROKER VERIFICATION -->
+            <div class="alert" style="background: #eff6ff; border-color: #bfdbfe; margin-top: 0;">
+                <div class="alert-icon" style="color: #1e40af;"><i data-lucide="info"></i></div>
+                <div class="alert-text" style="color: #1e3a8a;">
+                    <strong>Broker Verification:</strong> This system is <strong>Broker-Agnostic</strong>. It works with
+                    any MT4 broker (IC Markets, Pepperstone, XM, etc.). Ensure you are logged into your specific
+                    broker's server before activating the EA.
+                </div>
+            </div>
+
+            <!-- MAC MINI / MACOS SPECIAL SECTION -->
+            <div class="badge-mac"> MAC MINI / MACOS USERS</div>
+            <div class="section-content">
+                <div class="step-card" style="border-left-color: #000000; background: #fafafa;">
+                    <span class="step-num">Compatibility Note</span>
+                    <span class="step-title">Running MT4 on Apple Silicon (M1/M2/M3)</span>
+                    <p style="font-size: 0.9rem; margin-bottom: 12px;">The Signal Genius EA is fully optimized for Mac Mini and MacBook users. However, since MT4 is natively a Windows app, please follow these rules:</p>
+                    <ul style="font-size: 0.85rem;">
+                        <li><strong>Recommended Software:</strong> Use the official MT4 version provided by your broker (which uses a Wine-wrapper) or <strong>PlayOnMac</strong>.</li>
+                        <li><strong>Rosetta 2:</strong> Ensure Rosetta 2 is installed on your Mac Mini for the wrapper to execute correctly.</li>
+                        <li><strong>Data Folders:</strong> When opening "Data Folder" on Mac, it will open inside a virtual Windows drive (e.g., <code>drive_c</code>). This is normal.</li>
+                        <li><strong>WebRequest Stability:</strong> Mac wrappers can be stricter with network permissions. Ensure <code>Auto-Trading</code> is toggled ON at the top of MT4.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h2><i data-lucide="login"></i> 1. Broker Server Login</h2>
+            <div class="section-content">
+                <div class="step-card">
+                    <span class="step-num">Requirement</span>
+                    <span class="step-title">Select Your Specific Broker Server</span>
+                    <p style="font-size: 0.9rem; margin-bottom: 12px;">Do not use the default "MetaQuotes" demo. Search for your specific broker name.</p>
+                    <ul>
+                        <li>Go to <strong>File</strong> -> <strong>Login to Trade Account</strong></li>
+                        <li>Search for your broker (e.g., <code>Pepperstone</code>) and select the designated server.</li>
+                        <li>Ensure the connection bars in the bottom right turn green/blue.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h2><i data-lucide="box"></i> 2. File Placement</h2>
+            <div class="section-content">
+                <div class="step-card">
+                    <span class="step-num">Step One</span>
+                    <span class="step-title">Deploy Expert Advisor</span>
+                    <ul>
+                        <li>Open MT4 Terminal -> <strong>File</strong> -> <strong>Open Data Folder</strong></li>
+                        <li>Navigate to: <strong>MQL4</strong> > <strong>Experts</strong></li>
+                        <li>Copy <code>Signal_Genius.mq4</code> into this folder</li>
+                        <li>In MT4 Navigator, right-click <strong>Expert Advisors</strong> and <strong>Refresh</strong></li>
+                    </ul>
+                </div>
+            </div>
+
+            <h2><i data-lucide="shield-check"></i> 3. Terminal Configuration</h2>
+            <div class="section-content">
+                <div class="step-card">
+                    <span class="step-num">Step Two</span>
+                    <span class="step-title">Whitelist Production URL</span>
+                    <ul>
+                        <li>Go to <strong>Tools</strong> -> <strong>Options</strong> (or <code>Cmd+O</code> on Mac)</li>
+                        <li>Select the <strong>Expert Advisors</strong> tab</li>
+                        <li>Check: <strong>[X] Allow automated trading</strong></li>
+                        <li>Check: <strong>[X] Allow WebRequest for listed URL:</strong></li>
+                    </ul>
+                    <div style="margin-top: 15px;">Add exactly this address:</div>
+                    <div class="code-block">https://quantixapiserver-production.up.railway.app/</div>
+                </div>
+            </div>
+
+            <h2><i data-lucide="zap"></i> 4. Activation</h2>
+            <div class="section-content">
+                <div class="step-card">
+                    <span class="step-num">Step Three</span>
+                    <span class="step-title">Attach to Chart</span>
+                    <ul>
+                        <li>Open any <strong>M15</strong> chart (e.g., EURUSD)</li>
+                        <li>Drag <strong>Signal_Genius</strong> from Navigator onto the chart</li>
+                        <li>In <strong>Inputs</strong>:
+                            <div style="margin-top: 8px; padding-left: 15px; font-size: 0.85rem;">
+                                <div>- <strong>ApiToken</strong>: Use your license key</div>
+                                <div>- <strong>SymbolSuffix</strong>: (e.g., <code>.r</code> or <code>.pro</code> if needed)</div>
+                            </div>
+                        </li>
+                        <li>In <strong>Common</strong>: Check <strong>[X] Allow live trading</strong></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="alert">
+                <div class="alert-icon"><i data-lucide="check-circle"></i></div>
+                <div class="alert-text">
+                    <strong>Success:</strong> Look for the "Smiley Face" in the top-right corner of your chart. If it is smiling, the bridge is active. Check the <strong>Experts</strong> tab for "EA Polling API..." logs.
+                </div>
+            </div>
+
+            <h2><i data-lucide="shield"></i> 5. Risk Management</h2>
+            <div class="section-content">
+                <div class="step-card" style="border-left-color: var(--accent);">
+                    <span class="step-num">Adaptive Scaling</span>
+                    <span class="step-title">Irfan-Standard Risk Model</span>
+                    <ul>
+                        <li><strong>RiskPercent</strong>: Default <code>2.0</code> (2% of balance per trade).</li>
+                        <li><strong>LotScalingMode</strong>: <code>DYNAMIC_EQUITY</code> ensures lots grow as your balance grows.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <div style="margin-bottom: 10px; font-weight: bold; color: var(--text-main);">SIGNAL GENIUS AI RESEARCH</div>
+            <div>Automated Intelligence for High-Performance Trading • v1.2 • March 2026</div>
+        </footer>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

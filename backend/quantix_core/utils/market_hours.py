@@ -57,9 +57,9 @@ class MarketHours:
             logger.warning("🕒 Monday early hours: Skipping signal due to thin liquidity.")
             return False
         
-        # Daily rollover window (21:00-23:00 UTC) — spread widens significantly
-        if 21 <= now.hour <= 23:
-            logger.warning("🕒 Rollover window (21-23 UTC): High spread, skipping signal.")
+        # Daily rollover window (22:00-23:00 UTC) — spread widens significantly
+        if now.hour == 22:
+            logger.warning("🕒 Rollover window (22 UTC): High spread, skipping signal.")
             return False
             
         return True

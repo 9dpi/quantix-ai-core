@@ -12,7 +12,7 @@ from typing import Optional
 
 from quantix_core.config.settings import settings
 
-# 🚨 LOW-MEMORY / HIGH-STABILITY BOOT (v4.7.2)
+# 🚨 LOW-MEMORY / HIGH-STABILITY BOOT (v4.7.2.4)
 # We move heavy AI/ML/Data science imports inside classes to prevent
 # startup hangs on resource-constrained environments like Railway.
 # Critical Path: Embedded Watcher (TP/SL) is prioritized.
@@ -42,7 +42,6 @@ class ContinuousAnalyzer:
         
         self.cycle_count = 0
         self.last_pushed_at = None
-        self.last_health_report_at = None
         self.consecutive_losses = 0
         self.cooldown_until: Optional[datetime] = None
         
@@ -62,8 +61,26 @@ class ContinuousAnalyzer:
             from quantix_core.notifications.telegram_notifier_v2 import create_notifier
             self.notifier = create_notifier(token, chat_id, admin_chat_id)
             logger.success("✅ [STABLE_BOOT] Notifier Ready")
-        
-        logger.info(f"🚀 [v4.7.2] Low-Memory Stable Boot (Log: {self.audit_log_path})")
+
+        # 🚨 [v4.7.2.3] Enhanced Robust Audit Timing
+        self.last_health_report_at = None
+        try:
+            # Query DB for last successful health report
+            res_report = self.db.client.table(settings.TABLE_ANALYSIS_LOG).select("timestamp")\
+                .eq("asset", "HEALTH_REPORT").eq("status", "SENT").order("timestamp", desc=True).limit(1).execute()
+            
+            if res_report.data:
+                self.last_health_report_at = datetime.fromisoformat(res_report.data[0]["timestamp"].replace("Z", "+00:00"))
+                logger.info(f"📊 Restored last audit report time: {self.last_health_report_at}")
+            else:
+                # First time: set to trigger in 1 minute
+                self.last_health_report_at = datetime.now(timezone.utc) - timedelta(minutes=settings.HEALTH_REPORT_INTERVAL_MINUTES - 1)
+                logger.info("📊 No previous health report found. Staging first report for 60s from boot.")
+        except Exception as e:
+            logger.warning(f"Could not restore health report time: {e}")
+            self.last_health_report_at = datetime.now(timezone.utc) - timedelta(minutes=settings.HEALTH_REPORT_INTERVAL_MINUTES - 2)
+
+        logger.info(f"🚀 [v4.7.2.4] Low-Memory Stable Boot (Log: {self.audit_log_path})")
 
     def _ensure_engines(self):
         """Lazy-load heavy AI structures only when needed."""
@@ -149,7 +166,13 @@ class ContinuousAnalyzer:
                     db_payload["explainability"] = f"{db_payload.get('explainability', '')} | {db_payload['refinement_reason']}"
 
             # 2. Remove fields not in DB schema to prevent PGRST204 errors
-            for key in ["valid_until", "activation_limit_mins", "max_monitoring_mins", "refinement_reason", "is_market_entry", "refinement", "signal_metadata", "tp_pips", "sl_pips", "explainability", "strength", "state", "entry_low", "entry_high"]:
+            schema_keys = [
+                "valid_until", "activation_limit_mins", "max_monitoring_mins", 
+                "refinement_reason", "is_market_entry", "refinement", 
+                "signal_metadata", "tp_pips", "sl_pips", "explainability", 
+                "strength", "state", "entry_low", "entry_high", "metadata"
+            ]
+            for key in schema_keys:
                 if key in db_payload:
                     del db_payload[key]
 
@@ -178,7 +201,7 @@ class ContinuousAnalyzer:
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "asset": "HEARTBEAT",
                 "direction": "SYSTEM",
-                "status": f"ALIVE_V4.7.2_C{self.cycle_count+1}_START",
+                "status": f"ALIVE_V4.7.2.4_C{self.cycle_count+1}_START",
                 "confidence": 0.0, "strength": 0.0, "price": 0.0
             }).execute()
         except: pass
@@ -203,6 +226,9 @@ class ContinuousAnalyzer:
                 return
 
             self.cycle_count += 1
+            # Reset internal counter to prevent infinite growth
+            if self.cycle_count > 1000000: self.cycle_count = 1
+            
             logger.info(f"🎬 [v3.5] Starting analysis cycle #{self.cycle_count}...")
             
             
@@ -244,7 +270,7 @@ class ContinuousAnalyzer:
                 "asset": "HEARTBEAT_ANALYZER",
                 "price": price,
                 "direction": "HEARTBEAT",
-                "status": f"V4.7.2_STABLE_{latency_ms}ms",
+                "status": f"V4.7.2.4_STABLE_{latency_ms}ms",
                 "strength": 0.0,
                 "confidence": 0.0
             }
@@ -572,30 +598,33 @@ class ContinuousAnalyzer:
             else:
                 logger.info(f"🔍 Score below threshold ({release_score:.2f} < {settings.MIN_CONFIDENCE}) - No action.")
 
-            # 6. Dashboard Telemetry Update (Learning Lab Preview)
+            # 6. Dashboard Telemetry Update & Technical Audit
             try:
-                from analyze_heartbeat import analyze_heartbeat
-                # Auto-sync with GitHub every 15 cycles (30 mins)
-                should_push = (self.cycle_count % 60 == 0) # v4.3.0: Once per hour (60s * 60)
-                analyze_heartbeat(push_to_git=should_push)
+                # v4.3.0: Once per hour (60s * 60)
+                should_update = (self.cycle_count % 60 == 0)
+                
+                if should_update:
+                    # 6a. Update Learning Data
+                    try:
+                        from analyze_heartbeat import analyze_heartbeat
+                        analyze_heartbeat(push_to_git=True)
+                    except Exception as e:
+                        logger.error(f"Failed to update dashboard learning data: {e}")
+                    
+                    # 6b. Update Technical Audit Report (HTML)
+                    try:
+                        import subprocess
+                        audit_script = os.path.join(self.project_root, "backend", "automate_audit.py")
+                        subprocess.run([sys.executable, audit_script], capture_output=True, text=True, timeout=30)
+                        logger.success("✅ [AUDIT] Technical Audit Report updated automatically.")
+                    except Exception as e:
+                        logger.error(f"Failed to run automated audit: {e}")
             except Exception as e:
-                logger.error(f"Failed to update dashboard learning data: {e}")
+                logger.error(f"Dashboard/Audit update error: {e}")
 
             # 7. INTEGRATED WATCHDOG — Check Watcher health every 120 cycles (~120 min @ 60s/cycle)
             if self.cycle_count > 0 and self.cycle_count % 120 == 0:
                 self._check_watcher_health()
-                
-            # v4.2.0: Broadcast comprehensive health every 2 hours
-            now_time = datetime.now(timezone.utc)
-            if self.last_health_report_at is None:
-                # First run: delay by 10m to avoid startup noise, or send immediately? 
-                # Let's send 1 hour after startup for first time, then every 2 hours.
-                self.last_health_report_at = now_time 
-            
-            elapsed_health = (now_time - self.last_health_report_at).total_seconds() / 60
-            if elapsed_health >= settings.HEALTH_REPORT_INTERVAL_MINUTES:
-                self._broadcast_comprehensive_report()
-                self.last_health_report_at = now_time
 
         except Exception as e:
             logger.error(f"Heartbeat cycle failed: {e}")
@@ -730,9 +759,9 @@ class ContinuousAnalyzer:
                 f"├ Today's Signals: `{total_today}`\n"
                 f"└ Currently Tracking: `{active_count}`\n\n"
                 f"*⚙️ ENGINE PARAMS:*\n"
-                f"├ Version: `v4.4.0` (Strict)\n"
+                f"├ Version: `v4.7.2.4` (Stable)\n"
                 f"├ Interval: `{settings.MONITOR_INTERVAL_SECONDS}s`\n"
-                f"└ Target: `7p/12p` (Safety First)\n\n"
+                f"└ Target: `10p/5p` (Aggressive 2:1)\n\n"
                 f"✅ *All systems functioning normally.*"
             )
             
@@ -956,7 +985,7 @@ class ContinuousAnalyzer:
                                     except: pass
                             continue
                         
-                        # --- v4.7.0 Trailing TP (Stepped Milestones) ---
+                        # --- v4.7.0 Trailing TP (Highest Price Reversal) ---
                         if getattr(settings, "ENABLE_TRAILING_TP", True):
                             try:
                                 asset = sig.get("asset", "EURUSD")
@@ -975,32 +1004,41 @@ class ContinuousAnalyzer:
                                 if isinstance(meta_raw, str):
                                     try: meta = json.loads(meta_raw)
                                     except: meta = {}
+                                # v4.7.2: Handle list or other types if somehow present
+                                elif isinstance(meta_raw, dict):
+                                    meta = meta_raw
                                 else:
-                                    meta = meta_raw or {}
+                                    meta = {}
                                 
-                                peak_milestone = meta.get("trailing_peak", 0.0)
-                                milestones = settings.TRAILING_TP_STEPS
+                                # THE PEAK: We track the absolute highest pips reached
+                                current_peak = float(meta.get("trailing_peak", 0.0))
+                                milestones = settings.TRAILING_TP_STEPS # Trigger steps (e.g. 5.0, 6.0...)
                                 
-                                updated_peak = peak_milestone
-                                for ms in milestones:
-                                    if current_pips >= ms and ms > updated_peak:
-                                        updated_peak = ms
+                                # Activation: Trailing only starts after the first trigger step
+                                activation_pips = milestones[0] if milestones else 5.0
                                 
-                                if updated_peak > 0:
-                                    # Update peak if it increased
-                                    if updated_peak > peak_milestone:
-                                        meta["trailing_peak"] = updated_peak
-                                        # Use a state-guarded update for metadata too to be extra safe
-                                        res_meta = self.db.client.table(settings.TABLE_SIGNALS).update({
-                                            "metadata": meta
-                                        }).eq("id", sig_id).eq("state", "ENTRY_HIT").execute()
-                                        
-                                        if res_meta.data:
-                                            logger.info(f"📈 [TrailingTP] {asset} hit milestone: {updated_peak} pips")
+                                if current_pips >= activation_pips:
+                                    # v4.7.2.4: SAFE FALLBACK - Try to update peak only if metadata column might exist
+                                    # Since metadata is missing in some schemas, we catch the PGRST204 error specifically
+                                    try:
+                                        if current_pips > current_peak:
+                                            meta["trailing_peak"] = round(current_pips, 2)
+                                            # Update only if possible
+                                            self.db.client.table(settings.TABLE_SIGNALS).update({
+                                                "metadata": meta
+                                            }).eq("id", sig_id).eq("state", "ENTRY_HIT").execute()
+                                            logger.info(f"📈 [TrailingTP] {asset} new peak: {current_pips:.1f} pips")
+                                            current_peak = current_pips
+                                    except Exception as db_e:
+                                        if "PGRST204" in str(db_e) or "metadata" in str(db_e).lower():
+                                            logger.debug("⚠️ Trailing peak update skipped (metadata column missing)")
+                                        else:
+                                            logger.error(f"Trailing peak DB error: {db_e}")
                                     
-                                    # Check reversal (e.g. hits 7.0, drops to 6.4 -> CLOSE)
-                                    if current_pips < (updated_peak - settings.TRAILING_TP_REVERSAL):
-                                        logger.warning(f"🎯 [TrailingTP] {asset} reversing ({current_pips:.1f} < {updated_peak} - {settings.TRAILING_TP_REVERSAL}). CLOSING.")
+                                    # 2. Check reversal (e.g. hits 7.2, drops to 6.7 -> CLOSE if reversal is 0.5)
+                                    reversal_threshold = getattr(settings, "TRAILING_TP_REVERSAL", 0.5)
+                                    if current_pips < (current_peak - reversal_threshold):
+                                        logger.warning(f"🎯 [TrailingTP] {asset} reversing ({current_pips:.1f} < {current_peak:.1f} - {reversal_threshold}). CLOSING.")
                                         if self._ew_transition(sig_id, "ENTRY_HIT", {
                                             "state": "TP_HIT", "status": "CLOSED_TRAILING_TP",
                                             "result": "PROFIT", "closed_at": now.isoformat(),
@@ -1081,8 +1119,20 @@ class ContinuousAnalyzer:
     def _ew_transition(self, sig_id: str, from_state: str, update_data: dict, label: str) -> bool:
         """Atomic state transition for embedded watcher. Returns True if updated."""
         try:
+            # v4.7.2.4: Sanitize update_data to prevent PGRST204 errors
+            schema_keys = [
+                "valid_until", "activation_limit_mins", "max_monitoring_mins", 
+                "refinement_reason", "is_market_entry", "refinement", 
+                "signal_metadata", "tp_pips", "sl_pips", "explainability", 
+                "strength", "state", "entry_low", "entry_high", "metadata"
+            ]
+            clean_data = update_data.copy()
+            for key in schema_keys:
+                if key in clean_data and key not in ["state", "status", "result", "closed_at", "entry_hit_at", "tp", "sl", "tp_pips", "sl_pips"]:
+                    del clean_data[key]
+
             res = self.db.client.table(settings.TABLE_SIGNALS).update(
-                update_data
+                clean_data
             ).eq("id", sig_id).eq("state", from_state).execute()
             
             if res.data:
@@ -1108,7 +1158,6 @@ class ContinuousAnalyzer:
                 f.write(json.dumps({
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                     "status": "SYSTEM_STARTUP",
-                    "message": "Quantix AI Core v3.8 with Embedded Watcher"
                 }) + "\n")
         except Exception as e:
             logger.error(f"Startup log failed: {e}")
@@ -1140,6 +1189,18 @@ class ContinuousAnalyzer:
                 # 🧹 REDUNDANT SAFETY: Run Janitor
                 self.janitor.run_sync()
                 
+                # 🚨 [v4.7.2.3] ROBUST TELEGRAM AUDIT REPORT 
+                # Move outside run_cycle to ensure it fires even if data fetching fails
+                now_time = datetime.now(timezone.utc)
+                if self.last_health_report_at is not None:
+                    elapsed_health = (now_time - self.last_health_report_at).total_seconds() / 60
+                    if elapsed_health >= settings.HEALTH_REPORT_INTERVAL_MINUTES:
+                        logger.info(f"📢 [AUDIT] Interval reached ({elapsed_health:.1f}m). Triggering report...")
+                        self._broadcast_comprehensive_report()
+                        self.last_health_report_at = now_time
+                else:
+                    self.last_health_report_at = now_time # Guard
+                
             except Exception as e:
                 error_msg = str(e)
                 logger.error(f"Cycle error: {error_msg}")
@@ -1150,6 +1211,6 @@ class ContinuousAnalyzer:
             time.sleep(interval)
 
 if __name__ == "__main__":
-    logger.critical("🚀 [Analyzer] Boot starting v4.7.2...")
+    logger.critical("🚀 [Analyzer] Boot starting v4.7.2.4...")
     analyzer = ContinuousAnalyzer()
     analyzer.start()

@@ -80,7 +80,7 @@ class ContinuousAnalyzer:
             logger.warning(f"Could not restore health report time: {e}")
             self.last_health_report_at = datetime.now(timezone.utc) - timedelta(minutes=settings.HEALTH_REPORT_INTERVAL_MINUTES - 2)
 
-        logger.info(f"🚀 [v4.7.2.4] Low-Memory Stable Boot (Log: {self.audit_log_path})")
+        logger.info(f"🚀 [v4.7.2.5] Low-Memory Stable Boot (Log: {self.audit_log_path})")
 
     def _ensure_engines(self):
         """Lazy-load heavy AI structures only when needed."""
@@ -217,7 +217,7 @@ class ContinuousAnalyzer:
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "asset": "HEARTBEAT",
                 "direction": "SYSTEM",
-                "status": f"ALIVE_V4.7.2.4_C{self.cycle_count+1}_START",
+                "status": f"ALIVE_V4.7.2.5_C{self.cycle_count+1}_START",
                 "confidence": 0.0, "strength": 0.0, "price": 0.0
             }).execute()
         except: pass
@@ -286,7 +286,7 @@ class ContinuousAnalyzer:
                 "asset": "HEARTBEAT_ANALYZER",
                 "price": price,
                 "direction": "HEARTBEAT",
-                "status": f"V4.7.2.4_STABLE_{latency_ms}ms",
+                "status": f"V4.7.2.5_STABLE_{latency_ms}ms",
                 "strength": 0.0,
                 "confidence": 0.0
             }
@@ -347,6 +347,7 @@ class ContinuousAnalyzer:
                 logger.success(f"🚀 MARKET EXECUTION ({state.confidence:.2f}) -> Entry at {price:.5f}")
             else:
                 # Fallback: FVG with tighter offset (0.5 pips)
+                from quantix_core.utils.entry_calculator import EntryCalculator
                 entry_calc = EntryCalculator(offset_pips=0.5)
                 entry_price, is_valid, validation_msg = entry_calc.calculate_fvg_entry(
                     market_price=price,
@@ -1144,7 +1145,7 @@ class ContinuousAnalyzer:
             ]
             clean_data = update_data.copy()
             for key in schema_keys:
-                if key in clean_data and key not in ["state", "status", "result", "closed_at", "entry_hit_at", "tp", "sl", "tp_pips", "sl_pips"]:
+                if key in clean_data and key not in ["state", "status", "result", "closed_at", "entry_hit_at", "tp", "sl", "tp_pips", "sl_pips", "metadata"]:
                     del clean_data[key]
 
             res = self.db.client.table(settings.TABLE_SIGNALS).update(
@@ -1227,6 +1228,6 @@ class ContinuousAnalyzer:
             time.sleep(interval)
 
 if __name__ == "__main__":
-    logger.critical("🚀 [Analyzer] Boot starting v4.7.2.4...")
+    logger.critical("🚀 [Analyzer] Boot starting v4.7.2.5...")
     analyzer = ContinuousAnalyzer()
     analyzer.start()

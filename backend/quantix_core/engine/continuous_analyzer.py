@@ -257,7 +257,7 @@ class ContinuousAnalyzer:
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "asset": "HEARTBEAT",
                 "direction": "SYSTEM",
-                "status": f"ALIVE_V4.7.2.5_C{self.cycle_count+1}_START",
+                "status": f"ALIVE_V4.7.2.9_C{self.cycle_count+1}_START",
                 "confidence": 0.0, "strength": 0.0, "price": 0.0
             }).execute()
         except: pass
@@ -679,9 +679,8 @@ class ContinuousAnalyzer:
             except Exception as e:
                 logger.error(f"Dashboard/Audit update error: {e}")
 
-            # 7. INTEGRATED WATCHDOG — Check Watcher health every 30 cycles (~30 min @ 60s/cycle)
-            if self.cycle_count > 0 and self.cycle_count % 30 == 0:
-                self._check_watcher_health()
+            # 7. INTEGRATED WATCHDOG — Check Watcher health EVERY cycle (since interval is now 5m)
+            self._check_watcher_health()
 
         except Exception as e:
             logger.error(f"Heartbeat cycle failed: {e}")

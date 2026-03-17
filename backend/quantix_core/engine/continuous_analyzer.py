@@ -120,8 +120,46 @@ class ContinuousAnalyzer:
         return df
         
     def _check_circuit_breaker(self):
-        """v4.5.5: Circuit Breaker DISABLED per user request (Open Flow Mode)"""
-        pass
+        """v4.7.2.6: Re-enabled Circuit Breaker to protect against consecutive losses."""
+        try:
+            # 1. Check if we are already in an active cooldown (memory-based)
+            now = datetime.now(timezone.utc)
+            if self.cooldown_until and now < self.cooldown_until:
+                return
+
+            # 2. Query last N signals to check for consecutive losses
+            limit = settings.MAX_CONSECUTIVE_LOSSES
+            res = self.db.client.table(settings.TABLE_SIGNALS).select("status,result")\
+                .neq("result", "CANCELLED")\
+                .order("generated_at", desc=True)\
+                .limit(limit).execute()
+            
+            if res.data and len(res.data) >= limit:
+                results = [s.get("result") for s in res.data]
+                statuses = [s.get("status") for s in res.data]
+                
+                # If all recent completions are losses
+                if all(r == "LOSS" for r in results):
+                    cooldown_hrs = getattr(settings, "CIRCUIT_BREAKER_COOLDOWN_HOURS", 1.0)
+                    self.cooldown_until = now + timedelta(hours=cooldown_hrs)
+                    logger.critical(f"🛑 CIRCUIT BREAKER TRIGGERED: {limit} consecutive losses detected. Cooldown for {cooldown_hrs}h.")
+                    
+                    # Log the event
+                    self.db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
+                        "timestamp": now.isoformat(),
+                        "asset": "SYSTEM",
+                        "direction": "COOLDOWN",
+                        "status": f"CIRCUIT_BREAKER_ACTIVE_FOR_{cooldown_hrs}H",
+                        "price": 0.0, "confidence": 0.0, "strength": 0.0
+                    }).execute()
+                else:
+                    # Reset memory cooldown if a win is found in the sequence
+                    self.cooldown_until = None
+            else:
+                self.cooldown_until = None
+                
+        except Exception as e:
+            logger.error(f"Circuit Breaker check failed: {e}")
 
     def _get_m15_trend(self) -> Optional[str]:
         """v4.6.1: Fetch M15 trend for faster adaptation (Replaced H1)"""
@@ -324,8 +362,8 @@ class ContinuousAnalyzer:
                 mtf_aligned = (direction == "BUY" and m15_trend == "bullish") or \
                               (direction == "SELL" and m15_trend == "bearish")
                 if not mtf_aligned:
-                    mtf_penalty = 0.95  # 5% confidence penalty for misalignment in Scalper Mode
-                    logger.warning(f"⚠️ Trend Misalignment: M5 {direction} vs M15_TREND={m15_trend.upper()} → 0.95x penalty")
+                    mtf_penalty = 0.70  # v4.7.2.6: Increased to 30% penalty (Harder trend filter)
+                    logger.warning(f"⚠️ Trend Misalignment: M5 {direction} vs M15_TREND={m15_trend.upper()} → 0.70x penalty")
             else:
                 logger.warning("⚠️ M15 trend unavailable. Proceeding with caution (M5 only).")
             

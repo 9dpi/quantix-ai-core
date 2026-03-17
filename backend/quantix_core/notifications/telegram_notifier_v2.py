@@ -71,6 +71,7 @@ class TelegramNotifierV2:
                 "parse_mode": "Markdown"
             }
             
+            logger.debug(f"Sending Telegram payload to {self.chat_id}: {json.dumps(payload)[:200]}")
             response = requests.post(self.api_url, json=payload, timeout=10)
             response.raise_for_status()
             

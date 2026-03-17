@@ -69,13 +69,11 @@ def run_service(name, cmd, asset_name, log_asset, direction="STDOUT", cwd=None, 
                         last_output_at = time.time()
                         print(f"[{name}] {clean_line}")
                         
-                        # v4.7.2: Log ALL lines to DB during the first 1 minute of a process for visibility
-                        # This avoids silent failures. After that, we filter again.
-                        is_startup = (time.time() - proc_start_at < 60)
+                        is_startup = (time.time() - proc_start_at < 300) # Increased to 5 mins
                         
                         upper_line = clean_line.upper()
-                        is_error = any(kw in upper_line for kw in ["ERROR", "CRITICAL", "EXCEPTION", "[BOOT]", "FOUND", "FAILED"])
-                        is_success = any(kw in upper_line for kw in ["SUCCESS", "🚀", "🎯", "SIGNAL", "LOCKED"])
+                        is_error = any(kw in upper_line for kw in ["ERROR", "CRITICAL", "EXCEPTION", "[BOOT]", "FOUND", "FAILED", "WARNING"])
+                        is_success = any(kw in upper_line for kw in ["SUCCESS", "🚀", "🎯", "SIGNAL", "LOCKED", "HEARTBEAT", "ANALYZER", "WATCHER", "MT4"])
                         
                         if is_startup or is_error or is_success:
                             def _safe_log(_line):

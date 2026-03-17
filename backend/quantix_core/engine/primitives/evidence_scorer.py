@@ -50,7 +50,7 @@ class EvidenceScorer:
     BASE_SCORES = {
         EvidenceType.BOS: 0.6,  # Strong continuation signal
         EvidenceType.CHOCH: 0.5,  # Reversal signal
-        EvidenceType.SWING_BREAK: 0.4,  # Moderate signal
+        EvidenceType.SWING_BREAK: 0.25,  # Moderate signal -> Reduced (v4.7.2.7)
         EvidenceType.SWING_CONTINUATION: 0.3,  # Weak confirmation
         EvidenceType.FAKEOUT_REJECTED: -0.4, # Negative evidence
         EvidenceType.FVG: 0.35,              # v4.4.1: Structural gap presence

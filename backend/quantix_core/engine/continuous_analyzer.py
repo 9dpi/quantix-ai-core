@@ -95,7 +95,7 @@ class ContinuousAnalyzer:
             from quantix_core.engine.janitor import Janitor
             
             self.td_client = TwelveDataClient(api_key=settings.TWELVE_DATA_API_KEY)
-            self.engine = StructureEngineV1(sensitivity=2)
+            self.engine = StructureEngineV1(sensitivity=3)
             self.refiner = ConfidenceRefiner()
             self.checker = EntryCalculator()
             self.janitor = Janitor()

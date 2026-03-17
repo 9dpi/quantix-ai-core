@@ -44,11 +44,11 @@ class StateResolver:
     """
     
     def __init__(self):
-        # Minimum total score to have any opinion (v4.7.2.2: Relaxed for M5 scalping)
-        self.min_total_score = 0.35
+        # Minimum total score to have any opinion (v4.7.2.7: Increased for quality)
+        self.min_total_score = 0.5
         
-        # Dominance ratio for clear state (v4.7.2.2: Relaxed for M5 scalping)
-        self.clear_dominance_ratio = 1.8
+        # Dominance ratio for clear state (v4.7.2.7: Increased for quality)
+        self.clear_dominance_ratio = 2.5
     
     def resolve_state(
         self,
@@ -186,13 +186,13 @@ class StateResolver:
             state = "bearish"
             filtered_evidence = [e for e in evidence_items if "bearish" in e.lower() or "BOS" in e]
             
-        elif bullish_score > bearish_score * 1.2:
-            # Moderate bullish lean
+        elif bullish_score > bearish_score * 1.5:
+            # Moderate bullish lean (v4.7.2.7: 1.5x)
             state = "bullish"
             filtered_evidence = evidence_items
             
-        elif bearish_score > bullish_score * 1.2:
-            # Moderate bearish lean
+        elif bearish_score > bullish_score * 1.5:
+            # Moderate bearish lean (v4.7.2.7: 1.5x)
             state = "bearish"
             filtered_evidence = evidence_items
             

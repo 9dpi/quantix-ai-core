@@ -81,7 +81,10 @@ class TelegramNotifierV2:
             return message_id
         
         except Exception as e:
-            logger.error(f"Failed to send Telegram message: {e}")
+            err_msg = str(e)
+            if 'response' in dir() and hasattr(response, 'text'):
+                err_msg += f" | Response: {response.text}"
+            logger.error(f"Failed to send Telegram message: {err_msg}")
             return None
     
     # ========================================

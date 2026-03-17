@@ -74,9 +74,10 @@ def run_service(name, cmd, asset_name, log_asset, direction="STDOUT", cwd=None, 
                         is_startup = (time.time() - proc_start_at < 60)
                         
                         upper_line = clean_line.upper()
-                        is_error = "ERROR" in upper_line or "CRITICAL" in upper_line or "EXCEPTION" in upper_line or "[BOOT]" in upper_line or "FOUND" in upper_line
+                        is_error = any(kw in upper_line for kw in ["ERROR", "CRITICAL", "EXCEPTION", "[BOOT]", "FOUND", "FAILED"])
+                        is_success = any(kw in upper_line for kw in ["SUCCESS", "🚀", "🎯", "SIGNAL", "LOCKED"])
                         
-                        if is_startup or is_error:
+                        if is_startup or is_error or is_success:
                             def _safe_log(_line):
                                 try:
                                     log_direction = "UVICORN_LOG" if name == "WEB" else "STDOUT"

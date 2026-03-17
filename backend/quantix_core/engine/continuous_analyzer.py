@@ -776,7 +776,7 @@ class ContinuousAnalyzer:
                 f"├ Today's Signals: `{total_today}`\n"
                 f"└ Currently Tracking: `{active_count}`\n\n"
                 f"*⚙️ ENGINE PARAMS:*\n"
-                f"├ Version: `v4.7.2.4` (Stable)\n"
+                f"├ Version: `v4.7.2.5` (Stable)\n"
                 f"├ Interval: `{settings.MONITOR_INTERVAL_SECONDS}s`\n"
                 f"└ Target: `10p/5p` (Aggressive 2:1)\n\n"
                 f"✅ *All systems functioning normally.*"

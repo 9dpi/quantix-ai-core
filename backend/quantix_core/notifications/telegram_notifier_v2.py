@@ -368,8 +368,31 @@ class TelegramNotifierV2:
             f"Signal removed from watchlist."
         )
         
-        logger.info(f"Sending CANCELLED message for {asset}")
+        return self.send_message(message)
+
+    def send_mt4_execution(self, signal: dict, ticket: str, lots: float, price: float) -> Optional[int]:
+        """
+        Send MT4_EXECUTED message (Sync State).
+        Triggered when MT4 EA confirms successful execution.
+        """
+        asset = signal.get("asset", "EURUSD").replace("/", "")
+        direction = signal.get("direction", "BUY").upper()
+        dir_emoji = "🔵" # Execution color
         
+        message = (
+            f"⚡ *MT4 EXECUTION CONFIRMED*\n\n"
+            f"Asset: {asset}\n"
+            f"Action: {direction}\n"
+            f"Ticket: `{ticket}`\n"
+            f"Lots: {lots}\n"
+            f"Price: {price}\n\n"
+            f"✅ Trade is live trên MetaTrader 4.\n"
+            f"Status: EXECUTED_ON_MT4"
+        )
+        
+        logger.info(f"Sending MT4_EXECUTED message for {asset} (Ticket: {ticket})")
+        
+        # Reply to original signal message if possible
         msg_id = signal.get("telegram_message_id")
         if msg_id:
             return self.reply_to_message(msg_id, message)

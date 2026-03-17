@@ -8,6 +8,7 @@ import os
 
 from quantix_core.database.connection import db
 from quantix_core.config.settings import settings
+from quantix_core.notifications.telegram_notifier_v2 import TelegramNotifierV2
 
 router = APIRouter()
 
@@ -150,8 +151,37 @@ async def process_mt4_callback(payload: MT4Callback, authorized: bool = Depends(
         # 1. Insert into Supabase (Primary)
         try:
             db.client.table("fx_analysis_log").insert(log_entry).execute()
+            
+            # 1b. SYNC: Update Signal Table on Execution Success
+            if payload.status == "EXECUTION_SUCCESS" and payload.signal_id:
+                # Update status in main signals table
+                db.client.table(settings.TABLE_SIGNALS).update({
+                    "status": "MT4_EXECUTED",
+                    "state": "ENTRY_HIT" # Ensure it's marked as active
+                }).eq("id", payload.signal_id).execute()
+                
+                # 1c. SYNC: Send Telegram Notification
+                try:
+                    notifier = TelegramNotifierV2(
+                        bot_token=settings.TELEGRAM_BOT_TOKEN,
+                        chat_id=settings.TELEGRAM_CHAT_ID
+                    )
+                    
+                    # Fetch signal details for better notification
+                    res_sig = db.client.table(settings.TABLE_SIGNALS).select("*").eq("id", payload.signal_id).execute()
+                    if res_sig.data:
+                        sig_data = res_sig.data[0]
+                        notifier.send_mt4_execution(
+                            signal=sig_data,
+                            ticket=payload.ticket_id or "N/A",
+                            lots=payload.executed_lots or 0.0,
+                            price=payload.executed_price or 0.0
+                        )
+                except Exception as tg_err:
+                    logger.warning(f"MT4 Callback: Telegram sync failed: {tg_err}")
+
         except Exception as e:
-            logger.warning(f"Could not insert callback into fx_analysis_log: {e}")
+            logger.warning(f"Could not process MT4 callback sync: {e}")
             
         # 2. Local Fallback (Relative path for Cloud compatibility)
         log_dir = "./logs"

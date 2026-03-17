@@ -90,11 +90,16 @@ def run_service(name, cmd, asset_name, log_asset, direction="STDOUT", cwd=None, 
             monitor_thread.start()
             
             # Main monitoring loop: Wait for process or timeout
+            hb_count = 0
             while process.poll() is None:
+                hb_count += 1
+                if hb_count % 30 == 0: # Every 5 minutes (30 * 10s)
+                    log_to_db(asset_name, "SERVICE_ALIVE_HEARTBEAT", "LAUNCHER")
+                    
                 if time.time() - last_output_at > silence_timeout:
                     print(f"🚨 [Launcher] {name} HUNG (silent for {silence_timeout}s). Killing...")
                     process.kill() # Trigger kill BEFORE doing risky network operations
-                    threading.Thread(target=lambda: log_to_db(asset_name, f"KILLED_BY_WATCHDOG_SILENCE", "LAUNCHER"), daemon=True).start()
+                    threading.Thread(target=lambda: log_to_db(asset_name, "KILLED_BY_WATCHDOG_SILENCE", "LAUNCHER"), daemon=True).start()
                     break
                 time.sleep(10)
             
@@ -136,6 +141,16 @@ if __name__ == "__main__":
         time.sleep(2) # Stagger start times
         
     print("✨ All services are launched in parallel. Monitoring...")
+    
+    # 4. Global Launcher Heartbeat Thread
+    def launcher_heartbeat():
+        while True:
+            try:
+                log_to_db("LAUNCHER_GLOBAL", "ALIVE", "LAUNCHER")
+            except: pass
+            time.sleep(900) # 15 minutes
+            
+    threading.Thread(target=launcher_heartbeat, daemon=True).start()
     
     # Keep the main thread alive
     try:

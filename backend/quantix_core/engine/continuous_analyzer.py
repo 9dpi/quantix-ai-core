@@ -61,6 +61,8 @@ class ContinuousAnalyzer:
             from quantix_core.notifications.telegram_notifier_v2 import create_notifier
             self.notifier = create_notifier(token, chat_id, admin_chat_id)
             logger.success("✅ [STABLE_BOOT] Notifier Ready")
+        else:
+            logger.warning("⚠️ [STABLE_BOOT] Notifier NOT initialized: Token or Chat ID missing.")
 
         # 🚨 [v4.7.2.3] Enhanced Robust Audit Timing
         self.last_health_report_at = None
@@ -639,8 +641,8 @@ class ContinuousAnalyzer:
             except Exception as e:
                 logger.error(f"Dashboard/Audit update error: {e}")
 
-            # 7. INTEGRATED WATCHDOG — Check Watcher health every 120 cycles (~120 min @ 60s/cycle)
-            if self.cycle_count > 0 and self.cycle_count % 120 == 0:
+            # 7. INTEGRATED WATCHDOG — Check Watcher health every 30 cycles (~30 min @ 60s/cycle)
+            if self.cycle_count > 0 and self.cycle_count % 30 == 0:
                 self._check_watcher_health()
 
         except Exception as e:

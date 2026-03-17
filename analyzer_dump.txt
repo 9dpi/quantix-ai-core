@@ -1,0 +1,100 @@
+2026-03-17T01:14:47.370182+00:00 | 2026-03-17 01:14:47.367 | INFO     | __main__:_broadcast_comprehensive_report:732 - 📊 Generating periodic system health report...
+2026-03-17T01:14:47.369099+00:00 | 2026-03-17 01:14:47.367 | INFO     | __main__:start:1215 - 📢 [AUDIT] Interval reached (1372.6m). Triggering report...
+2026-03-17T01:14:47.368034+00:00 | 2026-03-17 01:14:47.367 | DEBUG    | quantix_core.engine.janitor:_perform_cleanup:95 - Janitor: No stuck signals found.
+2026-03-17T01:14:47.175666+00:00 | 2026-03-17 01:14:47.175 | INFO     | quantix_core.engine.janitor:_perform_cleanup:27 - 🧹 Janitor: Starting robust signal cleanup...
+2026-03-17T01:14:46.984236+00:00 | 2026-03-17 01:14:46.983 | DEBUG    | __main__:_embedded_watcher_check:921 - [EmbeddedWatcher] Price H:1.1496 L:1.1491 C:1.1493
+2026-03-17T01:14:45.784805+00:00 | 2026-03-17 01:14:45.784 | INFO     | __main__:_embedded_watcher_check:883 - 👁️ [EmbeddedWatcher] Monitoring 2 active signals
+2026-03-17T01:14:45.395112+00:00 | 2026-03-17 01:14:45.392 | WARNING  | __main__:run_cycle:614 - 🛡️ [ANTI-BURST] Signal rejected by Gate: COOLDOWN: Signal released 12.8m ago (Min: 15m)
+2026-03-17T01:14:44.787847+00:00 | 2026-03-17 01:14:44.779 | INFO     | __main__:run_cycle:517 - Signal Evaluated: SELL @ 1.1493 | Raw Conf: 1.00 | Release Score: 0.95 | Raw: 1.00 | Session: 1.0 | Vol: 1.0 | Spread: 1.0 | MTF: 0.95
+2026-03-17T01:14:44.786732+00:00 | 2026-03-17 01:14:44.777 | INFO     | __main__:run_cycle:397 - v4.1.1 R:R (FIXED): ATR=0.00031 | TP=0.00100 (10.0p) | SL=0.00050 (5.0p)
+2026-03-17T01:14:44.785693+00:00 | 2026-03-17 01:14:44.776 | SUCCESS  | __main__:run_cycle:347 - 🚀 MARKET EXECUTION (1.00) -> Entry at 1.14930
+2026-03-17T01:14:44.784384+00:00 | 2026-03-17 01:14:44.776 | WARNING  | __main__:run_cycle:326 - ⚠️ Trend Misalignment: M5 SELL vs M15_TREND=BULLISH → 0.95x penalty
+2026-03-17T01:14:44.783022+00:00 | 2026-03-17 01:14:44.776 | INFO     | __main__:run_cycle:321 - 🔎 Trend Check: M5_SIGNAL=SELL | M15_TREND=BULLISH
+2026-03-17T01:14:44.781977+00:00 | 2026-03-17 01:14:44.776 | INFO     | quantix_core.engine.structure_engine_v1:analyze:166 - [struct-3976bb91] ✅ Final state: bullish (confidence: 0.93)
+2026-03-17T01:14:44.780858+00:00 | 2026-03-17 01:14:44.775 | DEBUG    | quantix_core.engine.primitives.fvg_detector:get_nearest_entry_fvg:263 - No suitable BUY FVG found within 20.0 pips of 1.1493
+2026-03-17T01:14:44.779487+00:00 | 2026-03-17 01:14:44.775 | DEBUG    | quantix_core.engine.primitives.liquidity_filter:detect_sweeps:149 -   BULLISH_SWEEP: level=1.1491, strength=0.2857
+2026-03-17T01:14:44.778595+00:00 | 2026-03-17 01:14:44.775 | INFO     | quantix_core.engine.primitives.liquidity_filter:detect_sweeps:147 - 🛸 Detected 1 Liquidity Sweeps in current candle
+2026-03-17T01:14:44.777472+00:00 | 2026-03-17 01:14:44.775 | INFO     | quantix_core.engine.structure_engine_v1:analyze:103 - [struct-3976bb91] Found 5 FVGs (1 unfilled)
+2026-03-17T01:14:44.77651+00:00 | 2026-03-17 01:14:44.775 | INFO     | quantix_core.engine.primitives.fvg_detector:detect_fvgs:171 - FVG Scan complete: 5 total, 1 unfilled
+2026-03-17T01:14:44.775449+00:00 | 2026-03-17 01:14:44.775 | INFO     | quantix_core.engine.structure_engine_v1:analyze:98 - [struct-3976bb91] Valid: 31, Fake: 38
+2026-03-17T01:14:44.767942+00:00 | 2026-03-17 01:14:44.767 | INFO     | quantix_core.engine.structure_engine_v1:analyze:90 - [struct-3976bb91] Detected 69 structure events
+2026-03-17T01:14:44.759867+00:00 | 2026-03-17 01:14:44.758 | INFO     | quantix_core.engine.structure_engine_v1:analyze:82 - [struct-3976bb91] Found 26 swing points
+2026-03-17T01:14:44.758347+00:00 | 2026-03-17 01:14:44.757 | INFO     | quantix_core.engine.structure_engine_v1:analyze:77 - [struct-3976bb91] 🔍 Analyzing structure for EURUSD @ M15_TREND
+2026-03-17T01:14:44.2212+00:00 | 2026-03-17 01:14:44.213 | INFO     | quantix_core.engine.structure_engine_v1:analyze:166 - [struct-9dfd0d1f] ✅ Final state: bearish (confidence: 1.00)
+2026-03-17T01:14:44.219932+00:00 | 2026-03-17 01:14:44.213 | DEBUG    | quantix_core.engine.primitives.fvg_detector:get_nearest_entry_fvg:263 - No suitable SELL FVG found within 20.0 pips of 1.1493
+2026-03-17T01:14:44.218719+00:00 | 2026-03-17 01:14:44.212 | DEBUG    | quantix_core.engine.primitives.liquidity_filter:detect_sweeps:149 -   BEARISH_SWEEP: level=1.1494, strength=0.6
+2026-03-17T01:14:44.217463+00:00 | 2026-03-17 01:14:44.212 | DEBUG    | quantix_core.engine.primitives.liquidity_filter:detect_sweeps:149 -   BEARISH_SWEEP: level=1.1494, strength=0.6
+2026-03-17T01:14:44.216347+00:00 | 2026-03-17 01:14:44.212 | INFO     | quantix_core.engine.primitives.liquidity_filter:detect_sweeps:147 - 🛸 Detected 2 Liquidity Sweeps in current candle
+2026-03-17T01:14:44.215313+00:00 | 2026-03-17 01:14:44.212 | INFO     | quantix_core.engine.structure_engine_v1:analyze:103 - [struct-9dfd0d1f] Found 0 FVGs (0 unfilled)
+2026-03-17T01:14:44.214078+00:00 | 2026-03-17 01:14:44.212 | INFO     | quantix_core.engine.primitives.fvg_detector:detect_fvgs:171 - FVG Scan complete: 0 total, 0 unfilled
+2026-03-17T01:14:44.212366+00:00 | 2026-03-17 01:14:44.211 | INFO     | quantix_core.engine.structure_engine_v1:analyze:98 - [struct-9dfd0d1f] Valid: 136, Fake: 64
+2026-03-17T01:14:44.179434+00:00 | 2026-03-17 01:14:44.179 | INFO     | quantix_core.engine.structure_engine_v1:analyze:90 - [struct-9dfd0d1f] Detected 200 structure events
+2026-03-17T01:14:44.171363+00:00 | 2026-03-17 01:14:44.168 | INFO     | quantix_core.engine.structure_engine_v1:analyze:82 - [struct-9dfd0d1f] Found 14 swing points
+2026-03-17T01:14:44.170159+00:00 | 2026-03-17 01:14:44.168 | INFO     | quantix_core.engine.structure_engine_v1:analyze:77 - [struct-9dfd0d1f] 🔍 Analyzing structure for EURUSD @ M5
+2026-03-17T01:14:44.168869+00:00 | 2026-03-17 01:14:44.168 | SUCCESS  | __main__:run_cycle:295 - ✅ Cycle #1 complete (M5 Mode) in 1037ms
+2026-03-17T01:14:43.968567+00:00 | 2026-03-17 01:14:43.968 | INFO     | __main__:run_cycle:261 - 📡 Data Source: BINANCE (Primary - M5)
+2026-03-17T01:14:43.437523+00:00 | 2026-03-17 01:14:43.432 | INFO     | __main__:run_cycle:248 - 🎬 [v3.5] Starting analysis cycle #1...
+2026-03-17T01:14:43.436599+00:00 | 2026-03-17 01:14:43.432 | SUCCESS  | __main__:_ensure_engines:100 - ✅ [LazyLoad] Ready.
+2026-03-17T01:14:43.435239+00:00 | 2026-03-17 01:14:43.432 | INFO     | quantix_core.utils.entry_calculator:__init__:33 - EntryCalculator initialized: offset=5.0 pips, min=1.0 pips, max=50.0 pips
+2026-03-17T01:14:43.434572+00:00 | 2026-03-17 01:14:43.432 | INFO     | quantix_core.engine.structure_engine_v1:__init__:52 - 🏗️ Structure Engine v1.5 (SMC-Lite) initialized
+2026-03-17T01:14:43.433215+00:00 | 2026-03-17 01:14:43.432 | DEBUG    | quantix_core.engine.primitives.fvg_detector:__init__:83 - FVGDetector initialized: min=1.0p, max=30.0p, age=50
+2026-03-17T01:14:43.426298+00:00 | warnings.warn(message, UserWarning)
+2026-03-17T01:14:43.425174+00:00 | * 'schema_extra' has been renamed to 'json_schema_extra'
+2026-03-17T01:14:43.423812+00:00 | /usr/local/lib/python3.11/site-packages/pydantic/_internal/_config.py:383: UserWarning: Valid config keys have changed in V2:
+2026-03-17T01:14:43.134026+00:00 | 2026-03-17 01:14:43.133 | INFO     | __main__:_ensure_engines:88 - 📦 [LazyLoad] Importing AI Engines (Pandas/StructureEngine)...
+2026-03-17T01:14:42.932049+00:00 | 2026-03-17 01:14:42.930 | INFO     | __main__:start:1200 - 🎬 Starting new analysis cycle...
+2026-03-17T01:14:42.930944+00:00 | 2026-03-17 01:14:42.926 | INFO     | __main__:start:1169 - 👁️ EMBEDDED WATCHER MODE: Signal monitoring runs inside Analyzer
+2026-03-17T01:14:42.929156+00:00 | 2026-03-17 01:14:42.926 | INFO     | __main__:start:1168 - 💓 Continuous analyzer started with 60s interval
+2026-03-17T01:14:42.927905+00:00 | 2026-03-17 01:14:42.926 | INFO     | __main__:__init__:83 - 🚀 [v4.7.2.5] Low-Memory Stable Boot (Log: /app/backend/heartbeat_audit.jsonl)
+2026-03-17T01:14:42.92659+00:00 | 2026-03-17 01:14:42.926 | INFO     | __main__:__init__:74 - 📊 Restored last audit report time: 2026-03-16 02:22:13.600615+00:00
+2026-03-17T01:14:36.21604+00:00 | 2026-03-17 01:14:36.215 | INFO     | quantix_core.database.connection:_initialize_client:159 - [OK] Supabase client initialized (Official SDK)
+2026-03-17T01:14:36.150222+00:00 | 2026-03-17 01:14:36.149 | INFO     | quantix_core.database.connection:_initialize_client:149 - Using SERVICE_ROLE Supabase Key (Length: 219)
+2026-03-17T01:14:35.785457+00:00 | 2026-03-17 01:14:35.784 | CRITICAL | __main__:<module>:1231 - 🚀 [Analyzer] Boot starting v4.7.2.5...
+2026-03-17T01:14:35.365569+00:00 | [BOOT] ANALYZER STARTING CORE IMPORTS...
+2026-03-16T11:21:34.779944+00:00 | 2026-03-16 11:21:34.774 | INFO     | __main__:_broadcast_comprehensive_report:732 - 📊 Generating periodic system health report...
+2026-03-16T11:21:34.776995+00:00 | 2026-03-16 11:21:34.774 | INFO     | __main__:start:1215 - 📢 [AUDIT] Interval reached (539.4m). Triggering report...
+2026-03-16T11:21:34.774741+00:00 | 2026-03-16 11:21:34.773 | DEBUG    | quantix_core.engine.janitor:_perform_cleanup:95 - Janitor: No stuck signals found.
+2026-03-16T11:21:34.592257+00:00 | 2026-03-16 11:21:34.588 | INFO     | quantix_core.engine.janitor:_perform_cleanup:27 - 🧹 Janitor: Starting robust signal cleanup...
+2026-03-16T11:21:34.589563+00:00 | 2026-03-16 11:21:34.588 | DEBUG    | __main__:_embedded_watcher_check:875 - [EmbeddedWatcher] No active signals. Heartbeat logged.
+2026-03-16T11:21:34.240479+00:00 | 2026-03-16 11:21:34.201 | WARNING  | __main__:run_cycle:358 - SKIP_SIGNAL: Entry too close to market: distance=0.00005 < min=0.00010
+2026-03-16T11:21:34.237406+00:00 | 2026-03-16 11:21:34.201 | DEBUG    | quantix_core.utils.entry_calculator:calculate_entry_price:77 - Calculated entry: market=1.1476, direction=SELL, offset=0.00005, entry=1.14765
+2026-03-16T11:21:34.234986+00:00 | 2026-03-16 11:21:34.201 | INFO     | quantix_core.utils.entry_calculator:__init__:33 - EntryCalculator initialized: offset=0.5 pips, min=1.0 pips, max=50.0 pips
+2026-03-16T11:21:34.230979+00:00 | 2026-03-16 11:21:34.201 | WARNING  | __main__:run_cycle:326 - ⚠️ Trend Misalignment: M5 SELL vs M15_TREND=BULLISH → 0.95x penalty
+2026-03-16T11:21:34.227318+00:00 | 2026-03-16 11:21:34.201 | INFO     | __main__:run_cycle:321 - 🔎 Trend Check: M5_SIGNAL=SELL | M15_TREND=BULLISH
+2026-03-16T11:21:34.224305+00:00 | 2026-03-16 11:21:34.201 | INFO     | quantix_core.engine.structure_engine_v1:analyze:166 - [struct-84fb5f4c] ✅ Final state: bullish (confidence: 0.88)
+2026-03-16T11:21:34.217312+00:00 | 2026-03-16 11:21:34.201 | INFO     | quantix_core.engine.primitives.fvg_detector:get_nearest_entry_fvg:275 - 🎯 Best FVG for BUY: midpoint=1.1462, quality=0.86, distance=14.0p, size=8.0p
+2026-03-16T11:21:34.215406+00:00 | 2026-03-16 11:21:34.200 | DEBUG    | quantix_core.engine.primitives.liquidity_filter:detect_sweeps:149 -   BEARISH_SWEEP: level=1.1476, strength=0.25
+2026-03-16T11:21:34.212416+00:00 | 2026-03-16 11:21:34.200 | INFO     | quantix_core.engine.primitives.liquidity_filter:detect_sweeps:147 - 🛸 Detected 1 Liquidity Sweeps in current candle
+2026-03-16T11:21:34.209386+00:00 | 2026-03-16 11:21:34.199 | INFO     | quantix_core.engine.structure_engine_v1:analyze:103 - [struct-84fb5f4c] Found 7 FVGs (2 unfilled)
+2026-03-16T11:21:34.206024+00:00 | 2026-03-16 11:21:34.199 | INFO     | quantix_core.engine.primitives.fvg_detector:detect_fvgs:171 - FVG Scan complete: 7 total, 2 unfilled
+2026-03-16T11:21:34.20001+00:00 | 2026-03-16 11:21:34.198 | INFO     | quantix_core.engine.structure_engine_v1:analyze:98 - [struct-84fb5f4c] Valid: 119, Fake: 71
+2026-03-16T11:21:34.133668+00:00 | 2026-03-16 11:21:34.132 | INFO     | quantix_core.engine.structure_engine_v1:analyze:90 - [struct-84fb5f4c] Detected 190 structure events
+2026-03-16T11:21:34.12008+00:00 | 2026-03-16 11:21:34.113 | INFO     | quantix_core.engine.structure_engine_v1:analyze:82 - [struct-84fb5f4c] Found 13 swing points
+2026-03-16T11:21:34.115685+00:00 | 2026-03-16 11:21:34.111 | INFO     | quantix_core.engine.structure_engine_v1:analyze:77 - [struct-84fb5f4c] 🔍 Analyzing structure for EURUSD @ M15_TREND
+2026-03-16T11:21:33.533852+00:00 | 2026-03-16 11:21:33.526 | INFO     | quantix_core.engine.structure_engine_v1:analyze:166 - [struct-fa72900f] ✅ Final state: bearish (confidence: 0.10)
+2026-03-16T11:21:33.531933+00:00 | 2026-03-16 11:21:33.526 | DEBUG    | quantix_core.engine.primitives.fvg_detector:get_nearest_entry_fvg:263 - No suitable SELL FVG found within 20.0 pips of 1.1476
+2026-03-16T11:21:33.529017+00:00 | 2026-03-16 11:21:33.525 | INFO     | quantix_core.engine.structure_engine_v1:analyze:103 - [struct-fa72900f] Found 9 FVGs (4 unfilled)
+2026-03-16T11:21:33.527369+00:00 | 2026-03-16 11:21:33.524 | INFO     | quantix_core.engine.primitives.fvg_detector:detect_fvgs:171 - FVG Scan complete: 9 total, 4 unfilled
+2026-03-16T11:21:33.52472+00:00 | 2026-03-16 11:21:33.523 | INFO     | quantix_core.engine.structure_engine_v1:analyze:98 - [struct-fa72900f] Valid: 109, Fake: 47
+2026-03-16T11:21:33.479322+00:00 | 2026-03-16 11:21:33.478 | INFO     | quantix_core.engine.structure_engine_v1:analyze:90 - [struct-fa72900f] Detected 156 structure events
+2026-03-16T11:21:33.463796+00:00 | 2026-03-16 11:21:33.460 | INFO     | quantix_core.engine.structure_engine_v1:analyze:82 - [struct-fa72900f] Found 10 swing points
+2026-03-16T11:21:33.461538+00:00 | 2026-03-16 11:21:33.459 | INFO     | quantix_core.engine.structure_engine_v1:analyze:77 - [struct-fa72900f] 🔍 Analyzing structure for EURUSD @ M5
+2026-03-16T11:21:33.459876+00:00 | 2026-03-16 11:21:33.458 | SUCCESS  | __main__:run_cycle:295 - ✅ Cycle #1 complete (M5 Mode) in 1450ms
+2026-03-16T11:21:33.260834+00:00 | 2026-03-16 11:21:33.259 | INFO     | __main__:run_cycle:261 - 📡 Data Source: BINANCE (Primary - M5)
+2026-03-16T11:21:32.542841+00:00 | 2026-03-16 11:21:32.529 | INFO     | __main__:run_cycle:248 - 🎬 [v3.5] Starting analysis cycle #1...
+2026-03-16T11:21:32.540548+00:00 | 2026-03-16 11:21:32.529 | SUCCESS  | __main__:_ensure_engines:100 - ✅ [LazyLoad] Ready.
+2026-03-16T11:21:32.533739+00:00 | 2026-03-16 11:21:32.529 | INFO     | quantix_core.utils.entry_calculator:__init__:33 - EntryCalculator initialized: offset=5.0 pips, min=1.0 pips, max=50.0 pips
+2026-03-16T11:21:32.532077+00:00 | 2026-03-16 11:21:32.528 | INFO     | quantix_core.engine.structure_engine_v1:__init__:52 - 🏗️ Structure Engine v1.5 (SMC-Lite) initialized
+2026-03-16T11:21:32.529728+00:00 | 2026-03-16 11:21:32.528 | DEBUG    | quantix_core.engine.primitives.fvg_detector:__init__:83 - FVGDetector initialized: min=1.0p, max=30.0p, age=50
+2026-03-16T11:21:32.516405+00:00 | warnings.warn(message, UserWarning)
+2026-03-16T11:21:32.513955+00:00 | * 'schema_extra' has been renamed to 'json_schema_extra'
+2026-03-16T11:21:32.511958+00:00 | /usr/local/lib/python3.11/site-packages/pydantic/_internal/_config.py:383: UserWarning: Valid config keys have changed in V2:
+2026-03-16T11:21:32.00156+00:00 | 2026-03-16 11:21:32.000 | INFO     | __main__:_ensure_engines:88 - 📦 [LazyLoad] Importing AI Engines (Pandas/StructureEngine)...
+2026-03-16T11:21:31.817746+00:00 | 2026-03-16 11:21:31.809 | INFO     | __main__:start:1200 - 🎬 Starting new analysis cycle...
+2026-03-16T11:21:31.815108+00:00 | 2026-03-16 11:21:31.805 | INFO     | __main__:start:1169 - 👁️ EMBEDDED WATCHER MODE: Signal monitoring runs inside Analyzer
+2026-03-16T11:21:31.813292+00:00 | 2026-03-16 11:21:31.805 | INFO     | __main__:start:1168 - 💓 Continuous analyzer started with 60s interval
+2026-03-16T11:21:31.810021+00:00 | 2026-03-16 11:21:31.805 | INFO     | __main__:__init__:83 - 🚀 [v4.7.2.5] Low-Memory Stable Boot (Log: /app/backend/heartbeat_audit.jsonl)
+2026-03-16T11:21:31.807419+00:00 | 2026-03-16 11:21:31.805 | INFO     | __main__:__init__:74 - 📊 Restored last audit report time: 2026-03-16 02:22:13.600615+00:00
+2026-03-16T11:21:23.912349+00:00 | 2026-03-16 11:21:23.911 | INFO     | quantix_core.database.connection:_initialize_client:159 - [OK] Supabase client initialized (Official SDK)
+2026-03-16T11:21:23.775288+00:00 | 2026-03-16 11:21:23.774 | INFO     | quantix_core.database.connection:_initialize_client:149 - Using SERVICE_ROLE Supabase Key (Length: 219)
+2026-03-16T11:21:23.072481+00:00 | 2026-03-16 11:21:23.071 | CRITICAL | __main__:<module>:1231 - 🚀 [Analyzer] Boot starting v4.7.2.5...

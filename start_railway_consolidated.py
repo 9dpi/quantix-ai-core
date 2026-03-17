@@ -91,7 +91,7 @@ def run_service(name, cmd, asset_name, log_asset, direction="STDOUT", cwd=None, 
             hb_count = 0
             while process.poll() is None:
                 hb_count += 1
-                if hb_count % 30 == 0: # Every 5 minutes (30 * 10s)
+                if hb_count % 90 == 0: # Every 15 minutes (90 * 10s)
                     log_to_db(asset_name, "SERVICE_ALIVE_HEARTBEAT", "LAUNCHER")
                     
                 if time.time() - last_output_at > silence_timeout:
@@ -146,13 +146,13 @@ if __name__ == "__main__":
             try:
                 log_to_db("LAUNCHER_GLOBAL", "ALIVE", "LAUNCHER")
             except: pass
-            time.sleep(900) # 15 minutes
+            time.sleep(1800) # 30 minutes (was 15)
             
     threading.Thread(target=launcher_heartbeat, daemon=True).start()
     
     # Keep the main thread alive
     try:
         while True:
-            time.sleep(60)
+            time.sleep(300) # 5m sleep for launcher thread
     except KeyboardInterrupt:
         print("🛑 Shutdown requested.")

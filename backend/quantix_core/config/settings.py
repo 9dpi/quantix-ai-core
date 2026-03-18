@@ -22,8 +22,8 @@ class Settings(BaseSettings):
     API_PREFIX: str = "/api/v1"
     TWELVE_DATA_API_KEY: Optional[str] = None
     
-    # Heartbeat [T0+Δ] - v4.7.2.8: Cost Optimized (Reduced Frequency)
-    MONITOR_INTERVAL_SECONDS: int = 300   # 5m interval (was 60s)
+    # Heartbeat [T0+Δ] - v4.7.2.9: Responsive Mode
+    MONITOR_INTERVAL_SECONDS: int = 60   # 1m interval (was 300s)
     WATCHER_CHECK_INTERVAL: int = 60    # 1m interval (was 30s)
     
     # Supabase Database

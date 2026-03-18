@@ -85,14 +85,14 @@ class ConfidenceRefiner:
     def get_spread_factor(self, symbol: str) -> float:
         """
         Check if spread is within acceptable limits.
-        Rollover hours (21:00-23:00 UTC) usually have high spread.
+        v4.7.2.9: Softened from 0.5x to 0.85x during rollover.
         """
         now = datetime.now(timezone.utc)
         hour = now.hour
         
-        # Rollover/Low liquidity window
+        # Rollover/Low liquidity window (softer penalty)
         if 21 <= hour <= 23:
-            return 0.5 # Penalty for high spread
+            return 0.85 # v4.7.2.9: Reduced penalty (was 0.5x)
             
         return 1.0
 

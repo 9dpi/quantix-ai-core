@@ -44,9 +44,9 @@ class Settings(BaseSettings):
     TABLE_ANALYSIS_LOG: str = "fx_analysis_log"
     
     # Trading Rules
-    TP_PIPS: float = 10.0                   # v4.5.2: 10 pips
-    SL_PIPS: float = 5.0                    # v4.5.2: 5 pips (Aggressive 2:1 R:R)
-    MIN_RR: float = 2.0  # v4.5.2: Minimum 2.0 R:R
+    TP_PIPS: float = 12.0                   # v4.7.2.9: 12 pips
+    SL_PIPS: float = 10.0                   # v4.7.2.9: 10 pips (Relaxed for noise)
+    MIN_RR: float = 1.2  # v4.7.2.9: Relaxed RR for hit rate
     MIN_CONFIDENCE: float = 0.70  # v4.6.3: Lowered to 70% for aggressive M5 scalping
     MAX_SIGNALS_PER_ASSET: int = 9999
     MAX_PENDING_DURATION_MINUTES: int = 35  # Entry window before auto-cancel
@@ -56,10 +56,10 @@ class Settings(BaseSettings):
     RISK_USD_PER_TRADE: float = 50.0        # Institutional Risk Model base per signal
     
     # 🔒 ANTI-BURST RULES
-    MIN_RELEASE_INTERVAL_MINUTES: int = 15  # v4.6.3: Reduced to 15m for M5 Scalper responsiveness
-    MAX_SIGNALS_PER_DAY: int = 20           # v4.6.3: Increased cap for scalper mode
-    MAX_CONSECUTIVE_LOSSES: int = 3
-    CIRCUIT_BREAKER_COOLDOWN_HOURS: float = 1.0 # v4.5.1: Reduced from 4h per Irfan feedback
+    MIN_RELEASE_INTERVAL_MINUTES: int = 5  # v4.7.2.9: Reduced to 5m for M5 Scalper responsiveness
+    MAX_SIGNALS_PER_DAY: int = 50           # v4.7.2.9: Increased cap for scalper mode
+    MAX_CONSECUTIVE_LOSSES: int = 5  # v4.7.2.9: Increased tolerance for choppy markets
+    CIRCUIT_BREAKER_COOLDOWN_HOURS: float = 0.25 # v4.7.2.9: 15 min cooldown (was 1h)
     
     # 📈 v4.7.0: Stepped Trailing TP (Irfan Request)
     ENABLE_TRAILING_TP: bool = True

@@ -120,14 +120,15 @@ class ContinuousAnalyzer:
         return df
         
     def _check_circuit_breaker(self):
-        """v4.7.2.6: Re-enabled Circuit Breaker to protect against consecutive losses."""
+        """v4.7.2.9: Softer Circuit Breaker - Cooldown only, doesn't block forever."""
         try:
-            # 1. Check if we are already in an active cooldown (memory-based)
             now = datetime.now(timezone.utc)
+            
+            # Check if we are already in an active cooldown (memory-based)
             if self.cooldown_until and now < self.cooldown_until:
                 return
 
-            # 2. Query last N signals to check for consecutive losses
+            # Query last N signals to check for consecutive losses
             limit = settings.MAX_CONSECUTIVE_LOSSES
             res = self.db.client.table(settings.TABLE_SIGNALS).select("status,result")\
                 .neq("result", "CANCELLED")\
@@ -136,24 +137,22 @@ class ContinuousAnalyzer:
             
             if res.data and len(res.data) >= limit:
                 results = [s.get("result") for s in res.data]
-                statuses = [s.get("status") for s in res.data]
                 
                 # If all recent completions are losses
                 if all(r == "LOSS" for r in results):
-                    cooldown_hrs = getattr(settings, "CIRCUIT_BREAKER_COOLDOWN_HOURS", 1.0)
-                    self.cooldown_until = now + timedelta(hours=cooldown_hrs)
-                    logger.critical(f"🛑 CIRCUIT BREAKER TRIGGERED: {limit} consecutive losses detected. Cooldown for {cooldown_hrs}h.")
+                    # v4.7.2.9: Shorter cooldown (15 min instead of 1 hour)
+                    cooldown_mins = 15
+                    self.cooldown_until = now + timedelta(minutes=cooldown_mins)
+                    logger.critical(f"🛑 CIRCUIT BREAKER TRIGGERED: {limit} consecutive losses. Cooldown for {cooldown_mins} mins (not hours).")
                     
-                    # Log the event
                     self.db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
                         "timestamp": now.isoformat(),
                         "asset": "SYSTEM",
                         "direction": "COOLDOWN",
-                        "status": f"CIRCUIT_BREAKER_ACTIVE_FOR_{cooldown_hrs}H",
+                        "status": f"CIRCUIT_BREAKER_SOFT_{cooldown_mins}M",
                         "price": 0.0, "confidence": 0.0, "strength": 0.0
                     }).execute()
                 else:
-                    # Reset memory cooldown if a win is found in the sequence
                     self.cooldown_until = None
             else:
                 self.cooldown_until = None
@@ -354,16 +353,24 @@ class ContinuousAnalyzer:
                 )
                 return
 
-            # 🧩 v4.6.1: M15 Trend Alignment (Replaced H1 for faster adaptation)
+            # 🧩 v4.7.2.9: Adaptive M15 Trend Alignment
             m15_trend = self._get_m15_trend()
             mtf_penalty = 1.0  # Default: no penalty
             if m15_trend:
                 logger.info(f"🔎 Trend Check: M5_SIGNAL={direction} | M15_TREND={m15_trend.upper()}")
                 mtf_aligned = (direction == "BUY" and m15_trend == "bullish") or \
                               (direction == "SELL" and m15_trend == "bearish")
-                if not mtf_aligned:
-                    mtf_penalty = 0.70  # v4.7.2.6: Increased to 30% penalty (Harder trend filter)
-                    logger.warning(f"⚠️ Trend Misalignment: M5 {direction} vs M15_TREND={m15_trend.upper()} → 0.70x penalty")
+                if mtf_aligned:
+                    mtf_penalty = 1.10  # v4.7.2.9: BOOST aligned signals by 10%
+                    logger.success(f"✅ Trend Aligned: M5 {direction} + M15 {m15_trend.upper()} → 1.10x boost")
+                elif m15_trend == "range":
+                    mtf_penalty = 0.95  # v4.7.2.9: Minimal penalty for ranging M15
+                    logger.info(f"⚠️ M15 is RANGING: Minimal penalty (0.95x)")
+                else:
+                    # v4.7.2.9: Smart Direction Override - If M15 disagrees, consider flipping
+                    # Only apply soft penalty, don't kill the signal
+                    mtf_penalty = 0.85  # v4.7.2.9: Reduced to 15% penalty (was 30%)
+                    logger.warning(f"⚠️ Trend Misalignment: M5 {direction} vs M15_TREND={m15_trend.upper()} → 0.85x penalty")
             else:
                 logger.warning("⚠️ M15 trend unavailable. Proceeding with caution (M5 only).")
             
@@ -848,11 +855,16 @@ class ContinuousAnalyzer:
 
         # 🛡️ Signal Deduplication (Same asset/direction/tf/entry)
         if not hasattr(self, '_pushed_signals'):
-            self._pushed_signals = set()
+            self._pushed_signals = {} # Use dict for timestamp tracking
         
         signal_key = f"{signal['asset']}_{signal['direction']}_{signal['timeframe']}_{signal['entry_price']}"
+        now_ts = now.timestamp()
+        
+        # Cleanup old entries (>30 mins)
+        self._pushed_signals = {k: ts for k, ts in self._pushed_signals.items() if now_ts - ts < 1800}
+        
         if signal_key in self._pushed_signals:
-            logger.info(f"Signal {signal_key} already pushed to Telegram")
+            logger.info(f"Signal {signal_key} already pushed to Telegram within last 30m")
             return None
 
         if not self.notifier:
@@ -869,7 +881,7 @@ class ContinuousAnalyzer:
             if msg_id:
                 logger.info(f"🚀 Signal released to Telegram (ID: {msg_id})")
                 self.last_pushed_at = now
-                self._pushed_signals.add(signal_key)
+                self._pushed_signals[signal_key] = now_ts
                 return msg_id
             else:
                 logger.error("Telegram push failed: Notifier returned None")

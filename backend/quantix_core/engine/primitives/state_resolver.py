@@ -44,11 +44,11 @@ class StateResolver:
     """
     
     def __init__(self):
-        # Minimum total score to have any opinion (v4.7.2.7: Increased for quality)
-        self.min_total_score = 0.5
+        # Minimum total score to have any opinion (v4.7.2.9: Lowered for responsiveness)
+        self.min_total_score = 0.3
         
-        # Dominance ratio for clear state (v4.7.2.7: Increased for quality)
-        self.clear_dominance_ratio = 2.5
+        # Dominance ratio for clear state (v4.7.2.9: Lowered for faster BUY/SELL switching)
+        self.clear_dominance_ratio = 2.0
     
     def resolve_state(
         self,
@@ -175,10 +175,10 @@ class StateResolver:
             bear_bull_ratio = float('inf') if bearish_score > 0 else 1.0
         
         # Decision logic
+        # v4.7.2.9: Dynamic BUY/SELL - reduced ratios for faster direction switching
         if bull_bear_ratio >= self.clear_dominance_ratio:
             # Clear bullish dominance
             state = "bullish"
-            # Filter to bullish evidence only
             filtered_evidence = [e for e in evidence_items if "bullish" in e.lower() or "BOS" in e]
             
         elif bear_bull_ratio >= self.clear_dominance_ratio:
@@ -186,13 +186,13 @@ class StateResolver:
             state = "bearish"
             filtered_evidence = [e for e in evidence_items if "bearish" in e.lower() or "BOS" in e]
             
-        elif bullish_score > bearish_score * 1.5:
-            # Moderate bullish lean (v4.7.2.7: 1.5x)
+        elif bullish_score > bearish_score * 1.3 and bullish_score >= 0.3:
+            # Moderate bullish lean (v4.7.2.9: 1.3x + min 0.3 absolute score)
             state = "bullish"
             filtered_evidence = evidence_items
             
-        elif bearish_score > bullish_score * 1.5:
-            # Moderate bearish lean (v4.7.2.7: 1.5x)
+        elif bearish_score > bullish_score * 1.3 and bearish_score >= 0.3:
+            # Moderate bearish lean (v4.7.2.9: 1.3x + min 0.3 absolute score)
             state = "bearish"
             filtered_evidence = evidence_items
             

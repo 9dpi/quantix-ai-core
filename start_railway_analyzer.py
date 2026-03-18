@@ -61,7 +61,8 @@ for attempt in range(1, MAX_RESTARTS + 1):
                 clean_line = line.strip()
                 if clean_line:
                     print(f"[ANALYZER] {clean_line}")
-                    log_to_db("ANALYZER_LOG", clean_line[:200], "STDOUT")
+                    # v4.7.2.9: Disabled per-line logging to prevent OOM
+                    # log_to_db("ANALYZER_LOG", clean_line[:200], "STDOUT")
                     
         t = threading.Thread(target=log_stream, args=(process.stdout,), daemon=True)
         t.start()

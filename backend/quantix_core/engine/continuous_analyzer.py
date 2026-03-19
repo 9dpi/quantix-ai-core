@@ -201,16 +201,15 @@ class ContinuousAnalyzer:
         return None
     def check_release_gate(self, asset: str, timeframe: str) -> tuple[bool, str]:
         """
-        🛡️ ANTI-BURST PROTECTION (v4.7.2.4)
+        🛡️ ANTI-BURST + ANTI-DUPLICATE PROTECTION (v4.7.3)
         Returns (is_allowed, reason)
         """
         try:
-            # 1. Check for recent signals for this asset to prevent spamming
-            # We query for any signal created within the last MIN_RELEASE_INTERVAL_MINUTES
+            now = datetime.now(timezone.utc)
             cooldown_mins = settings.MIN_RELEASE_INTERVAL_MINUTES
             
-            # Query Supabase for most recent signal of this asset
-            res = self.db.client.table(settings.TABLE_SIGNALS).select("generated_at")\
+            # 1. TIME-BASED COOLDOWN: Check last signal generated_at
+            res = self.db.client.table(settings.TABLE_SIGNALS).select("generated_at,entry_price,direction")\
                 .eq("asset", asset)\
                 .order("generated_at", desc=True)\
                 .limit(1).execute()
@@ -218,18 +217,36 @@ class ContinuousAnalyzer:
             if res.data:
                 last_gen_str = res.data[0]["generated_at"]
                 last_gen = datetime.fromisoformat(last_gen_str.replace('Z', '+00:00'))
-                now = datetime.now(timezone.utc)
                 diff_mins = (now - last_gen).total_seconds() / 60
                 
                 if diff_mins < cooldown_mins:
                     return False, f"COOLDOWN: Signal released {diff_mins:.1f}m ago (Min: {cooldown_mins}m)"
             
-            # 2. Check Daily Cap
-            # (Optional: can be added if needed, but per-asset cooldown is most critical)
+            # 2. ACTIVE SIGNAL CHECK: Block if same-direction signal is already active
+            active_res = self.db.client.table(settings.TABLE_SIGNALS).select("id,direction,entry_price")\
+                .eq("asset", asset)\
+                .in_("state", ["ENTRY_HIT", "WAITING_FOR_ENTRY"])\
+                .execute()
+            
+            if active_res.data:
+                active_count = len(active_res.data)
+                if active_count >= 2:
+                    return False, f"MAX_ACTIVE: {active_count} signals already active for {asset}"
+            
+            # 3. ENTRY PROXIMITY CHECK: Block signals with entry price within 3 pips of recent signals
+            recent_res = self.db.client.table(settings.TABLE_SIGNALS).select("entry_price,direction")\
+                .eq("asset", asset)\
+                .gte("generated_at", (now - timedelta(hours=2)).isoformat())\
+                .in_("state", ["ENTRY_HIT", "WAITING_FOR_ENTRY", "TP_HIT", "SL_HIT"])\
+                .order("generated_at", desc=True)\
+                .limit(5).execute()
+            
+            # Store recent entries for proximity check later in the pipeline
+            self._recent_entries = [(r["entry_price"], r["direction"]) for r in (recent_res.data or [])]
             
             return True, "ALLOWED"
         except Exception as e:
-            return True, f"ERROR_ALLOW_BY_DEFAULT" # Safety: don't block on DB error
+            return True, f"ERROR_ALLOW_BY_DEFAULT"
 
     def lock_signal(self, signal_data: dict) -> Optional[str]:
         """LOCK signal with timestamp in Immutable Record [T1]"""
@@ -280,7 +297,7 @@ class ContinuousAnalyzer:
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "asset": "HEARTBEAT",
                 "direction": "SYSTEM",
-                "status": f"ALIVE_V4.7.2.9_C{self.cycle_count+1}_START",
+                "status": f"ALIVE_V4.7.3_C{self.cycle_count+1}_START",
                 "confidence": 0.0, "strength": 0.0, "price": 0.0
             }).execute()
         except: pass
@@ -633,6 +650,18 @@ class ContinuousAnalyzer:
             if release_score >= settings.MIN_CONFIDENCE:
                 # 2. Check Anti-Burst Rule
                 is_allowed, gate_reason = self.check_release_gate(signal_base["asset"], signal_base["timeframe"])
+                
+                if is_allowed:
+                    # v4.7.3: ENTRY PROXIMITY CHECK - Prevent near-duplicate entries
+                    PROXIMITY_PIPS = 3.0
+                    proximity_threshold = PROXIMITY_PIPS * 0.0001
+                    recent_entries = getattr(self, '_recent_entries', [])
+                    for recent_ep, recent_dir in recent_entries:
+                        if recent_ep and abs(entry_price - recent_ep) < proximity_threshold:
+                            logger.warning(f"🛡️ [ANTI-DUP] Entry {entry_price} too close to recent {recent_ep} ({abs(entry_price - recent_ep)*10000:.1f} pips < {PROXIMITY_PIPS}p)")
+                            is_allowed = False
+                            gate_reason = f"PROXIMITY: Entry too close to recent signal ({abs(entry_price - recent_ep)*10000:.1f}p < {PROXIMITY_PIPS}p)"
+                            break
                 
                 if is_allowed:
                     logger.success(f"🎯 M5 Scalp Release ({release_score*100:.1f}%) -> BIRTH SIGNAL")

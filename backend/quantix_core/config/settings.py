@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     
     # Application
     APP_NAME: str = "Signal Genius AI Core - Forex Signal Intelligence Engine"
-    APP_VERSION: str = "4.7.2.5"
+    APP_VERSION: str = "4.7.3"
     MODEL_VERSION: str = "signal_genius_fx_v1.0"
     DEBUG: bool = False
     INSTANCE_NAME: str = "LOCAL-MACHINE"  # Override via Railway env var INSTANCE_NAME
@@ -22,9 +22,9 @@ class Settings(BaseSettings):
     API_PREFIX: str = "/api/v1"
     TWELVE_DATA_API_KEY: Optional[str] = None
     
-    # Heartbeat [T0+Δ] - v4.7.2.9: Responsive Mode
-    MONITOR_INTERVAL_SECONDS: int = 60   # 1m interval (was 300s)
-    WATCHER_CHECK_INTERVAL: int = 60    # 1m interval (was 30s)
+    # Heartbeat [T0+Δ] - v4.7.3: Quality Mode
+    MONITOR_INTERVAL_SECONDS: int = 60   # 1m interval
+    WATCHER_CHECK_INTERVAL: int = 60    # 1m interval
     
     # Supabase Database
     SUPABASE_URL: Optional[str] = None
@@ -44,9 +44,9 @@ class Settings(BaseSettings):
     TABLE_ANALYSIS_LOG: str = "fx_analysis_log"
     
     # Trading Rules
-    TP_PIPS: float = 12.0                   # v4.7.2.9: 12 pips
-    SL_PIPS: float = 10.0                   # v4.7.2.9: 10 pips (Relaxed for noise)
-    MIN_RR: float = 1.2  # v4.7.2.9: Relaxed RR for hit rate
+    TP_PIPS: float = 10.0                   # v4.7.3: RESTORED 10 pips (was 12)
+    SL_PIPS: float = 5.0                    # v4.7.3: RESTORED 5 pips (was 10) -> RR = 2:1
+    MIN_RR: float = 2.0  # v4.7.3: Strict 2:1 minimum
     MIN_CONFIDENCE: float = 0.70  # v4.6.3: Lowered to 70% for aggressive M5 scalping
     MAX_SIGNALS_PER_ASSET: int = 9999
     MAX_PENDING_DURATION_MINUTES: int = 35  # Entry window before auto-cancel
@@ -56,15 +56,15 @@ class Settings(BaseSettings):
     RISK_USD_PER_TRADE: float = 50.0        # Institutional Risk Model base per signal
     
     # 🔒 ANTI-BURST RULES
-    MIN_RELEASE_INTERVAL_MINUTES: int = 5  # v4.7.2.9: Reduced to 5m for M5 Scalper responsiveness
-    MAX_SIGNALS_PER_DAY: int = 50           # v4.7.2.9: Increased cap for scalper mode
-    MAX_CONSECUTIVE_LOSSES: int = 5  # v4.7.2.9: Increased tolerance for choppy markets
-    CIRCUIT_BREAKER_COOLDOWN_HOURS: float = 0.25 # v4.7.2.9: 15 min cooldown (was 1h)
+    MIN_RELEASE_INTERVAL_MINUTES: int = 15  # v4.7.3: Increased from 5 to 15m to prevent duplicate clusters
+    MAX_SIGNALS_PER_DAY: int = 20           # v4.7.3: Reduced for quality over quantity
+    MAX_CONSECUTIVE_LOSSES: int = 3  # v4.7.3: Tighter circuit breaker
+    CIRCUIT_BREAKER_COOLDOWN_HOURS: float = 1.0 # v4.7.3: 1 hour cooldown (was 15 min)
     
     # 📈 v4.7.0: Stepped Trailing TP (Irfan Request)
     ENABLE_TRAILING_TP: bool = True
     TRAILING_TP_STEPS: list[float] = [5.0, 6.0, 7.0, 8.0, 9.0] # Pips
-    TRAILING_TP_REVERSAL: float = 0.5                            # Pips reversal to close trade
+    TRAILING_TP_REVERSAL: float = 1.0                            # v4.7.3: Relaxed from 0.5 to 1.0 pips to reduce false closes
     
     HEALTH_REPORT_INTERVAL_MINUTES: int = 480 # 8 hours (was 2 hours)
     

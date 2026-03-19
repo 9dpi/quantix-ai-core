@@ -121,15 +121,13 @@ class ContinuousAnalyzer:
         
     def _check_circuit_breaker(self):
         """
-        v4.7.3: Smart Circuit Breaker with deadlock prevention.
+        v4.7.3.1: Smart Circuit Breaker with TIME-WINDOWED loss detection.
         
-        Problem (v4.7.2.9): After cooldown expires, DB still shows N losses
-        → re-triggers cooldown → infinite loop → system DEAD for days.
+        Problem (v4.7.3): After cooldown expires, DB still shows N losses
+        from BEFORE the cooldown → re-triggers → infinite loop.
         
-        Fix: After serving ONE cooldown, set _circuit_breaker_served = True.
-        Next cycle skips the DB check and lets 1 signal through.
-        If that signal also loses, another cooldown is triggered.
-        This breaks the deadlock while still protecting against runaway losses.
+        Fix: Only count losses that occurred AFTER the last cooldown ended.
+        Uses a sliding 2-hour window and tracks last_cooldown_end time.
         """
         try:
             now = datetime.now(timezone.utc)
@@ -140,44 +138,46 @@ class ContinuousAnalyzer:
                 logger.info(f"⏸️ Circuit Breaker cooldown: {remaining:.0f}m remaining")
                 return
             
-            # Phase 2: If cooldown just expired, ALLOW next signal through (break deadlock)
-            if getattr(self, '_circuit_breaker_served', False):
-                logger.success("🔓 Circuit Breaker: Cooldown served. Allowing 1 signal through to break deadlock.")
-                self._circuit_breaker_served = False
+            # Phase 2: If cooldown just expired, clear it and allow trading
+            if self.cooldown_until and now >= self.cooldown_until:
+                logger.success("🔓 Circuit Breaker: Cooldown expired. Resuming trading.")
+                # Record when cooldown ended — only count losses AFTER this point
+                self._cb_window_start = now
                 self.cooldown_until = None
-                return  # Skip DB check — let the analysis proceed
-
-            # Phase 3: Normal DB check for consecutive losses
+                return  # Allow this cycle to proceed without checking
+            
+            # Phase 3: Count consecutive losses only within the current window
+            window_start = getattr(self, '_cb_window_start', now - timedelta(hours=2))
             limit = settings.MAX_CONSECUTIVE_LOSSES
-            res = self.db.client.table(settings.TABLE_SIGNALS).select("status,result")\
+            
+            res = self.db.client.table(settings.TABLE_SIGNALS).select("status,result,closed_at")\
                 .neq("result", "CANCELLED")\
-                .order("generated_at", desc=True)\
+                .gte("closed_at", window_start.isoformat())\
+                .order("closed_at", desc=True)\
                 .limit(limit).execute()
             
             if res.data and len(res.data) >= limit:
                 results = [s.get("result") for s in res.data]
                 
                 if all(r == "LOSS" for r in results):
-                    cooldown_mins = 15
+                    cooldown_hours = settings.CIRCUIT_BREAKER_COOLDOWN_HOURS
+                    cooldown_mins = int(cooldown_hours * 60)
                     self.cooldown_until = now + timedelta(minutes=cooldown_mins)
-                    self._circuit_breaker_served = True  # Mark: will auto-unlock after cooldown
-                    logger.critical(f"🛑 CIRCUIT BREAKER: {limit} consecutive losses. Cooldown {cooldown_mins}m. Will auto-unlock after.")
+                    logger.critical(f"🛑 CIRCUIT BREAKER: {limit} consecutive losses in window. Cooldown {cooldown_mins}m.")
                     
                     try:
                         self.db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
                             "timestamp": now.isoformat(),
                             "asset": "SYSTEM",
                             "direction": "COOLDOWN",
-                            "status": f"CB_SOFT_{cooldown_mins}M_AUTO_UNLOCK",
+                            "status": f"CB_WINDOW_{cooldown_mins}M",
                             "price": 0.0, "confidence": 0.0, "strength": 0.0
                         }).execute()
                     except: pass
                 else:
                     self.cooldown_until = None
-                    self._circuit_breaker_served = False
             else:
                 self.cooldown_until = None
-                self._circuit_breaker_served = False
                 
         except Exception as e:
             logger.error(f"Circuit Breaker check failed: {e}")

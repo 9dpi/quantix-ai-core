@@ -120,15 +120,34 @@ class ContinuousAnalyzer:
         return df
         
     def _check_circuit_breaker(self):
-        """v4.7.2.9: Softer Circuit Breaker - Cooldown only, doesn't block forever."""
+        """
+        v4.7.3: Smart Circuit Breaker with deadlock prevention.
+        
+        Problem (v4.7.2.9): After cooldown expires, DB still shows N losses
+        → re-triggers cooldown → infinite loop → system DEAD for days.
+        
+        Fix: After serving ONE cooldown, set _circuit_breaker_served = True.
+        Next cycle skips the DB check and lets 1 signal through.
+        If that signal also loses, another cooldown is triggered.
+        This breaks the deadlock while still protecting against runaway losses.
+        """
         try:
             now = datetime.now(timezone.utc)
             
-            # Check if we are already in an active cooldown (memory-based)
+            # Phase 1: If currently in active cooldown, wait it out
             if self.cooldown_until and now < self.cooldown_until:
+                remaining = (self.cooldown_until - now).total_seconds() / 60
+                logger.info(f"⏸️ Circuit Breaker cooldown: {remaining:.0f}m remaining")
                 return
+            
+            # Phase 2: If cooldown just expired, ALLOW next signal through (break deadlock)
+            if getattr(self, '_circuit_breaker_served', False):
+                logger.success("🔓 Circuit Breaker: Cooldown served. Allowing 1 signal through to break deadlock.")
+                self._circuit_breaker_served = False
+                self.cooldown_until = None
+                return  # Skip DB check — let the analysis proceed
 
-            # Query last N signals to check for consecutive losses
+            # Phase 3: Normal DB check for consecutive losses
             limit = settings.MAX_CONSECUTIVE_LOSSES
             res = self.db.client.table(settings.TABLE_SIGNALS).select("status,result")\
                 .neq("result", "CANCELLED")\
@@ -138,27 +157,32 @@ class ContinuousAnalyzer:
             if res.data and len(res.data) >= limit:
                 results = [s.get("result") for s in res.data]
                 
-                # If all recent completions are losses
                 if all(r == "LOSS" for r in results):
-                    # v4.7.2.9: Shorter cooldown (15 min instead of 1 hour)
                     cooldown_mins = 15
                     self.cooldown_until = now + timedelta(minutes=cooldown_mins)
-                    logger.critical(f"🛑 CIRCUIT BREAKER TRIGGERED: {limit} consecutive losses. Cooldown for {cooldown_mins} mins (not hours).")
+                    self._circuit_breaker_served = True  # Mark: will auto-unlock after cooldown
+                    logger.critical(f"🛑 CIRCUIT BREAKER: {limit} consecutive losses. Cooldown {cooldown_mins}m. Will auto-unlock after.")
                     
-                    self.db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
-                        "timestamp": now.isoformat(),
-                        "asset": "SYSTEM",
-                        "direction": "COOLDOWN",
-                        "status": f"CIRCUIT_BREAKER_SOFT_{cooldown_mins}M",
-                        "price": 0.0, "confidence": 0.0, "strength": 0.0
-                    }).execute()
+                    try:
+                        self.db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
+                            "timestamp": now.isoformat(),
+                            "asset": "SYSTEM",
+                            "direction": "COOLDOWN",
+                            "status": f"CB_SOFT_{cooldown_mins}M_AUTO_UNLOCK",
+                            "price": 0.0, "confidence": 0.0, "strength": 0.0
+                        }).execute()
+                    except: pass
                 else:
                     self.cooldown_until = None
+                    self._circuit_breaker_served = False
             else:
                 self.cooldown_until = None
+                self._circuit_breaker_served = False
                 
         except Exception as e:
             logger.error(f"Circuit Breaker check failed: {e}")
+            # On error, don't block — let trades through
+            self.cooldown_until = None
 
     def _get_m15_trend(self) -> Optional[str]:
         """v4.6.1: Fetch M15 trend for faster adaptation (Replaced H1)"""

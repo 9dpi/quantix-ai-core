@@ -682,7 +682,17 @@ class ContinuousAnalyzer:
                     # 3. DB COMMIT (Single Phase)
                     signal_id = self.lock_signal(signal_base)
                     
-                    # 4. BROADCAST (Telegram) - v4.6.3: Decoupled from DB success
+                    # 4. BROADCAST (Telegram) - v4.7.3.1: Enhanced diagnostic logging
+                    try:
+                        self.db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
+                            "timestamp": datetime.now(timezone.utc).isoformat(),
+                            "asset": "SIGNAL_FLOW",
+                            "direction": signal_base.get("direction", "?"),
+                            "status": f"BIRTH_OK|DB_ID={str(signal_id)[:8] if signal_id else 'NONE'}|Notifier={'YES' if self.notifier else 'NO'}",
+                            "confidence": release_score, "strength": 0.0, "price": entry_price
+                        }).execute()
+                    except: pass
+                    
                     if self.notifier:
                         import uuid
                         signal_for_tg = signal_base.copy()
@@ -691,6 +701,17 @@ class ContinuousAnalyzer:
                         signal_for_tg["id"] = effective_id
                         
                         msg_id = self.push_to_telegram(signal_for_tg)
+                        
+                        # Log broadcast result to DB
+                        try:
+                            self.db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
+                                "timestamp": datetime.now(timezone.utc).isoformat(),
+                                "asset": "SIGNAL_FLOW",
+                                "direction": "BROADCAST",
+                                "status": f"TG_RESULT={'OK_'+str(msg_id) if msg_id else 'FAILED'}",
+                                "confidence": 0.0, "strength": 0.0, "price": 0.0
+                            }).execute()
+                        except: pass
                         
                         if msg_id:
                             if signal_id:

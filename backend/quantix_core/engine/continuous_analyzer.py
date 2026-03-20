@@ -316,7 +316,7 @@ class ContinuousAnalyzer:
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "asset": "HEARTBEAT",
                 "direction": "SYSTEM",
-                "status": f"ALIVE_V4.7.3_C{self.cycle_count+1}_START",
+                "status": f"ALIVE_V4.7.3.1_C{self.cycle_count+1}_N={'Y' if self.notifier else 'X'}",
                 "confidence": 0.0, "strength": 0.0, "price": 0.0
             }).execute()
         except: pass

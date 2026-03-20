@@ -61,8 +61,27 @@ class ContinuousAnalyzer:
             from quantix_core.notifications.telegram_notifier_v2 import create_notifier
             self.notifier = create_notifier(token, chat_id, admin_chat_id)
             logger.success("✅ [STABLE_BOOT] Notifier Ready")
+            # v4.7.3.1: Log to DB for production visibility
+            try:
+                self.db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "asset": "SYSTEM_BOOT",
+                    "direction": "SYSTEM",
+                    "status": f"NOTIFIER_OK|Token={len(str(token))}c|Chat={chat_id}",
+                    "confidence": 1.0, "strength": 1.0, "price": 0.0
+                }).execute()
+            except: pass
         else:
             logger.warning("⚠️ [STABLE_BOOT] Notifier NOT initialized: Token or Chat ID missing.")
+            try:
+                self.db.client.table(settings.TABLE_ANALYSIS_LOG).insert({
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "asset": "SYSTEM_BOOT",
+                    "direction": "SYSTEM",
+                    "status": f"NOTIFIER_FAIL|Token={'SET' if token else 'MISSING'}|Chat={'SET' if chat_id else 'MISSING'}",
+                    "confidence": 0.0, "strength": 0.0, "price": 0.0
+                }).execute()
+            except: pass
 
         # 🚨 [v4.7.2.3] Enhanced Robust Audit Timing
         self.last_health_report_at = None
